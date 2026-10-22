@@ -80,9 +80,10 @@ input[type=range]{width:100%;accent-color:var(--accent);min-height:32px}
 .rows.pick{touch-action:none;overscroll-behavior:contain;user-select:none;-webkit-user-select:none}
 .rows.pick:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .bigcount{position:absolute;inset:0 0 auto 0;height:100%;max-height:260px;z-index:5;display:grid;place-items:center;font:800 96px/1 var(--font-display);color:var(--accent);background:color-mix(in srgb,var(--bg) 80%,transparent);border-radius:10px;pointer-events:none}
-.rows{border-radius:10px;--rowh:124px}
+.rows{border-radius:10px;--rowh:124px;--nrows:3}
+.staffs{display:grid;gap:2px}
 .rows.sliding{overflow:hidden;transition:height .24s ease}
-.rows-track{position:relative;display:grid;gap:4px;align-content:start;min-height:calc(3*var(--rowh) + 8px);transition:transform .24s ease}
+.rows-track{position:relative;display:grid;gap:4px;align-content:start;min-height:calc(var(--nrows,3)*var(--rowh) + (var(--nrows,3) - 1)*4px);transition:transform .24s ease}
 #rowEnd{margin-top:8px}
 .brow2{display:grid;gap:4px;align-content:start;min-height:var(--rowh);transition:opacity .24s ease}
 .brow2.r1{opacity:.62}
@@ -93,7 +94,7 @@ input[type=range]{width:100%;accent-color:var(--accent);min-height:32px}
 .brow2 .rl.newbar{color:var(--accent)}
 .staff{display:block;width:100%;height:auto;overflow:visible}
 .staff .sl{stroke:var(--muted);stroke-width:1.5}
-.staff .bar{stroke:var(--ink);stroke-width:1.6}
+.staff .bar{stroke:var(--ink);stroke-width:2}
 .staff .bt{stroke:var(--line);stroke-width:1.2;stroke-dasharray:2 3}
 .staff .bg{fill:transparent;stroke:transparent;stroke-width:1.5}
 .staff .nh{fill:var(--ink)}
@@ -1125,11 +1126,11 @@ function beginRun(mode){
     dirty:true,ended:false,totalBars:pageParsed.bars.length,startBar:S.mode==='page'?S.startBar:1
   };
   run=r;
-  if(!lat){view=r;r.gridSeg=0;document.body.dataset.state='run';if(S.mode==='page')markBars(r);rowsShown=ROWS;labelsOn=true;labelMode='page';setRows(plan,0,false);paintRows(r,null);}
+  if(!lat){view=r;r.gridSeg=0;document.body.dataset.state='run';if(S.mode==='page')markBars(r);applyLayout(layoutPlan(plan));rowsShown=ROWS;labelsOn=true;labelMode='page';setRows(plan,0,false);paintRows(r,null);}
   else{
     /* Calibration shows one row with a cursor on the Play page, so there is something to watch as well as hear. */
     document.body.dataset.state='idle';updateGauge(null);
-    rowsShown=1;labelsOn=true;labelMode='lat';showTab('play');setRows(plan,0,false);paintRows(r,null);
+    applyLayout(plan);rowsShown=1;labelsOn=true;labelMode='lat';showTab('play');setRows(plan,0,false);paintRows(r,null);
   }
   clearInterval(timer);timer=setInterval(tick,25);
   cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);
@@ -1345,23 +1346,64 @@ function passAt(plan,g){
 function totalPasses(plan){const l=plan.segs[plan.segs.length-1];return l.g0+l.passes;}
 /* One pass drawn as rhythm notation on a one-line staff: noteheads, stems, beams, triplet brackets and
    rests, with the sticking letter under each note. Spacing follows time, so every beat has the same width. */
-function buildStaff(sg){
+const MINSLOT=24;                                /* narrowest slot for the shortest note, in staff units */
+const GB=9,GBAR=12;                              /* gap at every beat; extra gap at every barline */
+function gapsOf(durs){
+  const n=durs.length,beats=durs.reduce((a,b)=>a+b,0),ext=[],gapAt=[],offs=[];
+  const isInt=x=>Math.abs(x-Math.round(x))<1e-6;
+  let a=0,c=0;
+  for(let i=0;i<n;i++){
+    offs.push(a);a+=durs[i];
+    let gp=0;
+    if(i>0&&offs[i]>0.001&&isInt(offs[i])){gp=GB;if(Math.abs(beats/2-Math.round(beats/2))<1e-6&&isInt(offs[i]/2))gp+=GBAR;}
+    c+=gp;ext.push(c);gapAt.push(gp);
+  }
+  return {beats:beats,ext:ext,gapAt:gapAt,offs:offs,total:ext[n-1]||0};
+}
+/* Where a pass breaks into lines. Like sheet music, it only breaks at a two-beat barline, and only when
+   the notes would otherwise get squeezed. Every line then uses the same spacing. */
+function staffPlan(sg,avail){
+  const N=sg.N,subs=sg.subs.map(x=>x||sg.defSub),durs=subs.map(x=>1/x);
+  const dmin=Math.min.apply(null,durs),gp=gapsOf(durs),pads=64;
+  const whole={lines:[[0,N]],beats:gp.beats,ext:gp.total,dmin:dmin};
+  const M=gp.beats/2;
+  if(!(Math.abs(M-Math.round(M))<1e-6)||M<2)return whole;
+  const starts=[];                                 /* index of the first note of each two-beat measure */
+  for(let m=0;m<M;m++){
+    const i=gp.offs.findIndex(o=>Math.abs(o-2*m)<1e-6);
+    if(i<0)return whole;
+    starts.push(i);
+  }
+  const need=k=>{const g=gapsOf(durs.slice(starts[0],starts[k]===undefined?N:starts[k]));return Math.ceil(MINSLOT*2*k/dmin)+g.total+pads;};
+  let k=Math.round(M);
+  while(k>1&&need(k)>avail)k--;
+  if(k>=M)return whole;
+  const lines=[];
+  for(let m=0;m<M;m+=k)lines.push([starts[m],m+k<M?starts[m+k]:N]);
+  const ref=gapsOf(durs.slice(0,starts[k]));
+  return {lines:lines,beats:ref.beats,ext:ref.total,dmin:dmin};
+}
+function staffAvail(){return $('rows').clientWidth||document.querySelector('.app').clientWidth||360;}
+/* One line of notation for strokes i0 to i1 of a pass. */
+function staffLine(sg,opt){
   const NS='http://www.w3.org/2000/svg',N=sg.N;
   const subs=sg.subs.map(x=>x||sg.defSub);
-  const durs=subs.map(x=>1/x),beats=durs.reduce((a,b)=>a+b,0),dmin=Math.min.apply(null,durs);
-  const avail=$('rows').clientWidth||document.querySelector('.app').clientWidth||360;
-  const padL=34,padR=30,LW=Math.max(avail,Math.ceil(21*beats/dmin)+padL+padR),u=(LW-padL-padR)/beats;
+  const durs=subs.map(x=>1/x),beats=durs.reduce((a,b)=>a+b,0);
+  const avail=opt.avail;
+  const padL=34,padR=30;
+  const gp=gapsOf(durs),ext=gp.ext,gapAt=gp.gapAt,totalExt=gp.total;
+  const LW=Math.max(avail,Math.ceil(MINSLOT*opt.beats/opt.dmin)+opt.ext+padL+padR),u=(LW-padL-padR-opt.ext)/opt.beats;
   const H=92,Y0=8,Y=54,TOP=28,SX=6;                  /* staff line, stem top, stem offset from note centre */
   const mk=(n,a)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
   const svg=mk('svg',{viewBox:'0 '+Y0+' '+LW+' '+H,class:'staff','aria-hidden':'true'});
+  const isInt=x=>Math.abs(x-Math.round(x))<1e-6;
   const off=[];let acc=0;
   for(let i=0;i<N;i++){off.push(acc);acc+=durs[i];}
-  const x0=i=>padL+off[i]*u,xw=i=>durs[i]*u,xc=i=>x0(i)+xw(i)/2;
-  const E=LW-padR+24;
+  const x0=i=>padL+off[i]*u+ext[i],xw=i=>durs[i]*u,xc=i=>x0(i)+xw(i)/2,bx=i=>x0(i)-gapAt[i]/2;
+  const E=padL+beats*u+totalExt+24;
   svg.appendChild(mk('line',{class:'sl',x1:2,x2:E,y1:Y,y2:Y}));
   /* faint guides at each beat start, so the width of a beat is visible whatever it holds */
-  const isInt=x=>Math.abs(x-Math.round(x))<1e-6;
-  for(let i=1;i<N;i++)if(isInt(off[i]))svg.appendChild(mk('line',{class:'bt',x1:x0(i),x2:x0(i),y1:Y-30,y2:Y+34}));
+  for(let i=1;i<N;i++)if(isInt(off[i]))svg.appendChild(mk('line',{class:'bt',x1:bx(i),x2:bx(i),y1:Y-30,y2:Y+34}));
   /* neutral (percussion) clef: two thick bars */
   svg.appendChild(mk('rect',{class:'clef',x:6,y:Y-9,width:4.4,height:18}));
   svg.appendChild(mk('rect',{class:'clef',x:15,y:Y-9,width:4.4,height:18}));
@@ -1369,14 +1411,18 @@ function buildStaff(sg){
   if(Number.isInteger(beats)&&beats%2===0){
     for(let i=1;i<N;i++){
       const o=off[i];
-      if(o>0.001&&Math.abs(o/2-Math.round(o/2))<0.001)svg.appendChild(mk('line',{class:'bar',x1:x0(i),x2:x0(i),y1:Y-16,y2:Y+16}));
+      if(o>0.001&&Math.abs(o/2-Math.round(o/2))<0.001)svg.appendChild(mk('line',{class:'bar',x1:bx(i),x2:bx(i),y1:Y-18,y2:Y+18}));
     }
   }
-  /* the pass repeats, so it ends on a repeat sign */
-  svg.appendChild(mk('line',{class:'bar',x1:E-9,x2:E-9,y1:Y-16,y2:Y+16}));
-  svg.appendChild(mk('rect',{class:'clef',x:E-4,y:Y-16,width:3.8,height:32}));
-  svg.appendChild(mk('circle',{class:'rs',cx:E-16,cy:Y-5.5,r:2}));
-  svg.appendChild(mk('circle',{class:'rs',cx:E-16,cy:Y+5.5,r:2}));
+  if(opt.last){
+    /* the pass repeats, so it ends on a repeat sign */
+    svg.appendChild(mk('line',{class:'bar',x1:E-9,x2:E-9,y1:Y-16,y2:Y+16}));
+    svg.appendChild(mk('rect',{class:'clef',x:E-4,y:Y-16,width:3.8,height:32}));
+    svg.appendChild(mk('circle',{class:'rs',cx:E-16,cy:Y-5.5,r:2}));
+    svg.appendChild(mk('circle',{class:'rs',cx:E-16,cy:Y+5.5,r:2}));
+  }else{
+    svg.appendChild(mk('line',{class:'bar',x1:E-12,x2:E-12,y1:Y-18,y2:Y+18}));
+  }
   const beamsOf=s=>s>=4?2:(s>=2?1:0);          /* sub 1 quarter, 2 eighth, 3 eighth triplet, 4+ sixteenth */
   const cards=[];
   for(let i=0;i<N;i++){
@@ -1452,6 +1498,36 @@ function buildStaff(sg){
   }
   return {svg:svg,cards:cards};
 }
+/* A pass as one or more lines. Cards come back in stroke order whichever line they sit on. */
+function buildStaff(sg){
+  const avail=staffAvail(),pl=staffPlan(sg,avail);
+  const box=document.createElement('div');box.className='staffs';
+  const cards=[];
+  pl.lines.forEach((ln,li)=>{
+    const part={N:ln[1]-ln[0],notes:sg.notes.slice(ln[0],ln[1]),groupStart:sg.groupStart.slice(ln[0],ln[1]),
+      subs:sg.subs.slice(ln[0],ln[1]),defSub:sg.defSub};
+    const st=staffLine(part,{avail:avail,beats:pl.beats,ext:pl.ext,dmin:pl.dmin,last:li===pl.lines.length-1});
+    box.appendChild(st.svg);st.cards.forEach(c=>cards.push(c));
+  });
+  return {svg:box,cards:cards,lines:pl.lines.length};
+}
+/* How tall a row is and how many passes fit, from the most lines any bar needs at this width. */
+function layoutPlan(plan){
+  if(S.mode!=='page')return plan;
+  const bars=allBars().map(b=>Object.assign({},b,{passes:1}));
+  return bars.length?buildPlan(bars,{gapBeats:S.gap,clickMode:'off'}):plan;
+}
+function applyLayout(plan){
+  const avail=staffAvail();
+  let L=1;
+  if(plan)plan.segs.forEach(sg=>{L=Math.max(L,staffPlan(sg,avail).lines.length);});
+  ROWS=L>1?2:3;
+  const box=$('rows');
+  box.style.setProperty('--rowh',(32+L*94)+'px');
+  box.style.setProperty('--nrows',String(ROWS));
+  box.dataset.lines=String(L);
+  return L;
+}
 function makeRow(plan,g){
   const pa=passAt(plan,g),sg=plan.segs[pa.si],N=sg.N;
   const el=document.createElement('div');el.className='brow2';
@@ -1465,7 +1541,7 @@ function makeRow(plan,g){
   rowMap.set(g,o);
   return o;
 }
-const ROWS=3;                                   /* how many passes are on screen */
+let ROWS=3;                                   /* how many passes are on screen */
 let rowsShown=ROWS,labelsOn=true,labelMode='page';
 function roleRows(){
   const multi=labelsOn&&S.mode==='page'&&labelMode==='page',latL=labelMode==='lat',prevL=labelMode==='preview';
@@ -1570,11 +1646,14 @@ function previewRows(animate){
     /* Before a run each row is one bar, so you can scroll to any bar and start there. */
     const bars=allBars().map(b=>Object.assign({},b,{passes:1}));
     prevPlan=bars.length?buildPlan(bars,{gapBeats:S.gap,clickMode:'off'}):null;
-    rowsShown=ROWS;labelsOn=true;labelMode='preview';
+    applyLayout(prevPlan);rowsShown=ROWS;labelsOn=true;labelMode='preview';
     const g=prevPlan?clamp(S.startBar-1,0,totalPasses(prevPlan)-1):0;
     setRows(prevPlan,g,!!animate);
   }else{
-    const bars=currentBars().slice(0,ROWS).map(b=>Object.assign({},b,{passes:Math.min(b.passes,ROWS)}));
+    const all=currentBars();
+    const p0=all.length?buildPlan([Object.assign({},all[0],{passes:1})],{gapBeats:S.gap,clickMode:'off'}):null;
+    applyLayout(p0);
+    const bars=all.slice(0,ROWS).map(b=>Object.assign({},b,{passes:Math.min(b.passes,ROWS)}));
     prevPlan=bars.length?buildPlan(bars,{gapBeats:S.gap,clickMode:'off'}):null;
     rowsShown=ROWS;labelsOn=true;labelMode='page';
     setRows(prevPlan,0,false);
@@ -2246,7 +2325,20 @@ function wire(){
     });
   });
   document.addEventListener('visibilitychange',()=>{if(!document.hidden&&run&&!run.ended)lockScreen();});
-  window.addEventListener('resize',drawTrace);
+  let lastW=0,rzT=0;
+  window.addEventListener('resize',()=>{
+    drawTrace();
+    clearTimeout(rzT);
+    rzT=setTimeout(()=>{
+      const w=$('rows').clientWidth;
+      if(!w||Math.abs(w-lastW)<3)return;
+      lastW=w;
+      if(run&&!run.ended&&(run.mode==='play'||run.mode==='lat')){
+        applyLayout(run.mode==='lat'?run.plan:layoutPlan(run.plan));rowsShown=run.mode==='lat'?1:ROWS;
+        setRows(run.plan,run.showG||0,false);paintRows(run,null);
+      }else if(!run||run.ended)previewRows(false);
+    },150);
+  });
   if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',drawTrace);
 }
 function syncEach(){
