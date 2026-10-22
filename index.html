@@ -108,12 +108,12 @@ input[type=range]{width:100%;accent-color:var(--accent);min-height:32px}
 .staff .rsz{fill:none;stroke:var(--ink);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .staff .lt{font:800 22px var(--font-display);fill:var(--ink);text-anchor:middle}
 .staff .ft{font:600 10px var(--font-data);fill:var(--muted);text-anchor:middle}
-.staff .tg{display:none;font:700 9px var(--font-data);fill:var(--late);text-anchor:middle}
+.staff .tg{display:none;font:800 12px var(--font-data);fill:var(--late);text-anchor:start}
 .cd.wrong .tg{display:block}
-.cd.ok .bg{fill:color-mix(in srgb,var(--ok) 20%,transparent);stroke:var(--ok)} .cd.ok .nh,.cd.ok .lt{fill:var(--ok)} .cd.ok .ft{fill:var(--ok)}
-.cd.early .bg{fill:color-mix(in srgb,var(--early) 20%,transparent);stroke:var(--early)} .cd.early .nh,.cd.early .lt{fill:var(--early)} .cd.early .ft{fill:var(--early)}
-.cd.late .bg{fill:color-mix(in srgb,var(--late) 20%,transparent);stroke:var(--late)} .cd.late .nh,.cd.late .lt{fill:var(--late)} .cd.late .ft{fill:var(--late)}
-.cd.miss .bg{stroke:var(--muted);stroke-dasharray:4 3}
+.cd.ok .lt,.cd.ok .ft{fill:var(--ok)}
+.cd.early .lt,.cd.early .ft{fill:var(--early)}
+.cd.late .lt,.cd.late .ft{fill:var(--late)}
+.cd.miss .lt{fill:var(--muted);opacity:.4}
 .cd.now .bg{stroke:var(--accent);stroke-width:3}
 @keyframes goflash{from{background:color-mix(in srgb,var(--accent) 45%,transparent)}to{background:transparent}}
 @media (prefers-reduced-motion:no-preference){.rows.flash{animation:goflash .75s ease-out}}
@@ -426,7 +426,7 @@ R L _ L R _ L R</pre>
       <div class="rows" id="rows" tabindex="0"><div class="rows-track" id="rowsTrack"></div></div>
       <p class="hint" id="rowEnd" hidden></p>
       </div>
-      <p class="cap">The outlined stroke is the one to play now. Green: on time. Blue: early. Pink: late. Dashed: no hit heard. Numbers appear after you stop.</p>
+      <p class="cap">The boxed stroke is the one to play now. Letter colour: green on time, blue early, pink late, faded no hit heard. An arrow such as →R under a letter means the other stick was heard. Numbers appear after you stop.</p>
       <div class="pads kb-only" id="pads">
         <button class="pad" type="button" data-hand="L" aria-label="Left stick pad">L</button>
         <button class="pad" type="button" data-hand="R" aria-label="Right stick pad">R</button>
@@ -1444,7 +1444,7 @@ function staffLine(sg,opt){
       g.appendChild(mk('line',{class:'stem',x1:cx+SX,x2:cx+SX,y1:Y-1,y2:TOP}));
     }
     const lt=mk('text',{class:'lt',x:cx,y:84});lt.textContent=rest?'':h;g.appendChild(lt);
-    const tg=mk('text',{class:'tg',x:cx,y:72});g.appendChild(tg);
+    const tg=mk('text',{class:'tg',x:cx+8,y:74});g.appendChild(tg);
     const ft=mk('text',{class:'ft',x:cx,y:97});g.appendChild(ft);
     g._sig='\u0000';g._now=false;g._ft=ft;g._tg=tg;
     svg.appendChild(g);cards.push(g);
@@ -1631,7 +1631,7 @@ function paintRows(r,cursor){
           else{
             el.classList.add(Math.abs(res.ms)<=S.tol?'ok':(res.ms<0?'early':'late'));
             if(ended)ft=fmtMs(res.ms);
-            if(res.wrong){el.classList.add('wrong');tg='heard '+res.wrong;}
+            if(res.wrong){el.classList.add('wrong');tg='→'+res.wrong;}
           }
         }
         el._ft.textContent=ft;el._tg.textContent=tg;
