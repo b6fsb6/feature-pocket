@@ -1,0 +1,2282 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Stick Timing Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Big+Shoulders+Display:wght@700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one column, three pages (Setup, Pattern, Play). Transport and tabs stay on top. */
+:root{
+  --bg:#E9ECEA; --surface:#F6F8F6; --ink:#151A18; --muted:#5B6762; --line:#C9D0CC;
+  --accent:#8A5600; --accent-ink:#FFFFFF;           /* brass */
+  --early:#2D6CB8; --late:#C2385A; --ok:#2A8A55;     /* timing states, separate from the accent */
+  --font-display:'Big Shoulders Display','Arial Narrow',Impact,sans-serif;
+  --font-body:'Barlow',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-data:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0F1311; --surface:#171C19; --ink:#E7ECE9; --muted:#93A09A; --line:#2A322E;
+    --accent:#E3A93B; --accent-ink:#1A1200;
+    --early:#6FA8E8; --late:#F07A97; --ok:#5CC48A;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--font-body);
+  padding-block:max(20px,env(safe-area-inset-top,0px)) max(48px,env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.app{max-width:760px;margin:0 auto;display:grid;gap:22px}
+.app>*{min-width:0}
+h1{font:800 clamp(36px,10vw,56px)/.92 var(--font-display);text-transform:uppercase;letter-spacing:.01em;margin:0}
+h3{font:600 11px var(--font-body);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.sub{color:var(--muted);font-size:14px;margin:8px 0 0}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.pill{font:600 12px var(--font-data);border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--muted);white-space:nowrap;background:var(--surface)}
+.pill.on{color:var(--ok);border-color:var(--ok)}
+
+.transport{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center}
+.status{font:400 13px/1.4 var(--font-data);color:var(--muted);margin:0}
+.btn{font:600 15px var(--font-body);border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 14px;cursor:pointer;min-height:44px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.small{min-height:36px;padding:6px 12px;font-size:14px}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent;min-width:140px;min-height:58px;font:800 24px var(--font-display);letter-spacing:.07em;text-transform:uppercase}
+.btn.primary.running{background:var(--ink);color:var(--bg)}
+.btn:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:14px}
+.field{display:grid;gap:5px;min-width:0}
+.field>label,.lbl{font:600 11px var(--font-body);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.field output{color:var(--ink);font-family:var(--font-data);letter-spacing:0;text-transform:none;margin-left:6px}
+input[type=text],input[type=number],select{font:500 16px var(--font-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:44px;width:100%}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:32px}
+#pattern{font:600 24px var(--font-data);letter-spacing:.1em;text-transform:uppercase}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:500 13px var(--font-data);letter-spacing:.06em;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--ink);cursor:pointer;min-height:34px}
+.chip[aria-pressed=true]{border-color:var(--accent);color:var(--accent)}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.tempo{display:grid;grid-template-columns:44px 1fr 44px;gap:8px;align-items:center}
+.tempo .btn{padding:0;font-size:22px}
+.err{color:var(--late);font-size:13px;margin:0;min-height:0}
+.hint{font-size:13px;color:var(--muted);margin:0}
+
+.hand{width:26px;height:26px;display:grid;place-items:center;border-radius:50%;font:800 20px/1 var(--font-display)}
+.hand.L{border:2px solid var(--ink);color:var(--ink)}
+.hand.R{background:var(--ink);color:var(--bg)}
+.hand.rest{border:2px dashed var(--line);color:var(--muted);font-size:18px}
+.rowswrap{position:relative}
+.barnav{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px}
+.barnav .hint{flex:1 1 100%;margin:0}
+.rows.pick .brow2{cursor:pointer}
+.rows.pick{touch-action:none;overscroll-behavior:contain;user-select:none;-webkit-user-select:none}
+.rows.pick:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.bigcount{position:absolute;inset:0 0 auto 0;height:100%;max-height:260px;z-index:5;display:grid;place-items:center;font:800 96px/1 var(--font-display);color:var(--accent);background:color-mix(in srgb,var(--bg) 80%,transparent);border-radius:10px;pointer-events:none}
+.rows{border-radius:10px;--rowh:124px}
+.rows.sliding{overflow:hidden;transition:height .24s ease}
+.rows-track{position:relative;display:grid;gap:4px;align-content:start;min-height:calc(3*var(--rowh) + 8px);transition:transform .24s ease}
+#rowEnd{margin-top:8px}
+.brow2{display:grid;gap:4px;align-content:start;min-height:var(--rowh);transition:opacity .24s ease}
+.brow2.r1{opacity:.62}
+.brow2.r2{opacity:.46}
+.brow2.r3{opacity:.34}
+.brow2 .rl{font:600 12px var(--font-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);min-height:28px;padding:5px 9px;border-radius:8px;display:flex;align-items:center}
+.brow2 .rl.alert{background:var(--accent);color:var(--accent-ink);font-size:14px}
+.brow2 .rl.newbar{color:var(--accent)}
+.staff{display:block;width:100%;height:auto;overflow:visible}
+.staff .sl{stroke:var(--muted);stroke-width:1.5}
+.staff .bar{stroke:var(--ink);stroke-width:1.6}
+.staff .bt{stroke:var(--line);stroke-width:1.2;stroke-dasharray:2 3}
+.staff .bg{fill:transparent;stroke:transparent;stroke-width:1.5}
+.staff .nh{fill:var(--ink)}
+.staff .clef{fill:var(--ink)}
+.staff .stem{stroke:var(--ink);stroke-width:1.6}
+.staff .beam{fill:var(--ink)}
+.staff .flag{stroke:var(--ink);stroke-width:2.2;fill:none}
+.staff .br{stroke:var(--muted);stroke-width:1.3;fill:none}
+.staff .brn{fill:var(--muted);font:italic 700 12px var(--font-body);text-anchor:middle}
+.staff .rs{fill:var(--ink);stroke:none}
+.staff .rsz{fill:none;stroke:var(--ink);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.staff .lt{font:800 22px var(--font-display);fill:var(--ink);text-anchor:middle}
+.staff .ft{font:600 10px var(--font-data);fill:var(--muted);text-anchor:middle}
+.staff .tg{display:none;font:700 9px var(--font-data);fill:var(--late);text-anchor:middle}
+.cd.wrong .tg{display:block}
+.cd.ok .bg{fill:color-mix(in srgb,var(--ok) 20%,transparent);stroke:var(--ok)} .cd.ok .nh,.cd.ok .lt{fill:var(--ok)} .cd.ok .ft{fill:var(--ok)}
+.cd.early .bg{fill:color-mix(in srgb,var(--early) 20%,transparent);stroke:var(--early)} .cd.early .nh,.cd.early .lt{fill:var(--early)} .cd.early .ft{fill:var(--early)}
+.cd.late .bg{fill:color-mix(in srgb,var(--late) 20%,transparent);stroke:var(--late)} .cd.late .nh,.cd.late .lt{fill:var(--late)} .cd.late .ft{fill:var(--late)}
+.cd.miss .bg{stroke:var(--muted);stroke-dasharray:4 3}
+.cd.now .bg{stroke:var(--accent);stroke-width:3}
+@keyframes goflash{from{background:color-mix(in srgb,var(--accent) 45%,transparent)}to{background:transparent}}
+@media (prefers-reduced-motion:no-preference){.rows.flash{animation:goflash .75s ease-out}}
+.cap{font-size:12px;color:var(--muted);margin:8px 0 0}
+.pads{display:none;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+body[data-input="kb"] .pads{display:grid}
+.pad{min-height:84px;border-radius:10px;border:2px solid var(--ink);background:var(--surface);color:var(--ink);font:800 44px var(--font-display);cursor:pointer;touch-action:manipulation}
+.pad[data-hand=R]{background:var(--ink);color:var(--bg)}
+body[data-input="kb"] .mic-only{display:none}
+body[data-input="mic"] .kb-only{display:none}
+
+.readout{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 12px}
+.big{font:800 60px/1 var(--font-display);font-variant-numeric:tabular-nums}
+.big small{font:600 16px var(--font-body);color:var(--muted);margin-left:4px}
+.word{font:600 18px var(--font-body)}
+.word.early{color:var(--early)} .word.late{color:var(--late)} .word.ok{color:var(--ok)}
+.gauge{position:relative;height:44px;margin-top:6px}
+.g-track{position:absolute;left:0;right:0;top:16px;height:12px;border-radius:6px;background:var(--surface);border:1px solid var(--line)}
+.g-zone{position:absolute;top:16px;height:12px;background:color-mix(in srgb,var(--ok) 30%,transparent)}
+.g-band{position:absolute;top:20px;height:4px;border-radius:2px;background:var(--accent);opacity:.4}
+.g-mid{position:absolute;left:50%;top:12px;height:20px;width:1px;background:var(--muted)}
+.g-needle{position:absolute;top:8px;width:4px;height:28px;margin-left:-2px;border-radius:2px;background:var(--accent)}
+.g-ticks{display:grid;grid-template-columns:repeat(5,1fr);font:11px var(--font-data);color:var(--muted)}
+.g-ticks span:nth-child(1){text-align:left}.g-ticks span:nth-child(5){text-align:right}.g-ticks span:nth-child(n+2):nth-child(-n+4){text-align:center}
+.g-ends{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:2px}
+
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));column-gap:12px}
+.stat{padding:10px 0;border-top:1px solid var(--line);min-width:0}
+.stat .v{font:600 20px var(--font-data);font-variant-numeric:tabular-nums}
+.stat .k{font:600 10px/1.25 var(--font-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.insight{font-size:15px;margin:0;min-height:1.5em}
+canvas{display:block;width:100%;height:170px}
+
+details{border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+summary{cursor:pointer;padding:14px;font:800 20px var(--font-display);letter-spacing:.06em;text-transform:uppercase;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";float:right;font-family:var(--font-data)}
+details[open] summary::after{content:"–"}
+.meter{position:relative;height:16px;border-radius:8px;background:var(--bg);border:1px solid var(--line);overflow:hidden}
+.m-fill{height:100%;width:0;background:var(--accent)}
+.m-thr{position:absolute;top:0;bottom:0;width:2px;background:var(--ink)}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.heard{font:600 13px var(--font-data);color:var(--accent)}
+
+[hidden]{display:none!important}
+textarea{font:600 15px/1.55 var(--font-data);letter-spacing:.06em;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;width:100%;min-height:150px;resize:vertical}
+textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.switch{display:grid;grid-template-columns:repeat(var(--n,2),1fr);border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.switch button{font:800 18px var(--font-display);letter-spacing:.07em;text-transform:uppercase;border:0;background:transparent;color:var(--muted);min-height:46px;cursor:pointer}
+.switch button[aria-pressed=true],.switch button[aria-selected=true]{background:var(--ink);color:var(--bg)}
+.switch button:disabled{opacity:.5;cursor:not-allowed}
+.switch button:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
+body[data-run="1"] .cfg,body[data-run="1"] .sub{display:none}
+.switch.tabs{--n:4}
+.switch.tabs button{font-size:15px;padding:0 2px}
+.page{display:grid;gap:22px}
+.page>*{min-width:0}
+body:not([data-state="done"]) #after{display:none}
+body[data-mode="single"] .page-only{display:none}
+body[data-mode="page"] .single-only{display:none}
+.urlrow{display:grid;grid-template-columns:1fr auto;gap:8px}
+.bars{max-height:288px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.brow{cursor:pointer;display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:8px;padding:7px 10px;border-bottom:1px solid var(--line);font:13px var(--font-data);align-items:baseline}
+.brow:last-child{border-bottom:0}
+.brow .seq{letter-spacing:.1em;font-weight:600;overflow-wrap:anywhere}
+.brow .meta{color:var(--muted);white-space:nowrap}
+.brow:hover{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.brow:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.brow.start{background:color-mix(in srgb,var(--accent) 22%,transparent);box-shadow:inset 4px 0 0 var(--accent)}
+.brow.cur{background:color-mix(in srgb,var(--accent) 20%,transparent)}
+.brow.done{color:var(--muted)}
+.brow.skip{opacity:.4}
+.runinfo{display:grid;gap:6px}
+.progress{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.progress>div{height:100%;width:0;background:var(--accent)}
+.runline{display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px 14px;font:13px var(--font-data);color:var(--muted)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font:13px var(--font-data);font-variant-numeric:tabular-nums}
+th{text-align:left;font:600 10px var(--font-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.seq{letter-spacing:.08em;font-weight:600}
+td.early{color:var(--early)} td.late{color:var(--late)} td.ok{color:var(--ok)}
+.fmt{font-size:13px;color:var(--muted)}
+.fmt pre{margin:6px 0;padding:10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;overflow-x:auto;font:12.5px/1.5 var(--font-data);color:var(--ink)}
+.fmt p{margin:6px 0}
+</style>
+</head>
+<body data-input="mic" data-mode="single" data-tab="pattern" data-state="idle" data-run="0">
+<main class="app">
+  <header>
+    <div class="head">
+      <h1>Stick Timing Trainer</h1>
+      <span class="pill" id="micPill">Mic off</span>
+    </div>
+    <p class="sub">Play a sticking on your pad. See which strokes lead the beat and which drag.</p>
+  </header>
+
+  <nav class="switch tabs" role="tablist" aria-label="Pages">
+    <button type="button" role="tab" id="tabPlay" aria-controls="pagePlay" aria-selected="true">Play</button>
+    <button type="button" role="tab" id="tabPattern" aria-controls="pagePattern" aria-selected="false">Pattern</button>
+    <button type="button" role="tab" id="tabSetup" aria-controls="pageSetup" aria-selected="false">Setup</button>
+    <button type="button" role="tab" id="tabProgress" aria-controls="pageProgress" aria-selected="false">Progress</button>
+  </nav>
+
+  <p class="status" id="status" role="status" aria-live="polite">Pick a pattern, then open Play and press Start.</p>
+
+  <!-- ===== Setup: tempo, click, microphone, calibration ===== -->
+  <div class="page" id="pageSetup" role="tabpanel" aria-labelledby="tabSetup" hidden>
+    <section class="panel" aria-label="Tempo and click">
+      <h3>Tempo and click</h3>
+      <div class="field">
+        <label for="bpm">Tempo <output id="bpmOut"></output></label>
+        <div class="tempo">
+          <button class="btn" id="bpmDown" type="button" aria-label="Slower">−</button>
+          <input type="range" id="bpm" min="40" max="220" step="1">
+          <button class="btn" id="bpmUp" type="button" aria-label="Faster">+</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field"><label for="click">Click</label>
+          <select id="click">
+            <option value="beat">On the beat</option>
+            <option value="note">Every stroke</option>
+            <option value="off">Count-in only</option>
+          </select></div>
+        <div class="field"><label for="tol">On-time window</label>
+          <select id="tol">
+            <option value="10">± 10 ms</option>
+            <option value="15">± 15 ms</option>
+            <option value="20">± 20 ms</option>
+            <option value="30">± 30 ms</option>
+          </select></div>
+      </div>
+      <div class="field"><label for="vol">Click volume <output id="volOut"></output></label><input type="range" id="vol" min="0" max="100" step="1"></div>
+      <p class="hint mic-only">Use headphones for the click. A click from the speakers is picked up by the microphone and counted as a stroke.</p>
+    </section>
+
+    <section class="panel" aria-label="Input">
+      <h3>Input</h3>
+      <div class="field">
+        <label for="inputMode" class="lbl">Where strokes come from</label>
+        <select id="inputMode">
+          <option value="mic">Microphone</option>
+          <option value="kb">Keyboard or pads (F = L, J = R)</option>
+        </select>
+      </div>
+      <p class="hint kb-only">Test mode. Use it to try the page without a microphone. Phone and keyboard timing is rougher than a mic on a pad.</p>
+    </section>
+
+    <section class="panel mic-only" aria-label="Microphone level">
+      <h3>Microphone level</h3>
+      <div class="meter" aria-hidden="true"><div class="m-fill" id="mFill"></div><div class="m-thr" id="mThr"></div></div>
+      <div class="field">
+        <label for="sens">Trigger line <output id="sensOut"></output></label>
+        <input type="range" id="sens" min="-55" max="-8" step="1">
+      </div>
+      <div class="btns"><button class="btn small" id="testMic" type="button">Turn microphone on</button><span class="heard" id="heard" aria-live="off"></span></div>
+      <p class="err" id="micMsg" role="alert"></p>
+      <p class="hint">Hit the pad. The bar should cross the line on every stroke and fall back under it between strokes. Raise the line if room noise triggers hits, lower it if soft strokes are missed. Echo cancellation and noise suppression are switched off for this page so stick attacks stay sharp.</p>
+    </section>
+
+    <section class="panel mic-only" aria-label="Stick calibration">
+      <h3>Stick calibration</h3>
+      <div class="btns">
+        <button class="btn small" id="calL" type="button">Calibrate left stick</button>
+        <button class="btn small" id="calR" type="button">Calibrate right stick</button>
+        <button class="btn small" id="calReset" type="button">Clear</button>
+      </div>
+      <p class="hint" id="calInfo"></p>
+      <p class="hint">Each stick sounds a little different. Calibrate by hitting the same spot of the pad with one stick only, at your normal playing strength. The app learns the tone of each stick and then flags strokes where the wrong hand seems to have played.</p>
+    </section>
+
+    <section class="panel mic-only" aria-label="Latency">
+      <h3>Latency</h3>
+      <div class="row">
+        <div class="field"><label for="latency">Compensation (ms)</label><input type="number" id="latency" min="0" max="400" step="1" inputmode="numeric" placeholder="auto"></div>
+        <div class="field"><label class="lbl" for="calLatency">Estimate it</label><button class="btn" id="calLatency" type="button">Calibrate latency</button></div>
+      </div>
+      <p class="hint" id="latMsg">Sound reaches the page late, and the click reaches your ears late. This number removes that delay. Calibrate shows a big countdown, then plays the same row of 16 clicks three times, labelled Round 1 of 3, 2 of 3 and 3 of 3, with a cursor on the row. Hit the pad right on each click. It assumes you were on the beat on average, so your own lead or drag is measured against that.</p>
+    </section>
+  </div>
+
+  <!-- ===== Pattern: one pattern or a practice page ===== -->
+  <div class="page" id="pagePattern" role="tabpanel" aria-labelledby="tabPattern">
+    <div class="switch cfg" role="group" aria-label="What to practise">
+      <button type="button" id="modeSingle" aria-pressed="true">One pattern</button>
+      <button type="button" id="modePage" aria-pressed="false">Practice page</button>
+    </div>
+
+    <section class="panel single-only cfg" aria-label="Pattern">
+      <div class="field">
+        <label for="pattern">Sticking</label>
+        <input type="text" id="pattern" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="patInfo">
+        <div class="chips" id="chips"></div>
+        <p class="err" id="patErr" role="alert"></p>
+        <p class="hint" id="patInfo"></p>
+      </div>
+    </section>
+
+    <section class="panel page-only cfg" aria-label="Practice page">
+      <div class="field">
+        <label for="pageText">Bars, one per line</label>
+        <textarea id="pageText" rows="7" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="pageInfo"></textarea>
+        <div class="btns">
+          <button class="btn small" id="fileBtn" type="button">Load file</button>
+          <button class="btn small" id="urlBtn" type="button">Load from URL</button>
+          <button class="btn small" id="clearPage" type="button">Clear</button>
+          <input type="file" id="pageFile" accept=".txt,.json,.csv,text/plain,application/json" hidden>
+        </div>
+        <div class="urlrow" id="urlRow" hidden>
+          <input type="text" id="pageUrl" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://example.com/my-page.txt" aria-label="Page URL">
+          <button class="btn" id="urlGo" type="button">Load</button>
+        </div>
+        <p class="err" id="pageErr" role="alert"></p>
+        <p class="hint" id="pageInfo"></p>
+      </div>
+      <div class="row">
+        <div class="field"><label for="eachVal">Each bar plays for</label>
+          <input type="number" id="eachVal" min="1" max="200" step="1" inputmode="decimal"></div>
+        <div class="field"><label for="eachUnit">Measured in</label>
+          <select id="eachUnit"><option value="min">Minutes</option><option value="pass">Passes of the bar</option></select></div>
+        <div class="field"><label for="gap">Between bars</label>
+          <select id="gap"><option value="4">4-beat count-in</option><option value="0">Straight on</option></select></div>
+        <div class="field"><label for="cue">Bar-change cue</label>
+          <select id="cue"><option value="both">Sound and flash</option><option value="flash">Flash only</option><option value="off">Off</option></select></div>
+        <div class="field"><label for="startBar">Start at bar</label>
+          <input type="number" id="startBar" min="1" max="1" step="1" inputmode="numeric"></div>
+      </div>
+      <p class="hint" id="eachNote" hidden></p>
+      <p class="hint" id="barHint">Tap a bar to start there.</p>
+      <div class="bars" id="barList" role="listbox" aria-label="Bars in this page. Choose the bar to start at."></div>
+      <details class="fmt">
+        <summary style="font:600 14px var(--font-body);letter-spacing:0;text-transform:none;padding:6px 0">File format</summary>
+        <p>Plain text, one bar per line. L and R are strokes, and a space starts a new group. With the click on "Every stroke", the start of the bar gets the strongest click and the first stroke of each group a lighter one, so 7/8 written <b>RL RL RLR</b> is heard as 2+2+3. Lines starting with # are notes to yourself. This page does not come with any book content. You supply the bars.</p>
+        <pre>title: My warm-up page
+each: 1m
+RLRR LRLL
+RLRL RLRL  x16
+LRLL RLRR  90s  @100
+Bar 4: RRLL RRLL
+/4 RLRL /3 RLR LRL
+R L _ L R _ L R</pre>
+        <p><b>each:</b> sets the default time for every bar (<b>1m</b>, <b>90s</b> or <b>x8</b> for eight passes). A bar can override it with <b>x16</b>, <b>90s</b> or <b>1.5m</b> at the end of its line, and can set its own tempo with <b>@100</b>. Bars without any of these use the setting above. Time is rounded to whole passes. A name before a colon (Bar 4:) is just a label.</p>
+        <p><b>/N</b> sets the subdivision for the strokes that follow, until the next marker: <b>/1</b> quarters, <b>/2</b> eighths, <b>/3</b> triplets, <b>/4</b> sixteenths (up to /6). So <b>/4 RLRL /3 RLR LRL</b> is one beat of sixteenths then two beats of triplets. Strokes before any marker use the "Each stroke is a" setting below. A marker can start a line to set the whole bar.</p>
+        <p><b>_</b> is a rest, and so is a lone <b>-</b> with spaces around it (<b>R - L -</b>). A rest takes up time like a stroke, and the click still counts it, but no hit is expected. A hit during a rest counts as an extra hit. A hyphen joined to strokes (<b>RLRR-LRLL</b>) just separates groups.</p>
+        <p><b>Bar-change cue.</b> With "Straight on" there is no count-in between bars, so the page gives its own cue. On the first beat of a bar's last pass you hear one high tick. On the first beat of the new bar you hear two ticks and the strokes flash. The ticks sound whatever the click is set to. They are only used with "Straight on". The next bar always sits under the current one, and the rows shift up when it starts.</p>
+        <p>JSON also works: a list such as <b>["RLRR LRLL", {"sticking":"RLRL RLRL","passes":16}]</b>, or an object with <b>title</b>, <b>each</b> and <b>bars</b>.</p>
+      </details>
+    </section>
+
+    <section class="panel cfg" aria-label="Stroke timing">
+      <div class="field"><label for="subdiv">Each stroke is a</label>
+        <select id="subdiv">
+          <option value="1">Quarter note</option>
+          <option value="2">Eighth note</option>
+          <option value="3">Triplet</option>
+          <option value="4">Sixteenth note</option>
+        </select></div>
+      <p class="hint">Used for strokes that have no /N marker.</p>
+    </section>
+  </div>
+
+  <!-- ===== Play: strokes scroll past, live gauge, results after Stop ===== -->
+  <!-- ===== Progress: scores kept per bar pattern and tempo ===== -->
+  <div class="page" id="pageProgress" role="tabpanel" aria-labelledby="tabProgress" hidden>
+    <section aria-label="Rudiments">
+      <h3>Patterns, weakest first</h3>
+      <p class="hint" id="progHint"></p>
+      <div class="tablewrap"><table id="patTable"></table></div>
+    </section>
+    <section aria-label="Pages">
+      <h3>Pages</h3>
+      <div class="tablewrap"><table id="pgTable"></table></div>
+    </section>
+    <section aria-label="Your records">
+      <h3>Your records</h3>
+      <p class="hint">Scores are saved in this browser only. Export them to keep a copy or move to another device.</p>
+      <div class="btns">
+        <button class="btn small" id="recExport" type="button">Export</button>
+        <button class="btn small" id="recImport" type="button">Import</button>
+        <button class="btn small" id="recClear" type="button">Clear all</button>
+        <input type="file" id="recFile" accept=".json,application/json" hidden>
+      </div>
+      <p class="hint" id="recMsg"></p>
+    </section>
+  </div>
+
+  <div class="page" id="pagePlay" role="tabpanel" aria-labelledby="tabPlay" hidden>
+    <div class="transport">
+      <button class="btn primary" id="startBtn" type="button">Start</button>
+      <p class="hint cfg" id="playSummary"></p>
+      <div class="btns" id="runBtns" hidden>
+        <button class="btn small" id="restartBtn" type="button">Restart</button>
+        <button class="btn small" id="stopBtn" type="button">Stop</button>
+      </div>
+    </div>
+
+    <div id="runInfo" class="runinfo" hidden>
+      <div class="progress" aria-hidden="true"><div id="progFill"></div></div>
+      <div class="runline"><span id="timeLeft"></span></div>
+    </div>
+
+    <section aria-label="Strokes">
+      <div class="barnav page-only cfg" id="barNav">
+        <span class="hint" id="barNavHint">Scroll, swipe or tap a bar to choose where to start.</span>
+      </div>
+      <div class="rowswrap">
+      <div class="bigcount" id="bigCount" hidden aria-hidden="true"></div>
+      <div class="rows" id="rows" tabindex="0"><div class="rows-track" id="rowsTrack"></div></div>
+      <p class="hint" id="rowEnd" hidden></p>
+      </div>
+      <p class="cap">The outlined stroke is the one to play now. Green: on time. Blue: early. Pink: late. Dashed: no hit heard. Numbers appear after you stop.</p>
+      <div class="pads kb-only" id="pads">
+        <button class="pad" type="button" data-hand="L" aria-label="Left stick pad">L</button>
+        <button class="pad" type="button" data-hand="R" aria-label="Right stick pad">R</button>
+      </div>
+    </section>
+
+    <section aria-label="Lead or drag">
+      <h3>Lead or drag, last 32 strokes</h3>
+      <div class="readout">
+        <div class="big"><span id="gVal">—</span><small>ms</small></div>
+        <div class="word" id="gWord">Waiting for strokes</div>
+      </div>
+      <div class="gauge" id="gauge" aria-hidden="true">
+        <div class="g-track"></div>
+        <div class="g-zone" id="gZone"></div>
+        <div class="g-mid"></div>
+        <div class="g-band" id="gBand"></div>
+        <div class="g-needle" id="gNeedle"></div>
+      </div>
+      <div class="g-ticks" aria-hidden="true"><span>−40</span><span>−20</span><span>0</span><span>+20</span><span>+40</span></div>
+      <div class="g-ends"><span>◀ early, leading</span><span>late, dragging ▶</span></div>
+    </section>
+
+    <div class="page after" id="after">
+      <section id="advice" hidden aria-label="Score and tempo">
+        <h3>This run</h3>
+        <p class="insight" id="advHead"></p>
+        <p class="hint" id="advBody"></p>
+        <div class="btns" style="margin-top:10px">
+          <button class="btn small" id="advUse" type="button" hidden></button>
+          <button class="btn small" id="advDiscard" type="button">Discard this run</button>
+        </div>
+      </section>
+
+      <section aria-label="Session numbers">
+        <h3>Session numbers</h3>
+        <div class="stats">
+          <div class="stat"><div class="v" id="sWithin">—</div><div class="k">On time</div></div>
+          <div class="stat"><div class="v" id="sSpread">—</div><div class="k">Spread σ (ms)</div></div>
+          <div class="stat"><div class="v" id="sStreak">—</div><div class="k">Best streak</div></div>
+          <div class="stat"><div class="v" id="sHits">—</div><div class="k">Heard / due</div></div>
+          <div class="stat"><div class="v" id="sL">—</div><div class="k">Left avg (ms)</div></div>
+          <div class="stat"><div class="v" id="sR">—</div><div class="k">Right avg (ms)</div></div>
+          <div class="stat"><div class="v" id="sStick">—</div><div class="k">Sticking correct</div></div>
+          <div class="stat"><div class="v" id="sExtra">—</div><div class="k">Extra hits</div></div>
+        </div>
+        <p class="insight" id="insight"></p>
+      </section>
+
+      <section aria-label="Timing trace">
+        <h3>Timing trace, last 48 strokes</h3>
+        <canvas id="trace" role="img" aria-label="Timing error of each recent stroke in milliseconds"></canvas>
+        <p class="cap">Up is late (dragging), down is early (leading). Ring is left stick, solid dot is right stick. The green band is your on-time window.</p>
+      </section>
+
+      <section id="results" hidden aria-label="Results by bar">
+        <h3>Results by bar</h3>
+        <div class="tablewrap"><table id="resTable"></table></div>
+        <p class="insight" id="resInsight" style="margin-top:10px"></p>
+        <div class="btns" style="margin-top:10px"><button class="btn small" id="csvBtn" type="button">Download CSV</button></div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<script id="core">
+/* Pure logic: pattern parsing, hit matching, stick classifier, onset detector. No DOM access. */
+/* Strokes with optional /N subdivision markers, e.g. "/4 RLRL /3 RLR LRL".
+   subs[i] is the marker in force for stroke i (null before any marker). */
+function parseStrokes(str){
+  const notes=[],gs=[],subs=[],src=String(str),re=/\/\s*(\d+)|(\/)|([^\/]+)/g;
+  let cur=null,ng=true,m;
+  while((m=re.exec(src))){
+    if(m[1]!==undefined){
+      const v=+m[1];
+      if(v<1||v>6)return {err:'a /N marker needs a number from 1 to 6'};
+      cur=v;ng=true;
+    }else if(m[2]){ng=true;}
+    else{
+      /* A lone hyphen between spaces is a rest. A hyphen joined to strokes still separates groups. */
+      const txt=m[3].replace(/(^|\s)-(?=\s|$)/g,'$1_');
+      if(!/^[LRlr_\s,\-|.]+$/.test(txt))return {err:'only L, R and _ (rest) are allowed, plus spaces and /N markers'};
+      for(const ch of txt){
+        const c=ch.toUpperCase();
+        if(c==='L'||c==='R'||c==='_'){notes.push(c);gs.push(ng);subs.push(cur);ng=false;}
+        else ng=true;
+      }
+    }
+  }
+  const total=notes.length;
+  /* A run of strokes under one marker with no spaces is grouped by four, or by six for triplets (two triplets joined),
+     or by the subdivision for /5 and /6. */
+  for(let a=0;a<total;){
+    let b=a;while(b<total&&subs[b]===subs[a])b++;
+    const g=subs[a]===3?6:(subs[a]>=3?subs[a]:4);
+    let groups=0;for(let i=a;i<b;i++)if(gs[i])groups++;
+    if(b-a>g&&groups<=1)for(let i=a;i<b;i++)gs[i]=((i-a)%g===0);
+    a=b;
+  }
+  const n=notes.slice(0,32);
+  return {notes:n,groupStart:gs.slice(0,32),subs:subs.slice(0,32),letters:total,strokes:n.filter(x=>x!=='_').length};
+}
+function mean(a){if(!a.length)return NaN;let s=0;for(const v of a)s+=v;return s/a.length;}
+function sd(a){if(a.length<2)return NaN;const m=mean(a);let s=0;for(const v of a)s+=(v-m)*(v-m);return Math.sqrt(s/(a.length-1));}
+function median(a){if(!a.length)return NaN;const b=[...a].sort((x,y)=>x-y),m=b.length>>1;return b.length%2?b[m]:(b[m-1]+b[m])/2;}
+function fmtMs(v,dec){
+  if(v==null||isNaN(v))return '—';
+  const f=dec?Number(v.toFixed(dec)):Math.round(v);
+  if(f===0)return '0';
+  return (f>0?'+':'−')+Math.abs(f).toFixed(dec||0);
+}
+function pickBest(hits){
+  let best=hits[0];
+  for(const h of hits)if(Math.abs(h.e)<Math.abs(best.e))best=h;
+  return best;
+}
+/* ---------- practice pages ---------- */
+const DUR_SRC='(?:^|\\s)(?:x\\s*(\\d{1,3})|(\\d+(?:\\.\\d+)?)\\s*(s|sec|secs|seconds?|m|min|mins|minutes?)|@(\\d{2,3}))(?=\\s|$)';
+function durOf(n,unit){const v=+n*(/^s/i.test(unit)?1:60);return v>0?{unit:'sec',v:v}:null;}
+function readDur(str){
+  const m=/^\s*(?:x\s*(\d{1,3})|(\d+(?:\.\d+)?)\s*(s|sec|secs|seconds?|m|min|mins|minutes?))\s*$/i.exec(String(str||''));
+  if(!m)return null;
+  if(m[1])return {unit:'pass',v:Math.max(1,+m[1])};
+  return durOf(m[2],m[3]);
+}
+function jsonDur(x){
+  if(x==null)return null;
+  if(typeof x==='string')return readDur(x);
+  if(typeof x!=='object')return null;
+  const n=v=>(typeof v==='number'&&isFinite(v)&&v>0)?v:null;
+  if(n(x.passes||x.reps))return {unit:'pass',v:Math.max(1,Math.round(x.passes||x.reps))};
+  if(n(x.seconds))return {unit:'sec',v:x.seconds};
+  if(n(x.minutes))return {unit:'sec',v:x.minutes*60};
+  return null;
+}
+/* One line of a page. Returns null (blank), {err} or {bar}. Only L and R may remain once labels, numbering and options are removed. */
+function parseBarLine(raw){
+  let line=String(raw).replace(/#.*$/,'').trim();
+  if(!line)return null;
+  let label='';
+  const lm=/^([A-Za-z][A-Za-z0-9 ]*?)\s*:\s*(.*)$/.exec(line);
+  if(lm){label=lm[1].trim();line=lm[2];}
+  line=line.replace(/^\s*\d+\s*[.)]\s+/,'');
+  let dur=null,bpm=null,m;
+  const re=new RegExp(DUR_SRC,'gi');
+  while((m=re.exec(line))){
+    if(m[1])dur={unit:'pass',v:Math.max(1,+m[1])};
+    else if(m[2]){const d=durOf(m[2],m[3]);if(d)dur=d;}
+    else if(m[4])bpm=Math.min(220,Math.max(40,+m[4]));
+  }
+  const core=line.replace(new RegExp(DUR_SRC,'gi'),' ').trim();
+  const p=parseStrokes(core);
+  if(p.err)return {err:p.err};
+  if(p.strokes<2)return {err:'a bar needs at least two strokes (rests do not count)'};
+  return {bar:{notes:p.notes,groupStart:p.groupStart,subs:p.subs,label:label,dur:dur,bpm:bpm,warn:p.letters>32?'more than 32 strokes and rests, the remainder was cut off':''}};
+}
+function parsePage(text){
+  const out={title:'',each:null,bars:[],errors:[]};
+  const t=String(text||'').replace(/^\uFEFF/,'').trim();
+  if(!t)return out;
+  const take=(res,where)=>{
+    if(!res)return;
+    if(res.err){out.errors.push(where+': '+res.err);return;}
+    if(res.bar.warn)out.errors.push(where+': '+res.bar.warn);
+    out.bars.push(res.bar);
+  };
+  if(t[0]==='{'||t[0]==='['){
+    let j;
+    try{j=JSON.parse(t);}catch(e){out.errors.push('That looks like JSON but could not be read ('+e.message+').');return out;}
+    const arr=Array.isArray(j)?j:(j&&Array.isArray(j.bars)?j.bars:null);
+    if(!arr){out.errors.push('JSON needs a "bars" list.');return out;}
+    if(!Array.isArray(j)){
+      if(typeof j.title==='string')out.title=j.title.slice(0,80);
+      out.each=jsonDur(j.each);
+    }
+    arr.slice(0,200).forEach((it,i)=>{
+      const where='Bar '+(i+1);
+      if(typeof it==='string')return take(parseBarLine(it),where);
+      if(!it||typeof it!=='object')return out.errors.push(where+': not a bar');
+      const res=parseBarLine(String(it.sticking||it.pattern||''));
+      if(res&&res.bar){
+        const d=jsonDur(it);if(d)res.bar.dur=d;
+        if(typeof it.bpm==='number')res.bar.bpm=Math.min(220,Math.max(40,Math.round(it.bpm)));
+        if(typeof it.label==='string')res.bar.label=it.label.slice(0,30);
+      }
+      take(res||{err:'no sticking given'},where);
+    });
+  }else{
+    t.split(/\r?\n/).forEach((raw,i)=>{
+      const s=raw.replace(/#.*$/,'');
+      const hm=/^\s*(title|each)\s*:\s*(.*)$/i.exec(s);
+      if(hm){
+        if(hm[1].toLowerCase()==='title')out.title=hm[2].trim().slice(0,80);
+        else{const d=readDur(hm[2]);if(d)out.each=d;else out.errors.push('Line '+(i+1)+': "each:" needs a time like 1m, 90s or x8');}
+        return;
+      }
+      take(parseBarLine(raw),'Line '+(i+1));
+    });
+  }
+  if(out.bars.length>200){out.bars.length=200;out.errors.push('Only the first 200 bars are used.');}
+  out.bars.forEach((b,i)=>{b.idx=i+1;});
+  return out;
+}
+/* def is the default duration {unit:'pass'|'sec', v}. A bar's own duration wins. Time is rounded to whole passes.
+   A stroke with no /N marker uses o.subdiv. A pass lasts the sum of its strokes, each 1/sub of a beat. */
+const rb9=x=>Math.round(x*1e9)/1e9;
+function resolveBars(bars,def,o){
+  return bars.map(b=>{
+    const bpm=b.bpm||o.bpm,subs=b.subs.map(s=>s||o.subdiv);
+    let beats=0;for(const s of subs)beats+=1/s;
+    beats=rb9(beats);
+    const pass=beats*60/bpm,dur=b.dur||def;
+    const passes=dur.unit==='pass'?dur.v:Math.max(1,Math.round(dur.v/pass));
+    return {idx:b.idx,notes:b.notes,groupStart:b.groupStart,subs:subs,defSub:o.subdiv,label:b.label||'',bpm:bpm,passBeats:beats,passes:passes,secs:passes*pass,passSecs:pass,own:!!b.dur};
+  });
+}
+/* Lays out every click and every stroke slot of a session in seconds from the start of the first count-in. */
+function buildPlan(bars,o){
+  const slots=[],cells=[],clicks=[],segs=[],gap=o.gapBeats||0;
+  let t=0,gp=0;
+  bars.forEach((b,si)=>{
+    const beat=60/b.bpm,N=b.notes.length,count=N*b.passes;
+    const off=[];let acc=0;
+    for(let i=0;i<N;i++){off.push(rb9(acc));acc+=1/b.subs[i];}
+    const passBeats=rb9(acc),totalBeats=passBeats*b.passes;
+    /* Group accents only mean something when the bar has groups of more than one position. */
+    const grouped=b.groupStart.some((g,i)=>i>0&&!g);
+    const leadBeats=si===0?4:gap,leadStart=t,lead=leadBeats*beat;
+    for(let j=0;j<leadBeats;j++)clicks.push({t:t+j*beat,a:j===0?2:0});
+    const t0=t+lead,first=slots.length,cell0=cells.length,g0=gp;
+    if(o.clickMode==='beat'){
+      const nb=Math.ceil(totalBeats-1e-9);
+      for(let j=0;j<nb;j++)clicks.push({t:t0+j*beat,a:rb9(j%passBeats)<1-1e-9?2:0});
+    }
+    /* cells are every position, rests included. slots are the strokes that are expected to sound. */
+    for(let p=0;p<b.passes;p++)for(let i=0;i<N;i++){
+      const st=t0+(p*passBeats+off[i])*beat,rest=b.notes[i]==='_';
+      cells.push({t:st,seg:si,pos:i,k:p*N+i,rest:rest,d:beat/b.subs[i],g:g0+p,slot:rest?-1:slots.length});
+      if(!rest)slots.push({t:st,seg:si,pos:i,k:p*N+i,w:Math.min(beat/b.subs[i]*0.5,0.15)});
+      if(o.clickMode==='note'){
+        /* Strong at the start of the bar, lighter at group starts. Inside triplets every beat start is lighter too,
+           and inside sextuplets every half beat (1 2 3, 1 2 3), whatever the beaming. */
+        const sb=b.subs[i],isInt=x=>Math.abs(x-Math.round(x))<1e-6;
+        let a=i===0?2:(grouped&&b.groupStart[i]?1:0);
+        if(a===0&&((sb===3&&isInt(off[i]))||(sb===6&&isInt(off[i]*2))))a=1;
+        clicks.push({t:st,a:a});
+      }
+    }
+    t=t0+totalBeats*beat;gp+=b.passes;
+    segs.push({idx:b.idx,notes:b.notes,groupStart:b.groupStart,subs:b.subs,defSub:b.defSub,label:b.label,bpm:b.bpm,N:N,strokes:b.notes.filter(x=>x!=='_').length,passes:b.passes,passBeats:passBeats,beat:beat,leadStart:leadStart,lead:lead,leadBeats:leadBeats,t0:t0,end:t,first:first,cell0:cell0,g0:g0});
+  });
+  /* Cue ticks for straight-on play, where nothing else announces a new bar:
+     'last' on the first beat of a bar's final pass, 'go' on the first beat of the next bar. */
+  let cues=[];
+  if(o.cueSound&&gap===0){
+    segs.forEach((sg,si)=>{
+      cues.push({t:sg.t0+(sg.passes-1)*sg.passBeats*sg.beat,k:'last'});
+      if(si>0)cues.push({t:sg.t0,k:'go'});
+    });
+    cues.sort((a,b)=>a.t-b.t||(a.k==='go'?-1:1));
+    /* a one-pass bar puts both on the same instant: the new-bar cue wins */
+    cues=cues.filter((c,i)=>!(i>0&&Math.abs(c.t-cues[i-1].t)<1e-6&&cues[i-1].k==='go'));
+  }
+  return {slots:slots,cells:cells,clicks:clicks,cues:cues,segs:segs,end:t};
+}
+function nearestSlot(slots,t){
+  let lo=0,hi=slots.length-1;
+  while(lo<hi){const mid=(lo+hi)>>1;if(slots[mid].t<t)lo=mid+1;else hi=mid;}
+  if(lo>0&&Math.abs(slots[lo-1].t-t)<=Math.abs(slots[lo].t-t))return lo-1;
+  return lo;
+}
+function fmtTime(s){
+  s=Math.max(0,Math.round(s));
+  return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+}
+/* Shows /N markers wherever the subdivision changes. def is the page default, which needs no marker. */
+function fmtPattern(notes,gs,subs,def){
+  let s='',cur=def;
+  for(let i=0;i<notes.length;i++){
+    if(subs&&subs[i]!==cur){s+=(s?' ':'')+'/'+subs[i]+' ';cur=subs[i];}
+    else if(i&&gs[i])s+=' ';
+    s+=notes[i];
+  }
+  return s;
+}
+/* ---------- records: scores kept per bar pattern and tempo ---------- */
+const TARGET=0.9;                                /* accuracy that counts as cleared at a tempo */
+function hash32(str){let h=5381;for(let i=0;i<str.length;i++)h=((h<<5)+h+str.charCodeAt(i))>>>0;return h.toString(36);}
+/* One canonical text per rhythm, whatever the default subdivision or spacing was. */
+function patKey(notes,gs,subs,def){return fmtPattern(notes,gs,subs.map(x=>x||def),0);}
+function pageKeyOf(keys){return 'p'+hash32(keys.join('|'));}
+/* What to suggest after a run. bars: [{idx,pct,passes}] for the bars that were played. */
+function adviceFor(bars,bpm){
+  const played=bars.filter(b=>b.passes>=1);
+  if(!played.length)return null;
+  const weak=played.filter(b=>b.pct<TARGET);
+  return {played:played.length,weak:weak,cleared:!weak.length,next:Math.min(220,bpm+4)};
+}
+/* Per pattern: how it is going at the tempo you played it at most recently. */
+function patStats(runs){
+  const m=new Map();
+  runs.forEach(run=>run.bars.forEach(b=>{
+    if(!(b.due>0))return;
+    let e=m.get(b.k);if(!e){e={k:b.k,recs:[]};m.set(b.k,e);}
+    e.recs.push({t:run.t,bpm:b.bpm||run.bpm,pct:b.within/b.due,avg:b.avg});
+  }));
+  const out=[];
+  m.forEach(e=>{
+    e.recs.sort((a,b)=>a.t-b.t);
+    const last=e.recs[e.recs.length-1],at=e.recs.filter(x=>x.bpm===last.bpm),recent=at.slice(-3);
+    const cleared=e.recs.filter(x=>x.pct>=TARGET).reduce((a,x)=>Math.max(a,x.bpm),0);
+    const bias=recent.filter(x=>typeof x.avg==='number'&&!isNaN(x.avg));
+    out.push({k:e.k,bpm:last.bpm,recent:recent.reduce((a,x)=>a+x.pct,0)/recent.length,last:last.pct,cleared:cleared||null,
+      runs:e.recs.length,t:last.t,bias:bias.length?bias.reduce((a,x)=>a+x.avg,0)/bias.length:NaN});
+  });
+  out.sort((a,b)=>a.recent-b.recent||a.k.localeCompare(b.k));
+  return out;
+}
+/* Pages: a page is cleared at a tempo when one run played every bar and all were above the target. */
+function pageStats(runs){
+  const m=new Map();
+  runs.forEach(run=>{
+    if(!run.pg)return;
+    let e=m.get(run.pg);if(!e){e={pg:run.pg,title:run.pt||'',nb:run.nb,runs:0,t:0,cleared:0};m.set(run.pg,e);}
+    e.runs++;if(run.t>=e.t){e.t=run.t;if(run.pt)e.title=run.pt;}
+    const ok=run.bars.length>=run.nb&&run.bars.every(b=>b.due>0&&b.within/b.due>=TARGET);
+    if(ok)e.cleared=Math.max(e.cleared,run.bpm);
+  });
+  return [...m.values()].sort((a,b)=>b.t-a.t);
+}
+function bestBefore(runs,k,bpm){
+  let best=null;
+  runs.forEach(run=>{run.bars.forEach(b=>{if(b.k===k&&b.due>0&&(b.bpm||run.bpm)===bpm){const p=b.within/b.due;if(best===null||p>best)best=p;}});});
+  return best;
+}
+function fft(re,im){
+  const n=re.length;
+  for(let i=1,j=0;i<n;i++){
+    let bit=n>>1;
+    for(;j&bit;bit>>=1)j^=bit;
+    j^=bit;
+    if(i<j){let t=re[i];re[i]=re[j];re[j]=t;t=im[i];im[i]=im[j];im[j]=t;}
+  }
+  for(let len=2;len<=n;len<<=1){
+    const ang=-2*Math.PI/len,wr=Math.cos(ang),wi=Math.sin(ang),h=len>>1;
+    for(let i=0;i<n;i+=len){
+      let cr=1,ci=0;
+      for(let k=0;k<h;k++){
+        const a=i+k,b=a+h;
+        const vr=re[b]*cr-im[b]*ci,vi=re[b]*ci+im[b]*cr;
+        re[b]=re[a]-vr;im[b]=im[a]-vi;re[a]+=vr;im[a]+=vi;
+        const nr=cr*wr-ci*wi;ci=cr*wi+ci*wr;cr=nr;
+      }
+    }
+  }
+}
+/* Seven tone features from the ~21 ms after an onset. Loudness is left out on purpose. */
+function computeFeatures(w,sr){
+  const N=w.length,re=new Float64Array(N),im=new Float64Array(N);
+  let mu=0;for(let i=0;i<N;i++)mu+=w[i];mu/=N;
+  for(let i=0;i<N;i++)re[i]=(w[i]-mu)*(0.5-0.5*Math.cos(2*Math.PI*i/(N-1)));
+  fft(re,im);
+  const binHz=sr/N,k0=Math.max(1,Math.ceil(150/binHz)),k1=Math.min(N/2-1,Math.floor(12000/binHz));
+  const P=new Float64Array(k1+1);
+  let tot=0,cen=0,lo=0,hi=0,ls=0,cnt=0;
+  for(let k=k0;k<=k1;k++){
+    const p=re[k]*re[k]+im[k]*im[k],f=k*binHz;
+    P[k]=p;tot+=p;cen+=p*f;if(f<1000)lo+=p;if(f>4000)hi+=p;ls+=Math.log(p+1e-12);cnt++;
+  }
+  const T=tot+1e-12;
+  let acc=0,f85=k1*binHz;
+  for(let k=k0;k<=k1;k++){acc+=P[k];if(acc>=0.85*tot){f85=k*binHz;break;}}
+  const flat=Math.exp(ls/cnt)/(tot/cnt+1e-12);
+  let e1=0,e3=0,zc=0;const th=Math.floor(N/3);
+  for(let i=0;i<N;i++){
+    const v=w[i]-mu;
+    if(i<th)e1+=v*v;else if(i>=N-th)e3+=v*v;
+    if(i&&(v>=0)!==((w[i-1]-mu)>=0))zc++;
+  }
+  return [Math.log10(cen/T+1),lo/T,hi/T,Math.log10(flat+1e-6),zc/N,Math.log10((e3+1e-9)/(e1+1e-9)),Math.log10(f85+1)];
+}
+function trainModel(L,R){
+  const K=L[0].length,muL=[],muR=[],sp=[],w=[];
+  for(let k=0;k<K;k++){
+    const a=L.map(x=>x[k]),b=R.map(x=>x[k]);
+    const ma=mean(a),mb=mean(b),va=sd(a)**2,vb=sd(b)**2;
+    muL.push(ma);muR.push(mb);
+    sp.push(Math.sqrt((va+vb)/2)+1e-6*(Math.abs(ma)+Math.abs(mb))+1e-9);
+    w.push(Math.min(4,(ma-mb)**2/(va+vb+1e-12)));
+  }
+  return {muL,muR,sp,w};
+}
+function classify(m,x){
+  let sL=0,sR=0;
+  for(let k=0;k<x.length;k++){
+    const zl=(x[k]-m.muL[k])/m.sp[k],zr=(x[k]-m.muR[k])/m.sp[k];
+    sL+=m.w[k]*zl*zl;sR+=m.w[k]*zr*zr;
+  }
+  return {hand:sL<=sR?'L':'R',conf:Math.abs(sL-sR)/(sL+sR+1e-9)};
+}
+/* Leave-one-out accuracy of the calibration hits: how well the two sticks can be told apart. */
+function looAccuracy(L,R){
+  if(L.length<4||R.length<4)return null;
+  let ok=0;
+  for(let i=0;i<L.length;i++){
+    const m=trainModel(L.filter((_,j)=>j!==i),R);
+    if(classify(m,L[i]).hand==='L')ok++;
+  }
+  for(let i=0;i<R.length;i++){
+    const m=trainModel(L,R.filter((_,j)=>j!==i));
+    if(classify(m,R[i]).hand==='R')ok++;
+  }
+  return ok/(L.length+R.length);
+}
+/* Runs inside an AudioWorklet (and in tests). Finds stick attacks and captures 1024 samples from each. */
+class OnsetDetector{
+  constructor(sr,emit){
+    this.sr=sr;this.emit=emit;
+    this.thr=0.03;this.refrac=Math.round(0.04*sr);
+    this.hp=0;this.px=0;this.ef=0;this.es=0.001;
+    this.armed=true;this.since=1e9;
+    this.cap=null;this.capN=0;this.capT=0;this.capLen=1024;
+    this.pk=0;this.blocks=0;
+    this.aF=Math.exp(-1/(0.006*sr));
+    this.aS=Math.exp(-1/(0.12*sr));
+    this.hpA=Math.exp(-2*Math.PI*180/sr);
+  }
+  set(o){if(o&&o.thr!==undefined)this.thr=o.thr;}
+  process(ch,base){
+    const n=ch.length;
+    for(let i=0;i<n;i++){
+      const x=ch[i];
+      const y=this.hpA*(this.hp+x-this.px);this.hp=y;this.px=x;
+      const a=y<0?-y:y;
+      this.ef=a>this.ef?a:this.ef*this.aF;
+      this.es=this.es*this.aS+a*(1-this.aS);
+      if(this.es<0.0005)this.es=0.0005;
+      if(a>this.pk)this.pk=a;
+      this.since++;
+      if(!this.armed&&this.ef<this.thr*0.5)this.armed=true;
+      if(this.armed&&!this.cap&&this.since>this.refrac&&a>this.thr&&this.ef>this.es*2.5){
+        this.armed=false;this.since=0;
+        this.cap=new Float32Array(this.capLen);this.capN=0;this.capT=(base+i)/this.sr;
+      }
+      if(this.cap){
+        this.cap[this.capN++]=x;
+        if(this.capN>=this.capLen){const w=this.cap;this.cap=null;this.emit({type:'hit',t:this.capT,w:w});}
+      }
+    }
+    if(++this.blocks>=20){this.emit({type:'level',v:this.pk});this.pk=0;this.blocks=0;}
+  }
+}
+</script>
+
+<script id="app">
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const KEY='stick-timing-trainer.v1';
+const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
+const OLD_SAMPLE='# Example page. Replace these with your own bars, one per line.\n# Add x16, 90s or @100 to the end of a line to change just that bar.\ntitle: Example page\nRLRR LRLL\nRLRL RLRL\nRRLL RRLL\nLRLL RLRR\n';
+const SAMPLE='# Example page. Replace these with your own bars, one per line.\n# Add x16, 90s or @100 to the end of a line to change just that bar.\ntitle: Example page\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
+const CAL_N=12;
+const LAT_ROUNDS=3;                              /* times the calibration row repeats */
+const MAX_TEXT=200000;
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+
+const S={mode:'single',pattern:'RLRL RLRL RLRL RLRL',pageText:SAMPLE,eachUnit:'min',eachVal:1,gap:0,cue:'both',startBar:1,
+  bpm:60,subdiv:4,click:'beat',tol:20,sens:-30,vol:60,latency:null,input:'mic',setupOpen:true};
+let cal={L:[],R:[]},model=null;
+try{
+  const o=JSON.parse(localStorage.getItem(KEY)||'null');
+  if(o){
+    Object.assign(S,o.settings||{});
+    if(o.cal&&Array.isArray(o.cal.L)&&Array.isArray(o.cal.R))cal=o.cal;
+  }
+}catch(e){}
+/* The default tempo became 60. Move anyone still on the old default of 80 once. */
+if(!S.tempoV2){S.tempoV2=true;if(+S.bpm===80)S.bpm=60;}
+if(!S.gapV2){S.gapV2=true;if(+S.gap===4)S.gap=0;}
+if(S.pageText===OLD_SAMPLE){S.pageText=SAMPLE;S.subdiv=4;}
+S.mode=S.mode==='page'?'page':'single';
+S.bpm=clamp(Math.round(+S.bpm)||60,40,220);
+S.subdiv=clamp(Math.round(+S.subdiv)||2,1,4);
+S.tol=[10,15,20,30].includes(+S.tol)?+S.tol:20;
+S.sens=clamp(Math.round(+S.sens)||-30,-55,-8);
+S.vol=clamp(Math.round(+S.vol),0,100);if(isNaN(S.vol))S.vol=60;
+S.latency=(S.latency==null||isNaN(+S.latency))?null:clamp(Math.round(+S.latency),0,400);
+if(S.input!=='kb')S.input='mic';
+if(!['beat','note','off'].includes(S.click))S.click='beat';
+if(typeof S.pattern!=='string')S.pattern='RLRL RLRL RLRL RLRL';
+if(typeof S.pageText!=='string'||S.pageText.length>MAX_TEXT)S.pageText=SAMPLE;
+S.eachUnit=S.eachUnit==='pass'?'pass':'min';
+S.eachVal=S.eachUnit==='pass'?clamp(Math.round(+S.eachVal)||8,1,200):clamp(+S.eachVal||1,0.25,60);
+S.gap=+S.gap===0?0:4;
+if(!['both','flash','off'].includes(S.cue))S.cue='both';
+S.startBar=1;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({settings:S,cal:cal}));}catch(e){}};
+/* Scores live under their own key so clearing them never touches your settings or calibration. */
+const RKEY='stick-timing-trainer.records.v1',MAX_RUNS=800;
+function cleanRun(x){
+  if(!x||typeof x!=='object'||typeof x.id!=='string'||!Array.isArray(x.bars)||!isFinite(+x.t)||!isFinite(+x.bpm))return null;
+  const bars=[];
+  x.bars.forEach(b=>{
+    if(!b||typeof b.k!=='string'||b.k.length>400||!(+b.due>0)||!isFinite(+b.within))return;
+    bars.push({k:b.k,bpm:isFinite(+b.bpm)?+b.bpm:+x.bpm,due:+b.due,within:Math.max(0,Math.min(+b.due,+b.within)),heard:+b.heard||0,
+      avg:typeof b.avg==='number'&&isFinite(b.avg)?b.avg:null,sd:typeof b.sd==='number'&&isFinite(b.sd)?b.sd:null,miss:+b.miss||0,i:+b.i||0});
+  });
+  if(!bars.length)return null;
+  return {id:x.id.slice(0,40),t:+x.t,mode:x.mode==='page'?'page':'single',pg:typeof x.pg==='string'?x.pg.slice(0,40):null,pt:typeof x.pt==='string'?x.pt.slice(0,80):'',
+    nb:Math.max(1,+x.nb||bars.length),bpm:+x.bpm,tol:+x.tol||20,bars:bars};
+}
+const recs={runs:[]};
+try{
+  const o=JSON.parse(localStorage.getItem(RKEY)||'null');
+  if(o&&Array.isArray(o.runs))o.runs.forEach(x=>{const c=cleanRun(x);if(c)recs.runs.push(c);});
+}catch(e){}
+function saveRecs(){
+  if(recs.runs.length>MAX_RUNS)recs.runs.splice(0,recs.runs.length-MAX_RUNS);
+  try{localStorage.setItem(RKEY,JSON.stringify({v:1,runs:recs.runs}));return true;}catch(e){return false;}
+}
+let lastRun=null;
+
+function rebuildModel(){
+  model=null;
+  if(cal.L.length>=6&&cal.R.length>=6){
+    try{
+      const m=trainModel(cal.L,cal.R);
+      m.acc=looAccuracy(cal.L,cal.R);
+      m.usable=m.acc!=null&&m.acc>=0.75;
+      model=m;
+    }catch(e){model=null;}
+  }
+}
+rebuildModel();
+
+const WORKLET_SRC=OnsetDetector.toString()+`
+registerProcessor('onset',class extends AudioWorkletProcessor{
+  constructor(){
+    super();
+    this.d=new OnsetDetector(sampleRate,ev=>{ if(ev.w)this.port.postMessage(ev,[ev.w.buffer]); else this.port.postMessage(ev); });
+    this.port.onmessage=e=>this.d.set(e.data);
+  }
+  process(inputs){
+    const c=inputs[0]&&inputs[0][0];
+    if(c)this.d.process(c,currentFrame);
+    return true;
+  }
+});`;
+
+/* ---------- state ---------- */
+let ctx=null,node=null,stream=null,sendThr=null,wake=null;
+let run=null,view=null,timer=0,raf=0;
+let calMode=null,pageParsed=parsePage(S.pageText),prevPlan=null,rowMap=new Map(),rowTop=0,slideTimer=0,curTab='play';
+const latencySec=()=>(S.latency==null?40:S.latency)/1000;
+
+/* ---------- audio ---------- */
+let lastStatus='';
+function setStatus(t){if(t===lastStatus)return;lastStatus=t;$('status').textContent=t;}
+function showMicError(err){
+  const n=err&&(err.name||err.message)||'';
+  let m;
+  if(n==='insecure')m='The microphone needs a secure page (https:// or localhost). Host this file or run a local server, or switch Input to Keyboard on the Setup page.';
+  else if(n==='NotAllowedError'||n==='SecurityError')m='Microphone blocked. Allow it for this page in your browser settings, then press Start again.';
+  else if(n==='NotFoundError')m='No microphone found.';
+  else m='Could not start audio: '+(err&&err.message?err.message:n);
+  setStatus(m);
+  showTab('setup');$('micMsg').textContent=m;
+}
+async function ensureAudio(needMic){
+  try{
+    if(!ctx)ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'});
+    if(ctx.state!=='running')await ctx.resume();
+    if(needMic&&!node){
+      if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw {name:'insecure'};
+      stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1}});
+      const src=ctx.createMediaStreamSource(stream);
+      try{
+        if(!ctx.audioWorklet)throw new Error('noworklet');
+        const url=URL.createObjectURL(new Blob([WORKLET_SRC],{type:'text/javascript'}));
+        try{await ctx.audioWorklet.addModule(url);}finally{URL.revokeObjectURL(url);}
+        const wn=new AudioWorkletNode(ctx,'onset',{numberOfInputs:1,numberOfOutputs:1,channelCount:1,channelCountMode:'explicit'});
+        wn.port.onmessage=onNodeMsg;
+        src.connect(wn);wn.connect(ctx.destination);
+        sendThr=thr=>wn.port.postMessage({thr:thr});
+        node=wn;
+      }catch(workletErr){
+        /* A page opened straight from disk (file://) cannot load a worklet from a blob in Chrome.
+           Fall back to the older main-thread node, running the same detector. */
+        const sp=ctx.createScriptProcessor(256,1,1);
+        const det=new OnsetDetector(ctx.sampleRate,ev=>onNodeMsg({data:ev}));
+        let fr=null;
+        sp.onaudioprocess=e=>{
+          const ch=e.inputBuffer.getChannelData(0);
+          if(fr===null)fr=Math.round((e.playbackTime||ctx.currentTime)*ctx.sampleRate);
+          det.process(ch,fr);fr+=ch.length;
+        };
+        src.connect(sp);sp.connect(ctx.destination);
+        sendThr=thr=>det.set({thr:thr});
+        node=sp;
+      }
+      pushSens();
+      if(S.latency==null){
+        const tl=((stream.getAudioTracks()[0].getSettings&&stream.getAudioTracks()[0].getSettings())||{}).latency;
+        S.latency=Math.max(20,Math.round(((ctx.outputLatency||ctx.baseLatency||0.01)+(tl||0.02))*1000));
+        $('latency').value=S.latency;save();
+      }
+      $('micMsg').textContent='';
+      $('micPill').textContent='Mic on';$('micPill').classList.add('on');
+    }
+    return true;
+  }catch(err){showMicError(err);return false;}
+}
+function pushSens(){if(sendThr)sendThr(Math.pow(10,S.sens/20));}
+function onNodeMsg(e){
+  const m=e.data;
+  if(m.type==='level')setMeter(m.v);
+  else if(m.type==='hit'){
+    let f=null,det=null;
+    try{
+      f=computeFeatures(m.w,ctx.sampleRate);
+      if(model&&model.usable)det=classify(model,f);
+    }catch(err){}
+    handleHit({t:m.t,kb:false,f:f,det:det});
+  }
+}
+function setMeter(v){
+  const db=20*Math.log10(v+1e-6);
+  $('mFill').style.width=clamp((db+60)/60*100,0,100)+'%';
+}
+function click(time,level){
+  const v=S.vol/100*0.5;
+  if(v<0.002)return;
+  const o=ctx.createOscillator(),g=ctx.createGain();
+  o.type='triangle';o.frequency.value=level>=2?1500:(level===1?1250:1000);
+  g.gain.setValueAtTime(0.0001,time);
+  g.gain.exponentialRampToValueAtTime(v,time+0.002);
+  g.gain.exponentialRampToValueAtTime(0.0001,time+0.05);
+  o.connect(g);g.connect(ctx.destination);
+  o.start(time);o.stop(time+0.07);
+}
+function cueTone(time,kind){
+  const v=S.vol/100*0.5;
+  if(v<0.002)return;
+  const f=kind==='go'?2600:2000,n=kind==='go'?2:1;
+  for(let i=0;i<n;i++){
+    const T=time+i*0.085,o=ctx.createOscillator(),g=ctx.createGain();
+    o.type='sine';o.frequency.value=f;
+    g.gain.setValueAtTime(0.0001,T);
+    g.gain.exponentialRampToValueAtTime(v*0.8,T+0.003);
+    g.gain.exponentialRampToValueAtTime(0.0001,T+0.06);
+    o.connect(g);g.connect(ctx.destination);
+    o.start(T);o.stop(T+0.08);
+  }
+}
+function kbTime(ts){
+  const o=ctx.getOutputTimestamp?ctx.getOutputTimestamp():null;
+  return (o&&o.performanceTime)?o.contextTime+(ts-o.performanceTime)/1000:ctx.currentTime;
+}
+async function lockScreen(){try{if(navigator.wakeLock&&!wake)wake=await navigator.wakeLock.request('screen');}catch(e){wake=null;}}
+function unlockScreen(){try{if(wake){wake.release();wake=null;}}catch(e){wake=null;}}
+
+/* ---------- bars for the current mode ---------- */
+function eachDefault(){
+  if(pageParsed.each)return pageParsed.each;
+  return S.eachUnit==='pass'?{unit:'pass',v:Math.max(1,Math.round(S.eachVal))}:{unit:'sec',v:S.eachVal*60};
+}
+function allBars(){
+  if(S.mode==='single'){
+    const res=parseBarLine(S.pattern);
+    if(!res||!res.bar)return [];
+    /* One pattern runs until Stop, up to 30 minutes, at the tempo set here. */
+    const one=Object.assign({},res.bar,{idx:1,dur:null,bpm:null,label:''});
+    return resolveBars([one],{unit:'sec',v:1800},{bpm:S.bpm,subdiv:S.subdiv});
+  }
+  return resolveBars(pageParsed.bars,eachDefault(),{bpm:S.bpm,subdiv:S.subdiv});
+}
+function currentBars(){
+  const all=allBars();
+  return S.mode==='page'?all.slice(Math.max(0,S.startBar-1)):all;
+}
+
+/* ---------- session engine ---------- */
+function beginRun(mode){
+  const lat=mode==='lat';
+  const latNotes='RLRLRLRLRLRLRLRL'.split('');
+  const bars=lat?[{idx:1,notes:latNotes,groupStart:latNotes.map((_,i)=>i%4===0),subs:latNotes.map(()=>2),defSub:2,label:'',bpm:75,passBeats:8,passes:LAT_ROUNDS,secs:6.4*LAT_ROUNDS,passSecs:6.4,own:true}]:currentBars();
+  if(!bars.length)return;
+  const plan=buildPlan(bars,{gapBeats:S.gap,clickMode:lat?'note':S.click,cueSound:!lat&&S.mode==='page'&&S.cue==='both'});
+  const r={
+    mode:mode,plan:plan,t0:ctx.currentTime+0.25,kb:S.input==='kb',
+    nextClick:0,nextCue:0,nextFin:0,pending:new Map(),cur:-1,showSeg:0,gridSeg:-1,
+    errs:[],hand:{L:[],R:[]},within:0,slots:0,miss:0,extras:0,streak:0,best:0,checked:0,bad:0,trace:[],res:new Map(),showG:0,
+    fin:new Set(),paused:false,ci:null,
+    seg:plan.segs.map(sg=>({errs:[],hand:{L:[],R:[]},within:0,slots:0,miss:0,extras:0,checked:0,bad:0,
+      posSum:new Array(sg.N).fill(0),posCnt:new Array(sg.N).fill(0)})),
+    dirty:true,ended:false,totalBars:pageParsed.bars.length,startBar:S.mode==='page'?S.startBar:1
+  };
+  run=r;
+  if(!lat){view=r;r.gridSeg=0;document.body.dataset.state='run';if(S.mode==='page')markBars(r);rowsShown=ROWS;labelsOn=true;labelMode='page';setRows(plan,0,false);paintRows(r,null);}
+  else{
+    /* Calibration shows one row with a cursor on the Play page, so there is something to watch as well as hear. */
+    document.body.dataset.state='idle';updateGauge(null);
+    rowsShown=1;labelsOn=true;labelMode='lat';showTab('play');setRows(plan,0,false);paintRows(r,null);
+  }
+  clearInterval(timer);timer=setInterval(tick,25);
+  cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);
+  setRunning(true);
+  lockScreen();
+  setStatus(lat?'Latency calibration. Count in, then hit the pad on every click, following the cursor.':'Count-in…');
+}
+function tick(){
+  const r=run;if(!r||r.ended)return;
+  const plan=r.plan,now=ctx.currentTime;
+  while(r.nextClick<plan.clicks.length){
+    const c=plan.clicks[r.nextClick],T=r.t0+c.t;
+    if(T>now+0.2)break;
+    if(T>=now-0.1)click(T,c.a);
+    r.nextClick++;
+  }
+  while(r.nextCue<plan.cues.length){
+    const c=plan.cues[r.nextCue],T=r.t0+c.t;
+    if(T>now+0.2)break;
+    if(T>=now-0.1)cueTone(T,c.k);
+    r.nextCue++;
+  }
+  const L=r.kb?0:latencySec();
+  while(r.nextFin<plan.slots.length){
+    const sl=plan.slots[r.nextFin];
+    if(r.t0+sl.t>now-L-sl.w-0.07)break;
+    finalizeSlot(r.nextFin);r.nextFin++;
+  }
+  if(r.nextFin>=plan.slots.length)endRun();
+}
+function finalizeSlot(i){
+  const r=run,sl=r.plan.slots[i],sg=r.plan.segs[sl.seg],Q=r.seg[sl.seg],pos=sl.pos,exp=sg.notes[pos];
+  const hits=r.pending.get(i)||[];r.pending.delete(i);
+  /* A pass replayed after a pause shows its new result but is not counted twice. */
+  const redo=r.fin.has(i);r.fin.add(i);
+  if(!redo){r.slots++;Q.slots++;}
+  r.dirty=true;
+  if(!hits.length){if(!redo){r.miss++;Q.miss++;r.streak=0;}r.res.set(i,{miss:true});return;}
+  const h=pickBest(hits),ex=hits.length-1;
+  const ms=h.e*1000,det=h.det;
+  const sure=!!det&&(h.kb||det.conf>=0.2);
+  const hand=sure?det.hand:exp;
+  const wrong=sure&&det.hand!==exp;
+  if(!redo){
+    r.extras+=ex;Q.extras+=ex;
+    if(sure){r.checked++;Q.checked++;if(wrong){r.bad++;Q.bad++;}}
+    r.errs.push(ms);Q.errs.push(ms);r.hand[hand].push(ms);Q.hand[hand].push(ms);
+    if(Math.abs(ms)<=S.tol){r.within++;Q.within++;r.streak++;if(r.streak>r.best)r.best=r.streak;}else r.streak=0;
+    Q.posSum[pos]+=ms;Q.posCnt[pos]++;
+    r.trace.push({ms:ms,hand:hand,wrong:wrong});if(r.trace.length>48)r.trace.shift();
+  }
+  r.res.set(i,{ms:ms,wrong:wrong?det.hand:null});
+}
+/* Pause freezes the run. Resume counts in again from the start of the pass you were on. */
+function pauseRun(){
+  const r=run;if(!r||r.ended||r.paused||r.mode!=='play')return;
+  tick();
+  if(r.ended)return;
+  r.paused=true;
+  clearInterval(timer);cancelAnimationFrame(raf);
+  $('bigCount').hidden=true;
+  setStatus('Paused. Resume counts you in again from the start of this pass.');
+  syncRunUI();
+}
+function resumeRun(){
+  const r=run;if(!r||r.ended||!r.paused)return;
+  const plan=r.plan,cells=plan.cells,sg=plan.segs[passAt(plan,r.showG).si],pa=passAt(plan,r.showG);
+  const fc=sg.cell0+pa.p*sg.N,ps=cells[fc].t,beat=sg.beat,T=ctx.currentTime+0.35;
+  r.t0=T+4*beat-ps;
+  r.ci={ps:ps,beat:beat};
+  let i=0;while(i<plan.clicks.length&&plan.clicks[i].t<ps-1e-6)i++;r.nextClick=i;
+  i=0;while(i<plan.cues.length&&plan.cues[i].t<ps-1e-6)i++;r.nextCue=i;
+  const fi=plan.slots.findIndex(x=>x.t>=ps-1e-6);
+  if(fi>=0){
+    r.nextFin=Math.min(r.nextFin,fi);
+    for(let k=fi;k<plan.slots.length;k++){r.pending.delete(k);r.res.delete(k);}
+  }
+  r.cur=fc-1;r.paused=false;
+  for(let j=0;j<4;j++)click(T+j*beat,j===0?2:0);
+  clearInterval(timer);timer=setInterval(tick,25);
+  cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);
+  syncRunUI();
+}
+function restartRun(){
+  const r=run;if(!r||r.ended||r.mode!=='play')return;
+  clearInterval(timer);cancelAnimationFrame(raf);
+  r.ended=true;unlockScreen();
+  $('bigCount').hidden=true;
+  beginRun('play');
+}
+function stopRun(){
+  const r=run;if(!r||r.ended)return;
+  if(!r.paused)tick();
+  if(run===r&&!r.ended){
+    for(const i of [...r.pending.keys()].sort((a,b)=>a-b)){if(i>=r.nextFin)finalizeSlot(i);}
+    endRun();
+  }
+}
+function endRun(){
+  const r=run;if(!r||r.ended)return;
+  r.ended=true;r.dirty=true;r.paused=false;
+  clearInterval(timer);cancelAnimationFrame(raf);
+  unlockScreen();
+  if(r.mode==='lat'){
+    if(r.errs.length>=5){
+      const med=median(r.errs);
+      S.latency=clamp(Math.round((S.latency==null?40:S.latency)+med),0,400);
+      $('latency').value=S.latency;save();
+      $('latMsg').textContent='Latency set to '+S.latency+' ms (moved by '+fmtMs(med)+' ms from '+r.errs.length+' of '+r.plan.slots.length+' hits). This assumes you were on the click on average.';
+      setStatus('Latency calibrated: '+S.latency+' ms.');
+    }else{
+      $('latMsg').textContent='Only '+r.errs.length+' of '+r.plan.slots.length+' hits were heard. Raise the trigger line sensitivity or hit harder, then try again.';
+      setStatus('Latency calibration needs at least 5 heard hits.');
+    }
+  }else{
+    const done=r.errs.length,segsDone=r.seg.filter(q=>q.slots>0).length;
+    const finished=r.nextFin>=r.plan.slots.length;
+    if(!done)setStatus('Stopped. No strokes were heard. Check the microphone level on the Setup page.');
+    else if(S.mode==='page')setStatus((finished?'Page finished. ':'Stopped. ')+done+' strokes measured over '+segsDone+(segsDone===1?' bar':' bars')+'. Results are below.');
+    else setStatus((finished?'30 minutes reached. ':'Stopped. ')+done+' strokes measured. Press Start to go again.');
+  }
+  setRunning(false);
+  $('runInfo').hidden=true;
+  $('bigCount').hidden=true;
+  if(r.mode==='lat'){rowsShown=ROWS;labelsOn=true;labelMode='page';showTab('setup');refreshPreview();}
+  if(view&&r.mode==='play'){
+    document.body.dataset.state='done';
+    recordRun(r);
+    renderAll();
+    renderAdvice();
+    if(S.mode==='page')renderResults(view);
+    roleRows();
+    paintRows(view,null);
+  }
+  syncInfo();
+}
+function inLead(plan,tc){
+  for(const sg of plan.segs)if(sg.lead>0&&tc>=sg.leadStart&&tc<sg.t0)return true;
+  return false;
+}
+function handleHit(h){
+  flashHeard(h);
+  if(calMode&&h.f){collectCal(h.f);return;}
+  const r=run;if(!r||r.ended)return;
+  if(r.kb!==h.kb||r.paused)return;
+  const plan=r.plan,tc=h.t-(r.kb?0:latencySec())-r.t0;
+  if(r.ci&&tc<r.ci.ps-0.2)return;
+  const i=nearestSlot(plan.slots,tc),sl=plan.slots[i],e=tc-sl.t;
+  if(Math.abs(e)>sl.w||i<r.nextFin){
+    const outside=tc<plan.slots[0].t-sl.w||tc>plan.slots[plan.slots.length-1].t+sl.w;
+    if(outside||inLead(plan,tc))return;
+    r.extras++;r.seg[sl.seg].extras++;r.dirty=true;return;
+  }
+  const arr=r.pending.get(i)||[];
+  arr.push({e:e,det:h.det,kb:h.kb});
+  r.pending.set(i,arr);
+  /* Show the result straight away. finalizeSlot replaces it once the window has closed. */
+  const b=pickBest(arr),exp=plan.segs[sl.seg].notes[sl.pos],det=b.det;
+  const sure=!!det&&(b.kb||det.conf>=0.2);
+  r.res.set(i,{ms:b.e*1000,wrong:(sure&&det.hand!==exp)?det.hand:null});
+}
+let heardTimer=0;
+function flashHeard(h){
+  const el=$('heard');
+  el.textContent=h.det?('Heard '+h.det.hand+' · '+Math.round(h.det.conf*100)+'% sure'):'Heard a hit';
+  clearTimeout(heardTimer);heardTimer=setTimeout(()=>{el.textContent='';},900);
+}
+
+/* ---------- stick calibration ---------- */
+async function startCal(hand){
+  if(calMode===hand){calMode=null;updateCalUI();return;}
+  if(run&&!run.ended)stopRun();
+  if(!(await ensureAudio(true)))return;
+  calMode=hand;cal[hand]=[];rebuildModel();updateCalUI();
+  setStatus('Calibrating the '+(hand==='L'?'left':'right')+' stick. Hit the pad '+CAL_N+' times.');
+}
+function collectCal(f){
+  cal[calMode].push(f);
+  if(cal[calMode].length>=CAL_N){
+    const h=calMode;calMode=null;rebuildModel();save();
+    setStatus((h==='L'?'Left':'Right')+' stick calibrated.');
+  }
+  updateCalUI();
+}
+function calText(){
+  if(calMode)return 'Hit the pad '+CAL_N+' times with your '+(calMode==='L'?'LEFT':'RIGHT')+' stick only. '+cal[calMode].length+'/'+CAL_N;
+  const nl=cal.L.length,nr=cal.R.length;
+  if(!nl&&!nr)return 'Not calibrated. Timing works without it. Calibrating lets the app tell which stick made each hit.';
+  if(nl<6||nr<6)return 'Left: '+nl+' hits. Right: '+nr+' hits. Calibrate both sticks to turn on hand detection.';
+  const pct=Math.round(model.acc*100);
+  return model.usable
+    ?'Hand detection is on. '+pct+'% of your calibration hits were told apart correctly.'
+    :'Hand detection is off. Only '+pct+'% of calibration hits were told apart, so the two sticks sound too alike. Hit the same spot with each stick, or use a different spot per stick, then calibrate again.';
+}
+function updateCalUI(){
+  $('calL').textContent=calMode==='L'?'Cancel ('+cal.L.length+'/'+CAL_N+')':'Calibrate left stick';
+  $('calR').textContent=calMode==='R'?'Cancel ('+cal.R.length+'/'+CAL_N+')':'Calibrate right stick';
+  $('calInfo').textContent=calText();
+  const busy=!!(run&&!run.ended);
+  $('calL').disabled=busy||calMode==='R';
+  $('calR').disabled=busy||calMode==='L';
+  $('calReset').disabled=busy||!!calMode;
+  $('calLatency').disabled=busy||!!calMode;
+}
+
+/* ---------- rendering ---------- */
+/* ---------- passes as rows: the pass being played on top, the pass after it underneath ---------- */
+function passAt(plan,g){
+  const sg=plan.segs;let lo=0,hi=sg.length-1;
+  while(lo<hi){const m=(lo+hi+1)>>1;if(sg[m].g0<=g)lo=m;else hi=m-1;}
+  return {si:lo,p:g-sg[lo].g0};
+}
+function totalPasses(plan){const l=plan.segs[plan.segs.length-1];return l.g0+l.passes;}
+/* One pass drawn as rhythm notation on a one-line staff: noteheads, stems, beams, triplet brackets and
+   rests, with the sticking letter under each note. Spacing follows time, so every beat has the same width. */
+function buildStaff(sg){
+  const NS='http://www.w3.org/2000/svg',N=sg.N;
+  const subs=sg.subs.map(x=>x||sg.defSub);
+  const durs=subs.map(x=>1/x),beats=durs.reduce((a,b)=>a+b,0),dmin=Math.min.apply(null,durs);
+  const avail=$('rows').clientWidth||document.querySelector('.app').clientWidth||360;
+  const padL=34,padR=30,LW=Math.max(avail,Math.ceil(21*beats/dmin)+padL+padR),u=(LW-padL-padR)/beats;
+  const H=92,Y0=8,Y=54,TOP=28,SX=6;                  /* staff line, stem top, stem offset from note centre */
+  const mk=(n,a)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
+  const svg=mk('svg',{viewBox:'0 '+Y0+' '+LW+' '+H,class:'staff','aria-hidden':'true'});
+  const off=[];let acc=0;
+  for(let i=0;i<N;i++){off.push(acc);acc+=durs[i];}
+  const x0=i=>padL+off[i]*u,xw=i=>durs[i]*u,xc=i=>x0(i)+xw(i)/2;
+  const E=LW-padR+24;
+  svg.appendChild(mk('line',{class:'sl',x1:2,x2:E,y1:Y,y2:Y}));
+  /* faint guides at each beat start, so the width of a beat is visible whatever it holds */
+  const isInt=x=>Math.abs(x-Math.round(x))<1e-6;
+  for(let i=1;i<N;i++)if(isInt(off[i]))svg.appendChild(mk('line',{class:'bt',x1:x0(i),x2:x0(i),y1:Y-30,y2:Y+34}));
+  /* neutral (percussion) clef: two thick bars */
+  svg.appendChild(mk('rect',{class:'clef',x:6,y:Y-9,width:4.4,height:18}));
+  svg.appendChild(mk('rect',{class:'clef',x:15,y:Y-9,width:4.4,height:18}));
+  /* a barline every two beats, as in 2/4 */
+  if(Number.isInteger(beats)&&beats%2===0){
+    for(let i=1;i<N;i++){
+      const o=off[i];
+      if(o>0.001&&Math.abs(o/2-Math.round(o/2))<0.001)svg.appendChild(mk('line',{class:'bar',x1:x0(i),x2:x0(i),y1:Y-16,y2:Y+16}));
+    }
+  }
+  /* the pass repeats, so it ends on a repeat sign */
+  svg.appendChild(mk('line',{class:'bar',x1:E-9,x2:E-9,y1:Y-16,y2:Y+16}));
+  svg.appendChild(mk('rect',{class:'clef',x:E-4,y:Y-16,width:3.8,height:32}));
+  svg.appendChild(mk('circle',{class:'rs',cx:E-16,cy:Y-5.5,r:2}));
+  svg.appendChild(mk('circle',{class:'rs',cx:E-16,cy:Y+5.5,r:2}));
+  const beamsOf=s=>s>=4?2:(s>=2?1:0);          /* sub 1 quarter, 2 eighth, 3 eighth triplet, 4+ sixteenth */
+  const cards=[];
+  for(let i=0;i<N;i++){
+    const h=sg.notes[i],rest=h==='_',cx=xc(i);
+    const g=mk('g',{class:'cd'});
+    g.appendChild(mk('rect',{class:'bg',x:x0(i)+1,y:Y0+2,width:Math.max(2,xw(i)-2),height:H-4,rx:6}));
+    if(rest){
+      const d=durs[i];
+      if(d>=0.75){
+        g.appendChild(mk('path',{class:'rsz',d:'M'+(cx-3)+','+(Y-15)+' L'+(cx+3)+','+(Y-7)+' L'+(cx-3)+','+(Y+1)+' L'+(cx+3)+','+(Y+9)+' Q'+(cx-4)+','+(Y+8)+' '+(cx-3)+','+(Y+16)}));
+      }else{
+        const n2=d>=0.3?1:2;
+        for(let k=0;k<n2;k++)g.appendChild(mk('circle',{class:'rs',cx:cx-3.5,cy:Y-7+k*6.5,r:2.4}));
+        g.appendChild(mk('path',{class:'rsz',d:'M'+(cx+3.5)+','+(Y-11)+' L'+(cx-3)+','+(Y+8+(n2-1)*6)}));
+      }
+      g._slot=-1;
+    }else{
+      g.appendChild(mk('ellipse',{class:'nh',cx:cx,cy:Y,rx:6.6,ry:4.7,transform:'rotate(-20 '+cx+' '+Y+')'}));
+      g.appendChild(mk('line',{class:'stem',x1:cx+SX,x2:cx+SX,y1:Y-1,y2:TOP}));
+    }
+    const lt=mk('text',{class:'lt',x:cx,y:84});lt.textContent=rest?'':h;g.appendChild(lt);
+    const tg=mk('text',{class:'tg',x:cx,y:72});g.appendChild(tg);
+    const ft=mk('text',{class:'ft',x:cx,y:97});g.appendChild(ft);
+    g._sig='\u0000';g._now=false;g._ft=ft;g._tg=tg;
+    svg.appendChild(g);cards.push(g);
+  }
+  /* beams: notes shorter than a quarter, joined within a group. A space inside a beat (3+3 in a sextuplet) keeps the top beam
+     joined and splits the lower beam; a space on a beat line starts a new beam. */
+  const beat=i=>Math.floor(off[i]+1e-6),bm=i=>sg.notes[i]==='_'?0:beamsOf(subs[i]);
+  const sx=i=>xc(i)+SX;
+  for(let a=0;a<N;){
+    if(bm(a)<1){a++;continue;}
+    let b=a;while(b+1<N&&bm(b+1)>=1&&(!sg.groupStart[b+1]||(subs[b+1]===subs[b]&&!isInt(off[b+1]))))b++;
+    if(b===a){
+      for(let l=0;l<bm(a);l++)svg.appendChild(mk('path',{class:'flag',d:'M'+sx(a)+','+(TOP+l*7)+' c1,9 10,11 9,22'}));
+    }else{
+      svg.appendChild(mk('rect',{class:'beam',x:sx(a)-0.8,y:TOP,width:sx(b)-sx(a)+1.6,height:4.2}));
+      for(let i=a;i<=b;){
+        if(bm(i)<2){i++;continue;}
+        let j=i;while(j+1<=b&&bm(j+1)>=2&&!sg.groupStart[j+1])j++;
+        if(j>i)svg.appendChild(mk('rect',{class:'beam',x:sx(i)-0.8,y:TOP+7,width:sx(j)-sx(i)+1.6,height:4.2}));
+        else{
+          const dir=i<b?1:-1;
+          svg.appendChild(mk('rect',{class:'beam',x:dir>0?sx(i)-0.8:sx(i)-9,y:TOP+7,width:9.8,height:4.2}));
+        }
+        i=j+1;
+      }
+    }
+    a=b+1;
+  }
+  /* tuplet brackets: a whole beat of triplets, quintuplets or sextuplets. A sextuplet typed as two groups of three
+     shows two 3s; typed as one run it shows a single 6. */
+  const bracket=(a,b,label)=>{
+    const x1=xc(a)-7,x2=xc(b)+SX+2,m=(x1+x2)/2,y=TOP-12;
+    svg.appendChild(mk('path',{class:'br',d:'M'+x1+','+(y+5)+' V'+y+' H'+(m-6)+' M'+(m+6)+','+y+' H'+x2+' V'+(y+5)}));
+    const t=mk('text',{class:'brn',x:m,y:y+4});t.textContent=String(label);svg.appendChild(t);
+  };
+  for(let a=0;a<N;){
+    const sb=subs[a];
+    if(sb<3||sb===4){a++;continue;}
+    let b=a;while(b+1<N&&subs[b+1]===sb&&beat(b+1)===beat(a))b++;
+    if(b>a){
+      let parts=[[a,b]];
+      if(sb===6){
+        const ps=[];let st=a;
+        for(let i=a+1;i<=b;i++)if(sg.groupStart[i]){ps.push([st,i-1]);st=i;}
+        ps.push([st,b]);
+        if(ps.length>1&&ps.every(p=>p[1]-p[0]===2))parts=ps;
+      }
+      parts.forEach(p=>bracket(p[0],p[1],parts.length>1?3:sb));
+    }
+    a=b+1;
+  }
+  return {svg:svg,cards:cards};
+}
+function makeRow(plan,g){
+  const pa=passAt(plan,g),sg=plan.segs[pa.si],N=sg.N;
+  const el=document.createElement('div');el.className='brow2';
+  const lab=document.createElement('div');lab.className='rl';
+  const st=buildStaff(sg),cards=st.cards;
+  cards.forEach((c,i)=>{c._slot=plan.cells[sg.cell0+pa.p*N+i].slot;});
+  el.append(lab,st.svg);
+  $('rowsTrack').appendChild(el);
+  const o={el:el,lab:lab,cards:cards,sg:sg,si:pa.si,p:pa.p};
+  el.addEventListener('click',()=>{if(labelMode==='preview')goBar(sg.idx,true);});
+  rowMap.set(g,o);
+  return o;
+}
+const ROWS=3;                                   /* how many passes are on screen */
+let rowsShown=ROWS,labelsOn=true,labelMode='page';
+function roleRows(){
+  const multi=labelsOn&&S.mode==='page'&&labelMode==='page',latL=labelMode==='lat',prevL=labelMode==='preview';
+  rowMap.forEach((o,g)=>{
+    const d=g-rowTop;
+    o.el.classList.remove('r1','r2','r3','nxt');
+    if(d>0){o.el.classList.add('nxt','r'+Math.min(d,3));}
+    const prev=d>0?rowMap.get(g-1):null;
+    const same=!!prev&&prev.si===o.si;
+    o.lab.classList.toggle('newbar',d>0&&!same&&!prevL);
+    const tail='pass '+(o.p+1)+' of '+o.sg.passes;
+    let t='';
+    if(prevL)t=d===0?'Start · bar '+o.sg.idx+' of '+pageParsed.bars.length:'Bar '+o.sg.idx;
+    else if(latL){if(d===0)t='Round '+(o.p+1)+' of '+o.sg.passes;}
+    else if(multi){
+      if(d===0)t='Bar '+o.sg.idx+' of '+pageParsed.bars.length+' · '+tail;
+      else if(d===1)t=same?'Next · '+tail:'Next bar · bar '+o.sg.idx+' · '+tail;
+      else t=same?'Pass '+(o.p+1)+' of '+o.sg.passes:'Bar '+o.sg.idx+' · '+tail;
+    }
+    o.lab.textContent=t;
+    o.lab.hidden=!(multi||latL||prevL);
+  });
+}
+function finishSlide(){
+  clearTimeout(slideTimer);slideTimer=0;
+  const g=$('rows'),tr=$('rowsTrack');
+  [...rowMap].forEach(([k,o])=>{if(k<rowTop||k>=rowTop+rowsShown){o.el.remove();rowMap.delete(k);}});
+  tr.style.transition='none';tr.style.transform='';
+  g.classList.remove('sliding');g.style.height='';
+  void tr.offsetWidth;tr.style.transition='';
+}
+/* Shows pass g on top with the next passes underneath. When g is the pass that was second, the rows slide
+   up one place and a fresh row comes in from below. */
+function setRows(plan,g,animate){
+  finishSlide();
+  const gEl=$('rows'),tr=$('rowsTrack'),page=S.mode==='page';
+  const reduce=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const total=plan?totalPasses(plan):0;
+  const end=$('rowEnd');
+  end.hidden=!(labelsOn&&labelMode==='page'&&page&&plan&&g+1>=total);
+  end.textContent=end.hidden?'':'Last pass. The page ends after this one.';
+  const oldTop=rowTop;
+  if(animate&&!reduce&&plan&&g!==oldTop&&Math.abs(g-oldTop)<rowsShown&&rowMap.has(oldTop)){
+    const back=g<oldTop,h0=gEl.offsetHeight;
+    const oldEl=rowMap.get(oldTop).el;
+    const oldY=oldEl.offsetTop;
+    rowTop=g;
+    for(let k=g;k<Math.min(total,g+rowsShown);k++)if(!rowMap.has(k)){const o=makeRow(plan,k);o.el.style.opacity='0';}
+    /* keep the rows in pass order in the page */
+    [...rowMap.keys()].sort((x,y)=>x-y).forEach(k=>tr.appendChild(rowMap.get(k).el));
+    roleRows();
+    const topEl=rowMap.get(g).el,lastEl=rowMap.get(Math.min(total,g+rowsShown)-1).el;
+    const h1=Math.max(lastEl.offsetTop+lastEl.offsetHeight-topEl.offsetTop,parseFloat(getComputedStyle(tr).minHeight)||0);
+    gEl.style.height=h0+'px';gEl.classList.add('sliding');
+    void gEl.offsetHeight;
+    gEl.style.height=h1+'px';
+    if(back){
+      /* new rows sit above: start with the old top row where it was, then glide down to zero */
+      tr.style.transition='none';tr.style.transform='translateY(-'+oldEl.offsetTop+'px)';
+      void tr.offsetWidth;
+      tr.style.transition='';tr.style.transform='translateY(0px)';
+    }else{
+      tr.style.transform='translateY(-'+(topEl.offsetTop)+'px)';
+    }
+    rowMap.forEach(o=>{o.el.style.opacity='';});
+    slideTimer=setTimeout(finishSlide,260);
+    return;
+  }
+  tr.textContent='';rowMap.clear();rowTop=g;
+  if(plan)for(let k=g;k<Math.min(total,g+rowsShown);k++)makeRow(plan,k);
+  roleRows();
+}
+/* Colours come from the result of each row's own pass; the cursor is the card being played now. */
+function paintRows(r,cursor){
+  const ended=!!(r&&r.ended);
+  rowMap.forEach((o,g)=>{
+    o.cards.forEach((el,i)=>{
+      if(el._slot<0)return;
+      const res=r?r.res.get(el._slot):null;
+      const sig=(res?(res.miss?'m':res.ms+'|'+(res.wrong||'')):'')+'#'+S.tol+(ended?'e':'');
+      if(sig!==el._sig){
+        el._sig=sig;
+        el.classList.remove('ok','early','late','miss','wrong');
+        let ft='',tg='';
+        if(res){
+          if(res.miss){el.classList.add('miss');if(ended)ft='miss';}
+          else{
+            el.classList.add(Math.abs(res.ms)<=S.tol?'ok':(res.ms<0?'early':'late'));
+            if(ended)ft=fmtMs(res.ms);
+            if(res.wrong){el.classList.add('wrong');tg='heard '+res.wrong;}
+          }
+        }
+        el._ft.textContent=ft;el._tg.textContent=tg;
+      }
+      const on=!!cursor&&g===cursor.g&&i===cursor.i;
+      if(on!==el._now){el._now=on;el.classList.toggle('now',on);}
+    });
+  });
+}
+function previewRows(animate){
+  if(S.mode==='page'){
+    /* Before a run each row is one bar, so you can scroll to any bar and start there. */
+    const bars=allBars().map(b=>Object.assign({},b,{passes:1}));
+    prevPlan=bars.length?buildPlan(bars,{gapBeats:S.gap,clickMode:'off'}):null;
+    rowsShown=ROWS;labelsOn=true;labelMode='preview';
+    const g=prevPlan?clamp(S.startBar-1,0,totalPasses(prevPlan)-1):0;
+    setRows(prevPlan,g,!!animate);
+  }else{
+    const bars=currentBars().slice(0,ROWS).map(b=>Object.assign({},b,{passes:Math.min(b.passes,ROWS)}));
+    prevPlan=bars.length?buildPlan(bars,{gapBeats:S.gap,clickMode:'off'}):null;
+    rowsShown=ROWS;labelsOn=true;labelMode='page';
+    setRows(prevPlan,0,false);
+  }
+  paintRows(null,null);
+  $('rows').classList.toggle('pick',labelMode==='preview'&&!!prevPlan);
+  const n=pageParsed.bars.length;
+}
+/* Move the start bar (page mode, before a run). */
+function goBar(i,animate){
+  if(S.mode!=='page'||(run&&!run.ended))return;
+  const n=pageParsed.bars.length;
+  if(!n)return;
+  const v=clamp(Math.round(i),1,n);
+  if(v===S.startBar&&document.body.dataset.state==='idle')return;
+  S.startBar=v;$('startBar').value=v;
+  if(document.body.dataset.state!=='idle'){refreshPreview();return;}
+  markBars(null);previewRows(animate);syncInfo();
+}
+function flashRows(){
+  const g=$('rows');
+  g.classList.remove('flash');void g.offsetWidth;g.classList.add('flash');
+  setTimeout(()=>g.classList.remove('flash'),750);
+}
+function showTab(t){
+  curTab=t;
+  ['setup','pattern','play','progress'].forEach(n=>{
+    const cap=n[0].toUpperCase()+n.slice(1);
+    $('page'+cap).hidden=n!==t;
+    const b=$('tab'+cap);
+    b.setAttribute('aria-selected',String(n===t));
+    b.tabIndex=n===t?0:-1;
+  });
+  document.body.dataset.tab=t;
+  if(t==='play')drawTrace();
+  if(t==='progress')renderProgress();
+}
+function updateGauge(r){
+  const last=r?r.errs.slice(-32):[];
+  const zone=$('gZone');
+  zone.style.width=(S.tol/80*100)+'%';zone.style.left=(50-S.tol/80*50)+'%';
+  if(last.length<3){
+    $('gVal').textContent='—';$('gWord').textContent='Waiting for strokes';$('gWord').className='word';
+    $('gNeedle').style.left='50%';$('gBand').style.width='0';return;
+  }
+  const m=mean(last),s=sd(last);
+  $('gVal').textContent=fmtMs(m,1);
+  const cls=m<-2.5?'early':(m>2.5?'late':'ok');
+  $('gWord').textContent=m<-2.5?'Leading, ahead of the beat':(m>2.5?'Dragging, behind the beat':'Right on the beat');
+  $('gWord').className='word '+cls;
+  $('gNeedle').style.left=(50+clamp(m,-40,40)/80*100)+'%';
+  const lo=clamp(m-s,-40,40),hi=clamp(m+s,-40,40);
+  $('gBand').style.left=(50+lo/80*100)+'%';$('gBand').style.width=((hi-lo)/80*100)+'%';
+}
+function insightText(r){
+  if(!r||!r.errs.length)return '';
+  if(r.errs.length<8)return 'Keep going. Notes on your timing appear after a few passes.';
+  const parts=[];
+  if(r.hand.L.length>=4&&r.hand.R.length>=4){
+    const d=mean(r.hand.R)-mean(r.hand.L);
+    if(Math.abs(d)>=4)parts.push('Your '+(d>0?'right':'left')+' hand lands '+Math.abs(d).toFixed(0)+' ms later than your '+(d>0?'left':'right')+'.');
+  }
+  if(r.gridSeg>=0){
+    const sg=r.plan.segs[r.gridSeg],Q=r.seg[r.gridSeg];
+    let wi=-1,wv=0;
+    for(let i=0;i<sg.N;i++){
+      if(Q.posCnt[i]>=3){const a=Q.posSum[i]/Q.posCnt[i];if(Math.abs(a)>Math.abs(wv)){wv=a;wi=i;}}
+    }
+    if(wi>=0&&Math.abs(wv)>=6)parts.push((r.plan.segs.length>1?'In bar '+sg.idx+', stroke ':'Stroke ')+sg.notes.slice(0,wi+1).filter(n=>n!=='_').length+' ('+sg.notes[wi]+') drifts most, '+Math.abs(wv).toFixed(0)+' ms '+(wv>0?'late':'early')+'.');
+  }
+  if(r.slots&&r.miss/r.slots>0.1)parts.push(r.miss+' strokes were not heard. Check the trigger line on the Setup page.');
+  if(r.checked>=8&&r.bad/r.checked>0.15)parts.push('The wrong stick seems to have played on '+r.bad+' of '+r.checked+' strokes.');
+  if(!parts.length)parts.push('Timing is even across both hands and all strokes.');
+  return parts.join(' ');
+}
+function updateStats(r){
+  const sp=r?sd(r.errs.slice(-32)):NaN;
+  $('sWithin').textContent=r&&r.slots?Math.round(r.within/r.slots*100)+'%':'—';
+  $('sSpread').textContent=isNaN(sp)?'—':sp.toFixed(1);
+  $('sStreak').textContent=r?String(r.best):'—';
+  $('sHits').textContent=r?r.errs.length+'/'+r.slots:'—';
+  $('sL').textContent=r&&r.hand.L.length?fmtMs(mean(r.hand.L),1):'—';
+  $('sR').textContent=r&&r.hand.R.length?fmtMs(mean(r.hand.R),1):'—';
+  $('sStick').textContent=r&&r.checked?Math.round((1-r.bad/r.checked)*100)+'%':'off';
+  $('sExtra').textContent=r?String(r.extras):'—';
+  $('insight').textContent=insightText(r);
+}
+function drawTrace(){
+  const cv=$('trace'),dpr=window.devicePixelRatio||1;
+  const w=cv.clientWidth,h=cv.clientHeight;
+  if(!w||!h)return;
+  if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);}
+  const g=cv.getContext('2d');
+  g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,w,h);
+  const cs=getComputedStyle(document.documentElement);
+  const col=n=>cs.getPropertyValue(n).trim();
+  const padL=36,padR=8,padT=8,padB=8,R=50;
+  const y=v=>padT+(1-(v+R)/(2*R))*(h-padT-padB);
+  g.font='11px '+col('--font-data');
+  g.globalAlpha=0.16;g.fillStyle=col('--ok');
+  g.fillRect(padL,y(S.tol),w-padL-padR,y(-S.tol)-y(S.tol));
+  g.globalAlpha=1;
+  g.textAlign='right';g.textBaseline='middle';
+  for(const v of [-40,-20,0,20,40]){
+    g.strokeStyle=v===0?col('--muted'):col('--line');g.lineWidth=v===0?1.5:1;
+    g.beginPath();g.moveTo(padL,y(v));g.lineTo(w-padR,y(v));g.stroke();
+    g.fillStyle=col('--muted');g.fillText(v>0?'+'+v:(v<0?'−'+Math.abs(v):'0'),padL-6,y(v));
+  }
+  const pts=view?view.trace:[];
+  if(!pts.length){
+    g.fillStyle=col('--muted');g.textAlign='center';
+    g.fillText('Each stroke you play appears here',padL+(w-padL-padR)/2,y(0)-14);return;
+  }
+  const step=(w-padL-padR)/48;
+  pts.forEach((p,i)=>{
+    const x=w-padR-(pts.length-1-i)*step-step/2;
+    const c=Math.abs(p.ms)<=S.tol?col('--ok'):(p.ms<0?col('--early'):col('--late'));
+    const yy=y(clamp(p.ms,-R,R));
+    g.beginPath();g.arc(x,yy,4.5,0,Math.PI*2);
+    if(p.hand==='R'){g.fillStyle=c;g.fill();}else{g.strokeStyle=c;g.lineWidth=2;g.stroke();}
+  });
+}
+function renderAll(){
+  const r=view;
+  updateGauge(r);updateStats(r);drawTrace();paintRows(r,null);
+  if(r)r.dirty=false;
+  if(!r)$('results').hidden=true;
+}
+
+/* ---------- scores, records, tempo suggestion ---------- */
+function recordRun(r){
+  lastRun=null;
+  const rows=barRows(r).filter(x=>x.passes>=1);
+  const skipped=barRows(r).length-rows.length;
+  if(!rows.length)return;
+  const all=S.mode==='page'?allBars().map(b=>patKey(b.notes,b.groupStart,b.subs,b.defSub)):null;
+  const run={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t:Date.now(),mode:S.mode,
+    pg:all?pageKeyOf(all):null,pt:all?(pageParsed.title||''):'',nb:all?all.length:1,bpm:S.bpm,tol:S.tol,
+    bars:rows.map(x=>({k:x.key,bpm:x.bpm,due:x.due,within:Math.round(x.pct*x.due),heard:x.heard,
+      avg:isNaN(x.avg)?null:x.avg,sd:isNaN(x.spread)?null:x.spread,miss:x.miss,i:x.idx}))};
+  const prevBest=new Map();
+  rows.forEach(x=>{const b=bestBefore(recs.runs,x.key,x.bpm);if(b!==null)prevBest.set(x.key,b);});
+  recs.runs.push(run);
+  const saved=saveRecs();
+  lastRun={run:run,prevBest:prevBest,rows:rows,skipped:skipped,saved:saved,discarded:false};
+}
+function renderAdvice(){
+  const box=$('advice');
+  if(!lastRun){box.hidden=true;return;}
+  box.hidden=false;
+  const L=lastRun,adv=adviceFor(L.rows.map(x=>({idx:x.idx,pct:x.pct,passes:x.passes})),S.bpm);
+  const use=$('advUse'),disc=$('advDiscard');
+  const tgt=Math.round(TARGET*100)+'%';
+  if(L.discarded){
+    $('advHead').textContent='Run discarded.';
+    $('advBody').textContent='It is not in your records.';
+    use.hidden=true;disc.hidden=true;return;
+  }
+  disc.hidden=false;
+  const n=adv.played,one=n===1;
+  let head,body;
+  if(one){
+    const x=L.rows[0],p=Math.round(x.pct*100);
+    head=adv.cleared?p+'% on time at '+S.bpm+' BPM. That clears the '+tgt+' target.':p+'% on time at '+S.bpm+' BPM. The target is '+tgt+'.';
+    body=adv.cleared?'Ready for '+adv.next+' BPM if you like. Any tempo is fine.':'Staying at '+S.bpm+' BPM is a good idea until this settles. Any tempo is fine.';
+  }else if(adv.cleared){
+    head='All '+n+' bars cleared the '+tgt+' target at '+S.bpm+' BPM.';
+    body='Ready for '+adv.next+' BPM if you like. Any tempo is fine.';
+  }else{
+    head=adv.weak.length+' of '+n+' bars are below '+tgt+' at '+S.bpm+' BPM.';
+    body='Work on '+adv.weak.slice().sort((a,b)=>a.pct-b.pct).slice(0,6).map(b=>'bar '+b.idx+' ('+Math.round(b.pct*100)+'%)').join(', ')+(adv.weak.length>6?' and more':'')+'. Staying at '+S.bpm+' BPM is a good idea until they settle. Any tempo is fine.';
+  }
+  if(L.skipped)body+=' '+L.skipped+(L.skipped===1?' bar was':' bars were')+' stopped before one full pass and not scored.';
+  if(!L.saved)body+=' Your browser would not save the records.';
+  $('advHead').textContent=head;$('advBody').textContent=body;
+  use.hidden=!adv.cleared||adv.next===S.bpm;
+  use.textContent='Use '+adv.next+' BPM';use.dataset.bpm=adv.next;
+}
+function discardRun(){
+  if(!lastRun||lastRun.discarded)return;
+  const i=recs.runs.findIndex(x=>x.id===lastRun.run.id);
+  if(i>=0)recs.runs.splice(i,1);
+  saveRecs();
+  lastRun.discarded=true;
+  renderAdvice();
+  if(S.mode==='page'&&view)renderResults(view);
+}
+/* ---------- progress page ---------- */
+function fmtDate(t){try{return new Date(t).toLocaleDateString(undefined,{day:'numeric',month:'short'});}catch(e){return '';}}
+function showKey(k){return k.replace(/^\/(\d) /,(m,n)=>(n==='4'&&k.indexOf('/',1)<0)?'':m);}
+function renderProgress(){
+  const pt=$('patTable'),gt=$('pgTable');pt.textContent='';gt.textContent='';
+  const stats=patStats(recs.runs),pages=pageStats(recs.runs);
+  const tgt=Math.round(TARGET*100);
+  $('progHint').textContent=stats.length
+    ?'Accuracy is the share of strokes inside your timing window over your last three runs at the tempo you played most recently. Cleared means '+tgt+'% or better at that tempo.'
+    :'Nothing yet. Play a pattern or a page and each bar\'s score shows up here, so you can see which rudiments need work.';
+  const mkHead=(tbl,cols)=>{
+    const tr=document.createElement('tr');
+    cols.forEach(x=>{const th=document.createElement('th');th.textContent=x;tr.appendChild(th);});
+    const th=document.createElement('thead');th.appendChild(tr);tbl.appendChild(th);
+  };
+  if(stats.length){
+    mkHead(pt,['Pattern','BPM','Accuracy','Cleared','Bias ms','']);
+    const tb=document.createElement('tbody');
+    stats.forEach(x=>{
+      const tr=document.createElement('tr');
+      const add=(txt,cls)=>{const td=document.createElement('td');td.textContent=txt;if(cls)td.className=cls;tr.appendChild(td);return td;};
+      add(showKey(x.k),'seq');add(String(x.bpm));
+      add(Math.round(x.recent*100)+'%',x.recent>=TARGET?'ok':'late');
+      add(x.cleared?String(x.cleared):'—');
+      add(isNaN(x.bias)?'—':fmtMs(x.bias,1),isNaN(x.bias)?'':(x.bias<-2.5?'early':(x.bias>2.5?'late':'ok')));
+      const td=document.createElement('td'),b=document.createElement('button');
+      b.type='button';b.className='btn small';b.textContent='Practise';b.dataset.k=x.k;
+      b.addEventListener('click',()=>practisePattern(x.k));
+      td.appendChild(b);tr.appendChild(td);tb.appendChild(tr);
+    });
+    pt.appendChild(tb);
+  }
+  if(pages.length){
+    mkHead(gt,['Page','Bars','Runs','Cleared at','Last']);
+    const tb=document.createElement('tbody');
+    pages.forEach(x=>{
+      const tr=document.createElement('tr');
+      const add=(txt)=>{const td=document.createElement('td');td.textContent=txt;tr.appendChild(td);};
+      add(x.title||'Untitled page');add(String(x.nb));add(String(x.runs));add(x.cleared?x.cleared+' BPM':'—');add(fmtDate(x.t));
+      tb.appendChild(tr);
+    });
+    gt.appendChild(tb);
+  }else{
+    const tr=document.createElement('tr'),td=document.createElement('td');td.textContent='No page runs yet.';td.style.color='var(--muted)';tr.appendChild(td);gt.appendChild(tr);
+  }
+  $('recMsg').textContent=recs.runs.length+(recs.runs.length===1?' run':' runs')+' stored.';
+}
+function practisePattern(k){
+  if(run&&!run.ended)return;
+  S.pattern=k;$('pattern').value=k;save();
+  setMode('single');
+  showTab('play');
+}
+function exportRecs(){
+  const blob=new Blob([JSON.stringify({v:1,runs:recs.runs})],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a'),d=new Date(),pad=n=>String(n).padStart(2,'0');
+  a.href=url;a.download='stick-timing-records-'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'.json';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+async function importRecs(file){
+  if(!file)return;
+  if(file.size>5e6){$('recMsg').textContent='That file is too large.';return;}
+  try{
+    const o=JSON.parse(await file.text());
+    if(!o||!Array.isArray(o.runs))throw 0;
+    const have=new Set(recs.runs.map(x=>x.id));let add=0;
+    o.runs.forEach(x=>{const c=cleanRun(x);if(c&&!have.has(c.id)){recs.runs.push(c);have.add(c.id);add++;}});
+    recs.runs.sort((a,b)=>a.t-b.t);
+    saveRecs();renderProgress();
+    $('recMsg').textContent='Added '+add+(add===1?' run':' runs')+'. '+recs.runs.length+' stored.';
+  }catch(e){$('recMsg').textContent='That file is not a records export.';}
+}
+let clearArm=0;
+function clearRecs(){
+  const b=$('recClear');
+  if(!clearArm){clearArm=setTimeout(()=>{clearArm=0;b.textContent='Clear all';},4000);b.textContent='Click again to clear';return;}
+  clearTimeout(clearArm);clearArm=0;b.textContent='Clear all';
+  recs.runs.length=0;saveRecs();lastRun=null;renderProgress();
+}
+
+/* ---------- results by bar ---------- */
+function barRows(r){
+  const rows=[];
+  r.plan.segs.forEach((sg,si)=>{
+    const Q=r.seg[si];
+    if(!Q.slots)return;
+    rows.push({idx:sg.idx,key:patKey(sg.notes,sg.groupStart,sg.subs,sg.defSub),label:sg.label,seq:fmtPattern(sg.notes,sg.groupStart,sg.subs,sg.defSub),bpm:sg.bpm,
+      passes:Math.floor(Q.slots/sg.strokes),due:Q.slots,heard:Q.errs.length,
+      pct:Q.within/Q.slots,avg:Q.errs.length?mean(Q.errs):NaN,spread:sd(Q.errs),miss:Q.miss,
+      L:Q.hand.L.length?mean(Q.hand.L):NaN,R:Q.hand.R.length?mean(Q.hand.R):NaN});
+  });
+  return rows;
+}
+function renderResults(r){
+  const box=$('results');
+  if(S.mode!=='page'||!r||r.mode!=='play'){box.hidden=true;return;}
+  const rows=barRows(r),prevBest=lastRun?lastRun.prevBest:null;
+  if(!rows.length){box.hidden=true;return;}
+  box.hidden=false;
+  const t=$('resTable');t.textContent='';
+  const head=document.createElement('tr');
+  ['Bar','Sticking','Passes','On time','Best before','Avg ms','Spread','Miss'].forEach(x=>{const th=document.createElement('th');th.textContent=x;head.appendChild(th);});
+  const thead=document.createElement('thead');thead.appendChild(head);t.appendChild(thead);
+  const tb=document.createElement('tbody');
+  rows.forEach(x=>{
+    const tr=document.createElement('tr');
+    const add=(txt,cls)=>{const td=document.createElement('td');td.textContent=txt;if(cls)td.className=cls;tr.appendChild(td);};
+    add(String(x.idx));
+    add(x.seq,'seq');
+    add(String(x.passes));
+    add(Math.round(x.pct*100)+'%',x.pct>=TARGET?'ok':'late');
+    add(x.passes<1?'—':(prevBest&&prevBest.has(x.key)?(x.pct>prevBest.get(x.key)+1e-9?'new best':Math.round(prevBest.get(x.key)*100)+'%'):'first run'),'');
+    add(fmtMs(x.avg,1),isNaN(x.avg)?'':(x.avg<-2.5?'early':(x.avg>2.5?'late':'ok')));
+    add(isNaN(x.spread)?'—':x.spread.toFixed(1));
+    add(String(x.miss));
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);
+  const rated=rows.filter(x=>x.heard>=8&&!isNaN(x.avg));
+  const parts=[];
+  if(rated.length>=2){
+    const late=rated.reduce((a,b)=>b.avg>a.avg?b:a),early=rated.reduce((a,b)=>b.avg<a.avg?b:a),loose=rated.reduce((a,b)=>b.spread>a.spread?b:a);
+    if(late.avg>=4)parts.push('Dragged most: bar '+late.idx+' ('+fmtMs(late.avg)+' ms).');
+    if(early.avg<=-4)parts.push('Led most: bar '+early.idx+' ('+fmtMs(early.avg)+' ms).');
+    parts.push('Least even: bar '+loose.idx+' (spread '+loose.spread.toFixed(1)+' ms).');
+  }
+  $('resInsight').textContent=parts.join(' ');
+}
+function csvCell(v){const s=String(v);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
+function downloadCsv(){
+  const r=view;if(!r)return;
+  const rows=barRows(r);if(!rows.length)return;
+  const out=[['bar','label','sticking','bpm','passes','strokes_due','strokes_heard','on_time_pct','avg_ms','spread_ms','missed','left_avg_ms','right_avg_ms'].join(',')];
+  const n1=v=>isNaN(v)?'':v.toFixed(1);
+  rows.forEach(x=>out.push([x.idx,csvCell(x.label),csvCell(x.seq),x.bpm,x.passes,x.due,x.heard,Math.round(x.pct*100),n1(x.avg),n1(x.spread),x.miss,n1(x.L),n1(x.R)].join(',')));
+  const blob=new Blob([out.join('\n')+'\n'],{type:'text/csv'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  const d=new Date(),pad=n=>String(n).padStart(2,'0');
+  a.href=url;a.download='stick-timing-'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes())+'.csv';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+
+/* ---------- run display ---------- */
+let lastTimeLeft='';
+function frame(){
+  const r=run;
+  if(!r||r.ended)return;
+  raf=requestAnimationFrame(frame);
+  const plan=r.plan,segs=plan.segs,cells=plan.cells,play=r.mode==='play';
+  const heard=ctx.currentTime-(ctx.outputLatency||0)-r.t0;
+  while(r.cur+1<cells.length&&cells[r.cur+1].t<=heard)r.cur++;
+  /* The rows shift up when a pass ends. With a count-in before a new bar they shift as it starts.
+     Otherwise the cursor first steps onto the lower row and the rows shift up a moment later. */
+  const total=totalPasses(plan);
+  const shiftAt=g=>{
+    const pa=passAt(plan,g),sg=segs[pa.si];
+    if(pa.p===0&&pa.si>0&&S.gap>0)return sg.leadStart;
+    const c=cells[sg.cell0+pa.p*sg.N];
+    return c.t+0.6*c.d;
+  };
+  let g=r.showG;
+  while(g+1<total&&heard>=shiftAt(g+1))g++;
+  const s=passAt(plan,g).si;
+  if(g!==r.showG){
+    r.showG=g;
+    setRows(plan,g,play);
+    if(s!==r.showSeg){
+      r.showSeg=s;r.gridSeg=s;
+      if(play){if(S.mode==='page')markBars(r);if(S.cue!=='off')flashRows();}
+    }
+  }
+  const sg=segs[s];
+  let bigText=null,ciK=0;
+  if(r.ci){if(heard<r.ci.ps)ciK=clamp(Math.ceil((r.ci.ps-heard)/r.ci.beat),1,4);else r.ci=null;}
+  if(ciK){bigText=String(ciK);setStatus('Count-in · '+ciK);}
+  else if(heard<sg.t0){
+    const k=clamp(Math.ceil((sg.t0-heard)/sg.beat),1,Math.max(1,sg.leadBeats));
+    setStatus((s===0?'Count-in · ':'Next bar · ')+k);
+    bigText=String(k);
+  }else{
+    const c=cells[r.cur];
+    if(!play&&c)setStatus('Hit the pad on every click.');
+    if(play&&c&&c.seg===s){
+      const pass=Math.floor(c.k/sg.N)+1;
+      setStatus(segs.length>1
+        ?'Playing · bar '+sg.idx+' · pass '+pass+' of '+sg.passes+' · '+sg.bpm+' BPM'
+        :'Playing · pass '+pass+' · '+sg.bpm+' BPM');
+    }
+  }
+  {
+    const bc=$('bigCount');
+    if(bigText===null){if(!bc.hidden)bc.hidden=true;}
+    else{if(bc.hidden)bc.hidden=false;if(bc.textContent!==bigText)bc.textContent=bigText;}
+  }
+  let cursor=null;
+  if(!ciK&&r.cur>=0&&heard>=cells[r.cur].t){const c=cells[r.cur];cursor={g:c.g,i:c.pos};}
+  paintRows(r,cursor);
+  if(!play)return;
+  if(S.mode==='page'){
+    const tt=plan.end,pct=clamp(heard/tt,0,1);
+    $('progFill').style.width=(pct*100).toFixed(1)+'%';
+    const tl='Bar '+sg.idx+' of '+r.totalBars+' · '+fmtTime(sg.end-Math.max(heard,sg.t0))+' left in bar · '+fmtTime(tt-Math.max(heard,0))+' left in all';
+    if(tl!==lastTimeLeft){lastTimeLeft=tl;$('timeLeft').textContent=tl;}
+  }
+  if(r.dirty){updateGauge(r);r.dirty=false;}
+}
+
+/* ---------- page loading ---------- */
+function reparse(){pageParsed=parsePage(S.pageText);}
+function setPageText(txt){
+  S.pageText=String(txt).slice(0,MAX_TEXT);
+  $('pageText').value=S.pageText;
+  S.startBar=1;
+  save();onPageChanged();
+}
+function onPageChanged(){
+  reparse();
+  const n=pageParsed.bars.length;
+  $('startBar').max=String(Math.max(1,n));
+  S.startBar=clamp(Math.round(+S.startBar)||1,1,Math.max(1,n));
+  $('startBar').value=S.startBar;
+  buildBarList();
+  refreshPreview();
+}
+function buildBarList(){
+  const box=$('barList');box.textContent='';
+  const bars=allBars();
+  bars.forEach(b=>{
+    const row=document.createElement('div');row.className='brow';row.setAttribute('role','option');row.tabIndex=0;row.dataset.idx=b.idx;
+    row.addEventListener('click',()=>pickBar(b.idx));
+    row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pickBar(b.idx);}});
+    const n=document.createElement('span');n.textContent=b.idx;
+    const q=document.createElement('span');q.className='seq';q.textContent=fmtPattern(b.notes,b.groupStart,b.subs,b.defSub)+(b.label?'  ('+b.label+')':'');
+    const m=document.createElement('span');m.className='meta';
+    m.textContent=b.passes+(b.passes===1?' pass':' passes')+' · '+fmtTime(b.secs)+(b.bpm!==S.bpm?' · @'+b.bpm:'');
+    row.append(n,q,m);box.appendChild(row);
+  });
+  box.hidden=!bars.length;
+  markBars(null);
+}
+function pickBar(i){goBar(i,true);}
+function markBars(r){
+  const cur=r&&r.gridSeg>=0?r.plan.segs[r.gridSeg].idx:-1;
+  const first=r?r.startBar:S.startBar;
+  document.querySelectorAll('#barList .brow').forEach(el=>{
+    const i=+el.dataset.idx;
+    el.classList.toggle('cur',i===cur);
+    el.classList.toggle('done',cur>0&&i<cur&&i>=first);
+    el.classList.toggle('skip',i<first);
+    el.classList.toggle('start',!r&&i===first);
+    el.setAttribute('aria-selected',String(i===first));
+    if(i===cur&&el.scrollIntoView){const box=$('barList');const t=el.offsetTop-box.offsetTop;if(t<box.scrollTop||t+el.offsetHeight>box.scrollTop+box.clientHeight)box.scrollTop=Math.max(0,t-box.clientHeight/2);}
+  });
+}
+async function loadFile(file){
+  if(!file)return;
+  $('pageErr').textContent='';
+  if(file.size>MAX_TEXT){$('pageErr').textContent='That file is too large for a practice page.';return;}
+  try{setPageText(await file.text());}
+  catch(e){$('pageErr').textContent='Could not read that file.';}
+}
+async function loadUrl(){
+  const raw=$('pageUrl').value.trim();
+  if(!raw)return;
+  $('pageErr').textContent='';
+  let u;
+  try{u=new URL(raw);if(!/^https?:$/.test(u.protocol))throw new Error('scheme');}
+  catch(e){$('pageErr').textContent='Enter a full web address starting with https://';return;}
+  $('urlGo').disabled=true;
+  try{
+    const res=await fetch(u.href,{credentials:'omit'});
+    if(!res.ok)throw new Error('the server answered '+res.status);
+    const txt=await res.text();
+    if(txt.length>MAX_TEXT)throw new Error('the file is too large');
+    setPageText(txt);
+    $('urlRow').hidden=true;
+  }catch(e){
+    $('pageErr').textContent='Could not load that address ('+(e&&e.message?e.message:'blocked')+'). Many sites do not allow other pages to read their files. Download the file and use Load file, or paste the text into the box.';
+  }finally{$('urlGo').disabled=false;}
+}
+
+/* ---------- controls ---------- */
+const LOCKED=['cue','pattern','bpm','bpmDown','bpmUp','subdiv','click','inputMode','modeSingle','modePage','pageText','fileBtn','urlBtn','urlGo','pageUrl','clearPage','eachVal','eachUnit','gap','startBar'];
+function syncRunUI(){
+  const on=!!(run&&!run.ended),play=on&&run.mode==='play',paused=on&&!!run.paused;
+  const b=$('startBtn');
+  b.textContent=!on?'Start':(play?(paused?'Resume':'Pause'):'Stop');
+  b.classList.toggle('running',on&&!paused);
+  $('runBtns').hidden=!play;
+}
+function setRunning(on){
+  syncRunUI();
+  /* While a pattern or page is playing, hide the settings so the strokes sit under the transport. */
+  document.body.dataset.run=on?'1':'0';
+  LOCKED.forEach(id=>{$(id).disabled=on;});
+  document.querySelectorAll('.chip').forEach(c=>{c.disabled=on;});
+  $('tabSetup').disabled=on;$('tabPattern').disabled=on;$('tabProgress').disabled=on;
+  if(on&&run&&run.mode==='play'&&S.mode==='page'){$('runInfo').hidden=false;lastTimeLeft='';}
+  updateCalUI();
+}
+function syncInfo(){
+  const bars=currentBars();
+  if(S.mode==='single'){
+    const res=parseBarLine(S.pattern),ok=!!(res&&res.bar);
+    $('patErr').textContent=ok?'':(res&&res.err?'Check the sticking: '+res.err+'.':'Type at least two strokes using L and R. A space starts a new group.');
+    $('startBtn').disabled=!ok;
+    if(ok){
+      const b=bars[0],uniform=b.subs.every(s=>s===b.subs[0]);
+      const beats=b.passBeats;
+      const rests=b.notes.filter(n=>n==='_').length,strokes=b.notes.length-rests;
+      $('patInfo').textContent=strokes+' strokes'+(rests?' and '+rests+(rests===1?' rest':' rests'):'')+' = '+(Number.isInteger(beats)?beats:+beats.toFixed(2))+' beats at '+S.bpm+' BPM.'+(uniform?' Each stroke lasts '+Math.round(60/S.bpm/b.subs[0]*1000)+' ms.':'')+' Runs until you press Stop. Put /3 or /4 before strokes to change the subdivision mid-bar, and _ for a rest.';
+    }else $('patInfo').textContent='';
+    document.querySelectorAll('.chip').forEach(c=>{
+      const cr=parseBarLine(c.dataset.p);
+      c.setAttribute('aria-pressed',String(ok&&!!cr&&!!cr.bar&&cr.bar.notes.join('')===res.bar.notes.join('')&&cr.bar.subs.join()===res.bar.subs.join()));
+    });
+  }else{
+    const all=allBars(),n=all.length;
+    const ok=bars.length>0;
+    $('startBtn').disabled=!ok;
+    const errs=pageParsed.errors;
+    $('pageErr').textContent=n===0&&!S.pageText.trim()?'':(errs.length?errs.slice(0,3).join(' ')+(errs.length>3?' (+'+(errs.length-3)+' more)':''):(n===0?'No bars found. Type one bar per line using L and R.':''));
+    let total=0;bars.forEach(b=>{total+=b.secs;});
+    total+=(bars.length>1?bars.length-1:0)*S.gap*(60/S.bpm)+4*(60/S.bpm);
+    $('pageInfo').textContent=ok
+      ?(pageParsed.title?pageParsed.title+'. ':'')+bars.length+(bars.length===1?' bar':' bars')+(S.startBar>1?' from bar '+S.startBar:'')+', about '+fmtTime(total)+' in all at '+S.bpm+' BPM.'
+      :'';
+    const en=$('eachNote');
+    en.hidden=!pageParsed.each;
+    if(pageParsed.each)en.textContent='This page sets its own time per bar (each:), so the two settings above are not used. Bars with their own x, time or @ still win.';
+    $('eachVal').disabled=!!pageParsed.each||(run&&!run.ended);
+    $('eachUnit').disabled=!!pageParsed.each||(run&&!run.ended);
+  }
+  const sum=$('playSummary');
+  if(!bars.length)sum.textContent=S.mode==='single'?'Type a sticking on the Pattern page, then press Start.':'Add some bars on the Pattern page, then press Start.';
+  else if(S.mode==='single'){const b=bars[0];sum.textContent=fmtPattern(b.notes,b.groupStart,b.subs,b.defSub)+' · '+S.bpm+' BPM · runs until you press Stop';}
+  else{let tt=0;bars.forEach(b=>{tt+=b.secs;});sum.textContent=(pageParsed.title||'Practice page')+' · '+bars.length+(bars.length===1?' bar':' bars')+(S.startBar>1?' from bar '+S.startBar:'')+' · about '+fmtTime(tt)+' · '+S.bpm+' BPM';}
+  $('bpmOut').textContent=S.bpm+' BPM';
+}
+function refreshPreview(){
+  view=null;document.body.dataset.state='idle';
+  previewRows();renderAll();syncInfo();
+  if(S.mode==='page')buildBarList();
+}
+function buildChips(){
+  const box=$('chips');
+  CHIPS.forEach(s=>{
+    const b=document.createElement('button');
+    b.type='button';b.className='chip';b.dataset.p=s;b.textContent=s;
+    b.addEventListener('click',()=>{S.pattern=s;$('pattern').value=s;save();refreshPreview();});
+    box.appendChild(b);
+  });
+}
+function setInputMode(){
+  document.body.dataset.input=S.input;
+  $('inputMode').value=S.input;
+}
+function setMode(m){
+  S.mode=m;save();
+  document.body.dataset.mode=m;
+  $('modeSingle').setAttribute('aria-pressed',String(m==='single'));
+  $('modePage').setAttribute('aria-pressed',String(m==='page'));
+  $('runInfo').hidden=true;
+  if(m==='page')onPageChanged();else refreshPreview();
+}
+function wire(){
+  $('pattern').addEventListener('input',e=>{S.pattern=e.target.value;save();refreshPreview();});
+  const setBpm=v=>{S.bpm=clamp(Math.round(v),40,220);$('bpm').value=S.bpm;save();if(S.mode==='page')buildBarList();syncInfo();};
+  $('bpm').addEventListener('input',e=>setBpm(+e.target.value));
+  $('bpmDown').addEventListener('click',()=>setBpm(S.bpm-1));
+  $('bpmUp').addEventListener('click',()=>setBpm(S.bpm+1));
+  $('subdiv').addEventListener('change',e=>{S.subdiv=+e.target.value;save();if(S.mode==='page')buildBarList();previewRows();syncInfo();});
+  $('click').addEventListener('change',e=>{S.click=e.target.value;save();});
+  $('tol').addEventListener('change',e=>{S.tol=+e.target.value;save();renderAll();});
+  $('inputMode').addEventListener('change',e=>{S.input=e.target.value;save();setInputMode();});
+  $('modeSingle').addEventListener('click',()=>setMode('single'));
+  $('modePage').addEventListener('click',()=>setMode('page'));
+  $('pageText').addEventListener('input',e=>{S.pageText=e.target.value.slice(0,MAX_TEXT);S.startBar=1;save();onPageChanged();});
+  $('fileBtn').addEventListener('click',()=>$('pageFile').click());
+  $('pageFile').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];await loadFile(f);e.target.value='';});
+  $('urlBtn').addEventListener('click',()=>{const row=$('urlRow');row.hidden=!row.hidden;if(!row.hidden)$('pageUrl').focus();});
+  $('urlGo').addEventListener('click',loadUrl);
+  $('pageUrl').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();loadUrl();}});
+  $('clearPage').addEventListener('click',()=>{setPageText('');$('pageText').focus();});
+  $('eachVal').addEventListener('change',e=>{
+    const v=+e.target.value;
+    S.eachVal=S.eachUnit==='pass'?clamp(Math.round(v)||8,1,200):clamp(v||1,0.25,60);
+    e.target.value=S.eachVal;save();buildBarList();syncInfo();
+  });
+  $('eachUnit').addEventListener('change',e=>{
+    S.eachUnit=e.target.value==='pass'?'pass':'min';
+    S.eachVal=S.eachUnit==='pass'?8:1;
+    syncEach();save();buildBarList();syncInfo();
+  });
+  $('gap').addEventListener('change',e=>{S.gap=+e.target.value===0?0:4;save();syncInfo();});
+  $('cue').addEventListener('change',e=>{S.cue=e.target.value;save();});
+  $('startBar').addEventListener('change',e=>{
+    S.startBar=clamp(Math.round(+e.target.value)||1,1,Math.max(1,pageParsed.bars.length));
+    e.target.value=S.startBar;markBars(null);refreshPreview();
+  });
+  $('csvBtn').addEventListener('click',downloadCsv);
+  $('advUse').addEventListener('click',e=>{setBpm(+e.currentTarget.dataset.bpm);e.currentTarget.hidden=true;});
+  $('advDiscard').addEventListener('click',discardRun);
+  $('recExport').addEventListener('click',exportRecs);
+  $('recImport').addEventListener('click',()=>$('recFile').click());
+  $('recFile').addEventListener('change',async e=>{await importRecs(e.target.files&&e.target.files[0]);e.target.value='';});
+  $('recClear').addEventListener('click',clearRecs);
+  let wheelAt=0;
+  $('rows').addEventListener('wheel',e=>{
+    if(labelMode!=='preview'||S.mode!=='page'||(run&&!run.ended)||!e.deltaY)return;
+    e.preventDefault();
+    const t=performance.now();
+    if(t-wheelAt<140)return;
+    wheelAt=t;goBar(S.startBar+(e.deltaY>0?1:-1),e.deltaY>0);
+  },{passive:false});
+  $('rows').addEventListener('keydown',e=>{
+    if(labelMode!=='preview'||S.mode!=='page')return;
+    if(e.key==='ArrowDown'){e.preventDefault();goBar(S.startBar+1,true);}
+    else if(e.key==='ArrowUp'){e.preventDefault();goBar(S.startBar-1,true);}
+  });
+  let ty=null;
+  $('rows').addEventListener('touchstart',e=>{ty=e.touches.length===1?e.touches[0].clientY:null;},{passive:true});
+  $('rows').addEventListener('touchend',e=>{
+    if(ty===null||labelMode!=='preview'||S.mode!=='page'||(run&&!run.ended))return;
+    const dy=(e.changedTouches[0]?e.changedTouches[0].clientY:ty)-ty;ty=null;
+    if(Math.abs(dy)>=48)goBar(S.startBar+(dy<0?Math.max(1,Math.round(-dy/60)):-Math.max(1,Math.round(dy/60))),true);
+  },{passive:true});
+  $('restartBtn').addEventListener('click',restartRun);
+  $('stopBtn').addEventListener('click',()=>{if(run&&!run.ended)stopRun();});
+  $('sens').addEventListener('input',e=>{S.sens=+e.target.value;$('sensOut').textContent=S.sens+' dB';$('mThr').style.left=((S.sens+60)/60*100)+'%';pushSens();save();});
+  $('vol').addEventListener('input',e=>{S.vol=+e.target.value;$('volOut').textContent=S.vol+'%';save();});
+  $('latency').addEventListener('change',e=>{const v=e.target.value;S.latency=v===''?null:clamp(Math.round(+v)||0,0,400);save();});
+  $('testMic').addEventListener('click',async()=>{
+    if(await ensureAudio(true)){setStatus('Microphone is on. Hit the pad and watch the level bar.');$('testMic').textContent='Microphone is on';}
+  });
+  $('calL').addEventListener('click',()=>startCal('L'));
+  $('calR').addEventListener('click',()=>startCal('R'));
+  $('calReset').addEventListener('click',()=>{cal={L:[],R:[]};rebuildModel();save();updateCalUI();});
+  $('calLatency').addEventListener('click',async()=>{
+    if(calMode||(run&&!run.ended))return;
+    if(S.input!=='mic')return;
+    if(await ensureAudio(true))beginRun('lat');
+  });
+  $('startBtn').addEventListener('click',async()=>{
+    if(run&&!run.ended){
+      if(run.mode!=='play'){stopRun();return;}
+      if(run.paused)resumeRun();else pauseRun();
+      return;
+    }
+    if(calMode){calMode=null;updateCalUI();}
+    if(!currentBars().length)return;
+    showTab('play');
+    setStatus('Starting…');
+    if(!(await ensureAudio(S.input==='mic')))return;
+    beginRun('play');
+  });
+  ['setup','pattern','play','progress'].forEach(n=>{
+    const b=$('tab'+n[0].toUpperCase()+n.slice(1));
+    b.addEventListener('click',()=>showTab(n));
+    b.addEventListener('keydown',e=>{
+      if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;
+      const order=['play','pattern','setup','progress'].filter(x=>!$('tab'+x[0].toUpperCase()+x.slice(1)).disabled);
+      const i=order.indexOf(n);if(i<0)return;
+      const to=order[(i+(e.key==='ArrowRight'?1:order.length-1))%order.length];
+      showTab(to);$('tab'+to[0].toUpperCase()+to.slice(1)).focus();e.preventDefault();
+    });
+  });
+  window.addEventListener('keydown',e=>{
+    if(S.input!=='kb'||!run||run.ended||e.repeat)return;
+    const t=e.target&&e.target.tagName;
+    if(t==='INPUT'||t==='SELECT'||t==='TEXTAREA')return;
+    const k=e.key.toLowerCase();
+    if(k!=='f'&&k!=='j')return;
+    handleHit({t:kbTime(e.timeStamp),kb:true,f:null,det:{hand:k==='f'?'L':'R',conf:1}});
+  });
+  document.querySelectorAll('.pad').forEach(b=>{
+    b.addEventListener('pointerdown',e=>{
+      e.preventDefault();
+      if(S.input!=='kb'||!run||run.ended)return;
+      handleHit({t:kbTime(e.timeStamp),kb:true,f:null,det:{hand:b.dataset.hand,conf:1}});
+    });
+  });
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&run&&!run.ended)lockScreen();});
+  window.addEventListener('resize',drawTrace);
+  if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',drawTrace);
+}
+function syncEach(){
+  const u=S.eachUnit==='pass';
+  $('eachUnit').value=S.eachUnit;
+  const el=$('eachVal');
+  el.min=u?'1':'0.25';el.max=u?'200':'60';el.step=u?'1':'0.25';
+  el.value=S.eachVal;
+}
+
+function init(){
+  $('pattern').value=S.pattern;
+  $('pageText').value=S.pageText;
+  $('bpm').value=S.bpm;
+  $('subdiv').value=String(S.subdiv);
+  $('click').value=S.click;
+  $('tol').value=String(S.tol);
+  $('gap').value=String(S.gap);
+  $('cue').value=S.cue;
+  syncEach();
+  $('sens').value=S.sens;$('sensOut').textContent=S.sens+' dB';$('mThr').style.left=((S.sens+60)/60*100)+'%';
+  $('vol').value=S.vol;$('volOut').textContent=S.vol+'%';
+  $('latency').value=S.latency==null?'':S.latency;
+  buildChips();setInputMode();updateCalUI();
+  wire();
+  showTab('play');
+  setMode(S.mode);
+}
+init();
+})();
+</script>
+</body>
+</html>
