@@ -196,6 +196,29 @@ body[data-mode="routine"] .single-only{display:none}
 .erow:last-child{border-bottom:0}
 .erow .seq{letter-spacing:.1em;font-weight:600;overflow-wrap:anywhere}
 .erow .meta{color:var(--muted);white-space:nowrap}
+.bhead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.bhead h3{margin:0}
+.bbody,.bmain{display:grid;gap:12px}
+.bbody[hidden],.bmain[hidden],.b-routine[hidden]{display:none}
+.bhdr{display:grid;gap:12px}
+.bnav{display:grid;grid-template-columns:48px 1fr 48px;align-items:center;gap:6px}
+.bpos{text-align:center;font:600 13px var(--font-data);color:var(--muted)}
+.bacts{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:8px}
+.bstaff{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 4px;min-height:60px;overflow:hidden}
+.bstaff .none{color:var(--muted);font:14px var(--font-body);padding:14px 8px;text-align:center}
+.bseq{font:600 14px var(--font-data);letter-spacing:.06em;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-height:44px;overflow-wrap:anywhere;white-space:pre-wrap}
+.bseq:empty::before{content:"Tap R or L to start";color:var(--muted);letter-spacing:0;font-weight:400}
+.bcodes{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.bcode{font:700 14px var(--font-data);border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;min-height:44px;padding:0;cursor:pointer}
+.bcode[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.bcode:disabled{opacity:.35;cursor:not-allowed}
+.bkeys{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.bkey{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;min-height:56px;cursor:pointer;font:700 14px var(--font-data)}
+.bkey.R,.bkey.L{grid-column:span 2;min-height:64px;font:800 32px var(--font-display)}
+.bkey.R{color:var(--accent)}
+.bkey.L{color:var(--early)}
+.bkey:active,.bcode:active{filter:brightness(.92)}
+.erow.editing{outline:2px solid var(--accent);outline-offset:-2px}
 .erow:hover{background:color-mix(in srgb,var(--accent) 10%,transparent)}
 .erow:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .erow.start{background:color-mix(in srgb,var(--accent) 22%,transparent);box-shadow:inset 4px 0 0 var(--accent)}
@@ -262,7 +285,7 @@ button.pill.on{color:var(--ok)}
         <div class="field"><label for="click">Click</label>
           <select id="click">
             <option value="beat">On the beat</option>
-            <option value="note">Every stroke</option>
+            <option value="strokes">On all strokes</option>
             <option value="off">Count-in only</option>
           </select></div>
         <div class="field"><label for="tol">On-time window</label>
@@ -385,6 +408,49 @@ button.pill.on{color:var(--ok)}
       <p class="hint">Need the routine format, <b>x16</b> passes or <b>8t</b> triplets? <button class="btn small" type="button" data-help="help-format">Open the format help</button></p>
     </section>
 
+    <section class="panel cfg builder" id="builder" aria-label="Exercise builder">
+      <div class="bhead">
+        <h3>Exercise builder</h3>
+        <button class="btn small" id="bToggle" type="button" aria-expanded="false" aria-controls="bBody">Show</button>
+      </div>
+      <div class="bbody" id="bBody">
+        <p class="hint" id="bNote" hidden></p>
+        <div class="bmain" id="bMain">
+          <div class="b-routine bhdr">
+            <div class="field"><label for="bTitle">Title</label><input type="text" id="bTitle" maxlength="80" autocomplete="off" placeholder="Name this routine"></div>
+            <div class="row">
+              <div class="field"><label for="bTime">Time</label><select id="bTime"></select></div>
+              <div class="field"><label for="bStrokes">Strokes are</label><select id="bStrokes"></select></div>
+            </div>
+            <div class="bnav">
+              <button class="btn small" id="bPrev" type="button" aria-label="Previous exercise">&lsaquo;</button>
+              <span class="bpos" id="bPos" aria-live="polite"></span>
+              <button class="btn small" id="bNext" type="button" aria-label="Next exercise">&rsaquo;</button>
+            </div>
+            <div class="bacts">
+              <button class="btn small" id="bAdd" type="button">Add exercise</button>
+              <button class="btn small" id="bDup" type="button">Copy</button>
+              <button class="btn small" id="bDel" type="button">Delete</button>
+            </div>
+          </div>
+          <div class="staffs bstaff" id="bStaff" aria-hidden="true"></div>
+          <div class="bseq" id="bSeq"></div>
+          <p class="hint" id="bStatus" aria-live="polite"></p>
+          <div class="field"><label>Note for the next strokes</label>
+            <div class="bcodes" id="bCodes" role="group" aria-label="Note for the next strokes"></div></div>
+          <div class="bkeys" role="group" aria-label="Strokes">
+            <button class="bkey R" type="button" data-k="R" aria-label="Right">R</button>
+            <button class="bkey L" type="button" data-k="L" aria-label="Left">L</button>
+            <button class="bkey sm" type="button" data-k="_" aria-label="Rest">rest _</button>
+            <button class="bkey sm" type="button" data-k="group" aria-label="New group">space</button>
+            <button class="bkey sm" type="button" data-k="back" aria-label="Delete the last stroke">&#9003;</button>
+            <button class="bkey sm" type="button" data-k="swap" aria-label="Swap left and right">L&#8644;R</button>
+          </div>
+          <p class="hint">Tapping writes the same text you can type above. Type in the box any time.<span class="b-routine"> Use the arrows, or click a line in the box, to pick which exercise the builder edits.</span></p>
+        </div>
+      </div>
+    </section>
+
     <section class="panel routine-only cfg" aria-label="Routine library">
       <h3>Routine library</h3>
       <div class="field">
@@ -495,7 +561,7 @@ button.pill.on{color:var(--ok)}
       <div class="ex">
         <h4>Accent patterns</h4>
         <pre>RLRR LRLL RLRR LRLL</pre>
-        <p>Set the click to "Every stroke" in Setup to hear each note, or leave it "On the beat".</p>
+        <p>Set the click to "On all strokes" in Setup to hear each note, or leave it "On the beat".</p>
         <button class="btn small" type="button" data-try="single" data-text="RLRR LRLL RLRR LRLL">Try it</button>
       </div>
       <div class="ex">
@@ -520,6 +586,7 @@ button.pill.on{color:var(--ok)}
 
     <section class="panel" id="help-format">
       <h3>The routine format</h3>
+      <p>You do not have to type any of this. The <b>Exercise builder</b> under the text box writes it for you: pick a time signature and note code, tap R, L, rest and space to build an exercise, and the staff and bar count update as you go. <b>Add exercise</b>, <b>Copy</b> and <b>Delete</b> manage the list, and the arrows pick which exercise you are editing. Clicking in the text box also picks the exercise under your cursor. Typing and tapping can be mixed freely, and The builder starts hidden: press <b>Show</b> to open it, and <b>Hide</b> puts it away again.</p>
       <p>A routine is plain text with one exercise per line. Lines starting with <b>#</b> are notes to yourself, and a name before a colon (<b>Exercise 4:</b>) is just a label. This app does not come with any book content. You supply the exercises.</p>
       <pre>title: My warm-up routine
 each: 1m
@@ -647,7 +714,7 @@ https://example.com/another-routine.txt</pre>
         <li><b>Stick calibration:</b> hit the same spot of the pad with one stick only, at normal strength, until the count finishes. Do it for both sticks.</li>
         <li><b>Test left vs right:</b> after calibrating, press it and hit once with whichever hand is shown, 20 times in a shuffled order. It reports how often the app named the right stick, how each hand did, and how many hits would be tagged with the wrong hand in a run. Below 90% is worth recalibrating.</li>
         <li><b>Latency:</b> sound reaches the page late, and the click reaches your ears late. Press Calibrate latency, then hit right on each click for three rounds. It assumes you were on the click on average. You can also type a number.</li>
-        <li><b>Click:</b> "On the beat", "Every stroke" or "Count-in only". Use headphones, or the click will be picked up as strokes.</li>
+        <li><b>Click:</b> "On the beat", "On all strokes" (no click on rests) or "Count-in only". Use headphones, or the click will be picked up as strokes.</li>
       </ul>
     </section>
 
@@ -882,7 +949,7 @@ function fitSig(p,sig){
 }
 /* One line of a routine. Returns null (blank), {err} or {exercise}. Only L and R may remain once labels, numbering and options are removed.
    defSig is the routine's current time signature, if it has set one. */
-function parseExerciseLine(raw,defSig,defStrokes){
+function parseExerciseLine(raw,defSig,defStrokes,lenient){
   let line=String(raw).replace(/#.*$/,'').trim();
   if(!line)return null;
   let label='',sig=defSig||null;
@@ -909,12 +976,82 @@ function parseExerciseLine(raw,defSig,defStrokes){
   const core=line.replace(new RegExp(DUR_SRC,'gi'),' ').trim();
   const p=parseStrokes((defStrokes?defStrokes+' ':'')+core,sig?sig.d:4);
   if(p.err)return {err:p.err};
-  if(p.strokes<2)return {err:'an exercise needs at least two strokes (rests do not count)'};
+  if(p.strokes<(lenient?1:2))return {err:'an exercise needs at least two strokes (rests do not count)'};
   const warns=[];
   if(p.letters>MAXSTROKES)warns.push('more than '+MAXSTROKES+' strokes and rests, the remainder was cut off');
   let subs=p.subs,gs=p.groupStart;
   if(sig){const f=fitSig(p,sig);subs=f.subs;gs=f.groupStart;if(f.warn)warns.push(f.warn);}
   return {exercise:{src:((defStrokes?defStrokes+' ':'')+core).replace(/\s+/g,' ').trim(),notes:p.notes,groupStart:gs,subs:subs,label:label,dur:dur,bpm:bpm,sig:sig,warn:warns.join('; ')}};
+}
+/* ---------- helpers for the exercise builder: they only change text, so typing and tapping stay in step ---------- */
+const CODE_TAIL=/(^|\s)(8t|16t|5t|7t|q|8|16|32)$/i;
+/* A routine line in three parts: what comes before the strokes (label, numbering, signature), the strokes and note
+   codes, and the options after them (x8, 90s, @100). A trailing space in the strokes is kept, because it separates a
+   note code from the next stroke. */
+function lineParts(raw){
+  let line=String(raw),comment='';
+  const ci=line.indexOf('#');
+  if(ci>=0){comment=' '+line.slice(ci).trim();line=line.slice(0,ci);}
+  let pre='';
+  const SIG=/^(\s*\d{1,2}\s*\/\s*\d{1,2}(?:\s*\([\d\s+]+\))?\s*:\s*)(.*)$/;
+  const grab=re=>{const m=re.exec(line);if(m){pre+=m[1];line=m[2];return true;}return false;};
+  grab(SIG);
+  const lm=/^(\s*[A-Za-z][A-Za-z0-9 ]*?\s*:\s*)(.*)$/.exec(line);
+  if(lm&&!/^\s*(title|each|time|strokes)\s*:/i.test(lm[1])){pre+=lm[1];line=lm[2];grab(SIG);}
+  grab(/^(\s*\d+\s*[.)]\s+)(.*)$/);
+  const opts=[];
+  const body=line.replace(new RegExp(DUR_SRC,'gi'),t=>{opts.push(t.trim());return ' ';}).replace(/\s+/g,' ').replace(/^\s+/,'');
+  return {pre:pre,body:body,opts:opts.join('  '),comment:comment};
+}
+/* The time signature and default note code in force at a line of a text routine. */
+function routineContext(lines,upto){
+  let sig=null,strokes='';
+  for(let i=0;i<upto&&i<lines.length;i++){
+    const hm=/^\s*(time|strokes)\s*:\s*(.*)$/i.exec(String(lines[i]).replace(/#.*$/,''));
+    if(!hm)continue;
+    const v=hm[2].trim(),off=/^(off|none|-|)$/i.test(v);
+    if(hm[1].toLowerCase()==='time'){if(off)sig=null;else{const ps=parseSig(v);if(!ps.err)sig=ps.sig;}}
+    else if(off)strokes='';
+    else if(new RegExp('^'+NV_SRC+'$','i').test(v))strokes=v;
+  }
+  return {sig:sig,strokes:strokes};
+}
+/* title:, time: and strokes: lines at the top of a routine. */
+const HEADER_ORDER=['title','time','strokes'];
+function getHeader(text,key){
+  const re=new RegExp('^\\s*'+key+'\\s*:\\s*(.*)$','i');
+  for(const ln of String(text).split(/\r?\n/)){const m=re.exec(ln.replace(/#.*$/,''));if(m)return m[1].trim();}
+  return null;
+}
+function setHeader(text,key,value){
+  const lines=String(text).split(/\r?\n/),re=new RegExp('^\\s*'+key+'\\s*:','i');
+  const at=k=>{const r=new RegExp('^\\s*'+k+'\\s*:','i');return lines.findIndex(l=>r.test(l.replace(/#.*$/,'')));};
+  const i=at(key),v=String(value||'').trim();
+  if(i>=0){if(v)lines[i]=key+': '+v;else lines.splice(i,1);}
+  else if(v){
+    let idx=0;
+    for(const k of HEADER_ORDER){if(k===key)break;const j=at(k);if(j>=0)idx=Math.max(idx,j+1);}
+    lines.splice(idx,0,key+': '+v);
+  }
+  return lines.join('\n');
+}
+/* One tap on the builder, as a change to the strokes text. act is R, L, _, group, back, swap or code:<note code>. */
+function builderApply(body,act){
+  const b=String(body);
+  if(act==='R'||act==='L'||act==='_')return b+act;
+  if(act==='group')return /\s$|^$/.test(b)?b:b+' ';
+  if(act==='swap')return b.replace(/[LRlr]/g,c=>({L:'R',R:'L',l:'r',r:'l'})[c]);
+  const t=b.replace(/\s+$/,''),m=CODE_TAIL.exec(t);
+  if(act==='back'){
+    if(!b)return b;
+    if(m&&/\s$/.test(b)){const base=t.slice(0,t.length-m[2].length).replace(/\s+$/,'');return base?base+' ':'';}
+    return b.slice(0,-1);
+  }
+  if(act.indexOf('code:')===0){
+    const base=m?t.slice(0,t.length-m[2].length).replace(/\s+$/,''):t;
+    return (base?base+' ':'')+act.slice(5)+' ';
+  }
+  return b;
 }
 function parseRoutine(text){
   const out={title:'',each:null,exercises:[],errors:[]};
@@ -923,10 +1060,11 @@ function parseRoutine(text){
   const readStrokes=v=>{v=String(v).trim();if(/^(off|none|-|)$/i.test(v))return '';return STROKESRE.test(v)?v:null;};
   const t=String(text||'').replace(/^\uFEFF/,'').trim();
   if(!t)return out;
-  const take=(res,where)=>{
+  const take=(res,where,line)=>{
     if(!res)return;
     if(res.err){out.errors.push(where+': '+res.err);return;}
     if(res.exercise.warn)out.errors.push(where+': '+res.exercise.warn);
+    if(line!=null)res.exercise.line=line;
     out.exercises.push(res.exercise);
   };
   if(t[0]==='{'||t[0]==='['){
@@ -971,7 +1109,7 @@ function parseRoutine(text){
         }else{const d=readDur(hm[2]);if(d)out.each=d;else out.errors.push('Line '+(i+1)+': "each:" needs a time like 1m, 90s or x8');}
         return;
       }
-      take(parseExerciseLine(raw,routineSig,routineStrokes),'Line '+(i+1));
+      take(parseExerciseLine(raw,routineSig,routineStrokes),'Line '+(i+1),i);
     });
   }
   if(out.exercises.length>200){out.exercises.length=200;out.errors.push('Only the first 200 exercises are used.');}
@@ -1019,7 +1157,7 @@ function buildPlan(exercises,o){
       const st=t0+(p*passBeats+off[i])*beat,rest=b.notes[i]==='_';
       cells.push({t:st,seg:si,pos:i,k:p*N+i,rest:rest,d:beat/b.subs[i],g:g0+p,slot:rest?-1:slots.length});
       if(!rest)slots.push({t:st,seg:si,pos:i,k:p*N+i,w:Math.min(beat/b.subs[i]*0.5,0.15)});
-      if(o.clickMode==='note'){
+      if(o.clickMode==='note'||(o.clickMode==='strokes'&&!rest)){
         /* Strong at the start of the bar, lighter at group starts. Inside triplets every beat start is lighter too,
            and inside sextuplets every half beat (1 2 3, 1 2 3), whatever the beaming. */
         const sb=b.subs[i];
@@ -1371,7 +1509,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.4.1';                           /* shown beside the title */
+const VERSION='0.5.2';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const SAMPLE='# Example routine. Replace these with your own exercises, one per line.\n# To change how long an exercise plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example routine\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
@@ -1382,7 +1520,7 @@ const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const LOOKAHEAD=0.35;                            /* how far ahead clicks are scheduled, in seconds */
 
 const S={mode:'single',pattern:'RLRL RLRL RLRL RLRL',routineText:SAMPLE,eachUnit:'min',eachVal:1,gap:0,pulse:true,startExercise:1,
-  bpm:60,subdiv:4,click:'beat',tol:20,sens:-30,settle:40,library:'',vol:60,latency:null,input:'mic'};
+  bpm:60,subdiv:4,click:'beat',tol:20,sens:-30,settle:40,library:'',vol:60,latency:null,input:'mic',builderOpen:false};
 let cal={L:[],R:[]},model=null;
 try{
   const o=JSON.parse(localStorage.getItem(KEY)||'null');
@@ -1392,6 +1530,7 @@ try{
   }
 }catch(e){}
 S.mode=S.mode==='routine'?'routine':'single';
+S.builderOpen=S.builderOpen===true;                /* the exercise builder starts hidden */
 S.bpm=clamp(Math.round(+S.bpm)||60,40,220);
 S.subdiv=clamp(Math.round(+S.subdiv)||2,1,4);
 S.tol=[10,15,20,30].includes(+S.tol)?+S.tol:20;
@@ -1401,7 +1540,8 @@ S.library=typeof S.library==='string'&&S.library.length<=500?S.library.trim():''
 S.vol=clamp(Math.round(+S.vol),0,100);if(isNaN(S.vol))S.vol=60;
 S.latency=(S.latency==null||isNaN(+S.latency))?null:clamp(Math.round(+S.latency),0,400);
 if(S.input!=='kb')S.input='mic';
-if(!['beat','note','off'].includes(S.click))S.click='beat';
+if(S.click==='note')S.click='strokes';
+if(!['beat','strokes','off'].includes(S.click))S.click='beat';
 if(typeof S.pattern!=='string')S.pattern='RLRL RLRL RLRL RLRL';
 if(typeof S.routineText!=='string'||S.routineText.length>MAX_TEXT)S.routineText=SAMPLE;
 S.eachUnit=S.eachUnit==='pass'?'pass':'min';
@@ -2207,8 +2347,8 @@ function staffLine(sg,opt){
   return {svg:svg,cards:cards};
 }
 /* A pass as one or more lines. Cards come back in stroke order whichever line they sit on. */
-function buildStaff(sg){
-  const avail=staffAvail(),pl=staffPlan(sg,avail);
+function buildStaff(sg,availW){
+  const avail=availW||staffAvail(),pl=staffPlan(sg,avail);
   const box=document.createElement('div');box.className='staffs';
   const cards=[];
   pl.lines.forEach((ln,li)=>{
@@ -2452,6 +2592,7 @@ function showTab(t){
   document.body.dataset.tab=t;
   if(t==='play')drawTrace();
   if(t==='progress')renderProgress();
+  if(t==='pattern')renderBuilder();
 }
 function updateGauge(r){
   const last=r?r.errs.slice(-32):[];
@@ -2876,7 +3017,11 @@ function buildExerciseList(){
   box.hidden=!exercises.length;
   markExercises(null);
 }
-function pickExercise(i){goExercise(i,true);}
+function pickExercise(i){
+  const e=routineParsed.exercises[i-1];
+  if(e&&e.line!=null){bLine=e.line;renderBuilder();}
+  goExercise(i,true);
+}
 function markExercises(r){
   const cur=r&&r.gridSeg>=0?r.plan.segs[r.gridSeg].idx:-1;
   const first=r?r.startExercise:S.startExercise;
@@ -3067,6 +3212,159 @@ function refreshPreview(){
   view=null;document.body.dataset.state='idle';
   previewRows();renderAll();syncInfo();
   if(S.mode==='routine')buildExerciseList();
+  renderBuilder();
+}
+/* ---------- exercise builder: taps that write the same text you can type ---------- */
+let bLine=0;                                     /* the routine line the builder is editing */
+const B_TIMES=['','2/2','3/4','4/4','5/4','6/8','7/8','9/8','12/8'];
+const B_CODES=['q','8','16','32','8t','16t','5t','7t'];
+function bLines(){return S.routineText.split(/\r?\n/);}
+function bIsJson(){return S.mode==='routine'&&/^\s*[\[{]/.test(S.routineText);}
+function bExerciseLines(){return routineParsed.exercises.map(e=>e.line).filter(n=>n!=null);}
+function bValid(lines,i){
+  if(i<0||i>=lines.length)return false;
+  const l=lines[i];
+  return !(/^\s*#/.test(l)||/^\s*(title|each|time|strokes)\s*:/i.test(l));     /* an exercise, even half built, or a blank line */
+}
+/* Keep the builder on a line it may change: an exercise or a blank line, never a title, time, strokes or comment line. */
+function bSnap(){
+  const lines=bLines();
+  if(bValid(lines,bLine)||bLine>=lines.length)return;
+  const ex=bExerciseLines();
+  const next=ex.filter(n=>n>=bLine)[0];
+  bLine=next!=null?next:(ex.length?ex[ex.length-1]:lines.length);
+}
+function bGet(){return S.mode==='single'?S.pattern:(bLines()[bLine]||'');}
+function bSetLines(lines){
+  S.routineText=lines.join('\n').slice(0,MAX_TEXT);
+  $('routineText').value=S.routineText;
+  save();onRoutineChanged();
+}
+function bPut(raw){
+  if(S.mode==='single'){S.pattern=raw;$('pattern').value=raw;save();refreshPreview();return;}
+  const lines=bLines();
+  if(bLine>=lines.length){while(lines.length<bLine)lines.push('');lines.push(raw);}else lines[bLine]=raw;
+  bSetLines(lines);
+}
+function bEdit(act){
+  const p=lineParts(bGet());
+  bPut(p.pre+builderApply(p.body,act)+(p.opts?'  '+p.opts:'')+p.comment);
+}
+function bContext(){
+  return S.mode==='single'?{sig:null,strokes:''}:routineContext(bLines(),bLine);
+}
+function bPreview(){
+  const ctx=bContext(),res=parseExerciseLine(bGet(),ctx.sig,ctx.strokes,true);
+  if(!res||!res.exercise)return {ctx:ctx,err:res&&res.err?res.err:''};
+  const b=resolveExercises([res.exercise],{unit:'pass',v:1},{bpm:S.bpm,subdiv:S.subdiv})[0];
+  return {ctx:ctx,b:b};
+}
+function bFillSelect(sel,values,label,cur){
+  const have=values.indexOf(cur)>=0;
+  const list=have||cur==null?values:values.concat([cur]);
+  sel.textContent='';
+  list.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=label(v);sel.appendChild(o);});
+  sel.value=cur==null?'':cur;
+}
+function renderBuilder(){
+  const open=S.builderOpen;
+  $('bBody').hidden=!open;
+  $('bToggle').textContent=open?'Hide':'Show';
+  $('bToggle').setAttribute('aria-expanded',String(open));
+  if(!open)return;
+  const routine=S.mode==='routine',json=bIsJson();
+  $('bMain').hidden=json;
+  $('bNote').hidden=!json;
+  if(json){$('bNote').textContent='This routine is written as JSON, which the builder cannot edit. Edit the text above, or clear it to build one here.';return;}
+  document.querySelectorAll('.b-routine').forEach(e=>{e.hidden=!routine;});
+  if(routine){
+    bSnap();
+    const lines=bLines(),ex=bExerciseLines(),k=ex.indexOf(bLine);
+    $('bPos').textContent=k>=0?'Exercise '+(k+1)+' of '+ex.length:(ex.length?'New exercise':'No exercises yet');
+    $('bPrev').disabled=!ex.some(n=>n<bLine);
+    $('bNext').disabled=!ex.some(n=>n>bLine);
+    $('bDup').disabled=k<0;
+    $('bDel').disabled=!(k>=0||(bLine<lines.length&&lines[bLine].trim()===''&&lines.length>1));
+    if(document.activeElement!==$('bTitle'))$('bTitle').value=getHeader(S.routineText,'title')||'';
+    let t=(getHeader(S.routineText,'time')||'').replace(/^(off|none|-)$/i,'');
+    bFillSelect($('bTime'),B_TIMES,v=>v||'No signature',t);
+    let st=(getHeader(S.routineText,'strokes')||'').toLowerCase().replace(/^(off|none|-)$/,'');
+    bFillSelect($('bStrokes'),[''].concat(B_CODES),v=>v||'Each stroke setting',st);
+    document.querySelectorAll('#exerciseList .erow').forEach(r=>{
+      const e=routineParsed.exercises[(+r.dataset.idx)-1];
+      r.classList.toggle('editing',!!e&&e.line===bLine);
+    });
+  }
+  /* strokes, staff and status for the exercise being edited */
+  const pv=bPreview(),p=lineParts(bGet());
+  $('bSeq').textContent=p.body;
+  const box=$('bStaff');box.textContent='';
+  if(pv.b){
+    const b=pv.b,sg={N:b.notes.length,notes:b.notes,groupStart:b.groupStart,subs:b.subs,defSub:b.defSub,sig:b.sig};
+    box.appendChild(buildStaff(sg,Math.max(220,box.clientWidth-10||staffAvail()-40)).svg);
+    const rests=b.notes.filter(n=>n==='_').length,strokes=b.notes.length-rests,beats=b.passBeats;
+    let msg=strokes+(strokes===1?' stroke':' strokes')+(rests?' and '+rests+(rests===1?' rest':' rests'):'')+' = '+(+beats.toFixed(2))+(b.sig&&b.sig.d===8?' eighth-note pulses':(b.sig&&b.sig.d===2?' half-note pulses':' beats'));
+    if(b.sig){
+      const bars=beats/b.sig.n;
+      msg+=isInt(bars)&&bars>=1?' · '+bars+(bars===1?' bar':' bars')+' of '+sigText(b.sig):' · '+sigText(b.sig)+' needs '+b.sig.n+' per bar, so add or remove strokes';
+    }
+    $('bStatus').textContent=msg;
+  }else{
+    const none=document.createElement('div');none.className='none';
+    none.textContent=pv.err&&bGet().trim()?'Check the text: '+pv.err+'.':'The notation appears here as you tap.';
+    box.appendChild(none);
+    $('bStatus').textContent='';
+  }
+  /* note codes: the one in force is lit, and codes too fast or slow for the beat are greyed out */
+  const d=(pv.b&&pv.b.sig?pv.b.sig.d:(pv.ctx.sig?pv.ctx.sig.d:4)),cur=pv.b?pv.b.subs[pv.b.subs.length-1]:null;
+  const codes=$('bCodes');codes.textContent='';
+  B_CODES.forEach(c=>{
+    const sub=NV_VAL[c]/d,okc=Number.isInteger(sub)&&sub>=1&&sub<=8;
+    const btn=document.createElement('button');btn.type='button';btn.className='bcode';btn.textContent=c;btn.dataset.code=c;
+    btn.disabled=!okc;
+    btn.setAttribute('aria-pressed',String(okc&&(cur!=null?sub===cur:sub===(pv.b?pv.b.defSub:S.subdiv))));
+    btn.addEventListener('click',()=>bEdit('code:'+c));
+    codes.appendChild(btn);
+  });
+}
+function bMove(dir){
+  const ex=bExerciseLines();
+  const n=dir<0?ex.filter(x=>x<bLine).pop():ex.filter(x=>x>bLine)[0];
+  if(n!=null){bLine=n;renderBuilder();}
+}
+function bFromCaret(){
+  if(S.mode!=='routine')return;
+  const ta=$('routineText'),i=ta.value.slice(0,ta.selectionStart).split('\n').length-1;
+  if(bValid(bLines(),i)&&i!==bLine){bLine=i;renderBuilder();}
+}
+function wireBuilder(){
+  $('bToggle').addEventListener('click',()=>{S.builderOpen=!S.builderOpen;save();renderBuilder();});
+  document.querySelectorAll('.bkey').forEach(k=>k.addEventListener('click',()=>bEdit(k.dataset.k)));
+  $('bPrev').addEventListener('click',()=>bMove(-1));
+  $('bNext').addEventListener('click',()=>bMove(1));
+  $('bAdd').addEventListener('click',()=>{
+    const lines=bLines(),at=Math.min(bLine+1,lines.length);
+    lines.splice(at,0,'');bLine=at;bSetLines(lines);
+  });
+  $('bDup').addEventListener('click',()=>{
+    const lines=bLines();
+    lines.splice(bLine+1,0,lines[bLine]);bLine=bLine+1;bSetLines(lines);
+  });
+  $('bDel').addEventListener('click',()=>{
+    const lines=bLines();
+    lines.splice(bLine,1);if(!lines.length)lines.push('');
+    bLine=Math.min(bLine,lines.length-1);bSetLines(lines);
+  });
+  const hdr=(id,key,ev)=>$(id).addEventListener(ev,e=>{
+    const before=bLines().length;
+    S.routineText=setHeader(S.routineText,key,e.target.value).slice(0,MAX_TEXT);
+    $('routineText').value=S.routineText;
+    bLine=Math.max(0,bLine+(bLines().length-before));      /* a header line added or removed above shifts the line being edited */
+    save();onRoutineChanged();
+  });
+  hdr('bTitle','title','input');hdr('bTime','time','change');hdr('bStrokes','strokes','change');
+  const ta=$('routineText');
+  ['click','keyup','focus'].forEach(ev=>ta.addEventListener(ev,bFromCaret));
 }
 function buildChips(){
   const box=$('chips');
@@ -3261,7 +3559,7 @@ function init(){
   $('sens').value=S.sens;$('sensOut').textContent=S.sens+' dB';$('mThr').style.left=((S.sens+60)/60*100)+'%';
   $('vol').value=S.vol;$('volOut').textContent=S.vol+'%';
   $('latency').value=S.latency==null?'':S.latency;
-  buildChips();setInputMode();updateCalUI();
+  buildChips();wireBuilder();setInputMode();updateCalUI();
   wire();
   showTab('play');
   setMode(S.mode);
