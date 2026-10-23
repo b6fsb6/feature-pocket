@@ -114,8 +114,8 @@ input[type=range]{width:100%;accent-color:var(--accent);min-height:32px}
 .cd.late .lt,.cd.late .ft{fill:var(--late)}
 .cd.miss .lt{fill:var(--muted);opacity:.4}
 .staff .ph{stroke:var(--accent);stroke-width:3;stroke-linecap:round;pointer-events:none}
-@keyframes goflash{from{background:color-mix(in srgb,var(--accent) 45%,transparent)}to{background:transparent}}
-@media (prefers-reduced-motion:no-preference){.rows.flash{animation:goflash .75s ease-out}}
+@keyframes phpulse{from{stroke-width:var(--pw,10);opacity:.55}to{stroke-width:3;opacity:1}}
+@media (prefers-reduced-motion:no-preference){.staff .ph.pulse{animation:phpulse .14s ease-out}.staff .ph.pulse2{--pw:15;animation:phpulse .2s ease-out}}
 .cap{font-size:12px;color:var(--muted);margin:8px 0 0}
 .pads{display:none;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 body[data-input="kb"] .pads{display:grid}
@@ -197,8 +197,9 @@ tr:last-child td{border-bottom:0}
 td.seq{letter-spacing:.08em;font-weight:600}
 td.early{color:var(--early)} td.late{color:var(--late)} td.ok{color:var(--ok)} td.muted{color:var(--muted)}
 .headbtns{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
-button.helpbtn{cursor:pointer;color:var(--ink);font-weight:700}
-button.helpbtn:disabled{opacity:.5;cursor:not-allowed}
+button.pill{cursor:pointer;color:var(--ink);font-weight:700}
+button.pill:disabled{opacity:.5;cursor:not-allowed}
+button.pill.on{color:var(--ok)}
 .help p,.help li{font-size:14.5px;line-height:1.55;margin:6px 0}
 .help ul,.help ol{padding-left:20px;margin:6px 0}
 .help h4{font:700 14px var(--font-body);margin:14px 0 4px}
@@ -214,7 +215,7 @@ button.helpbtn:disabled{opacity:.5;cursor:not-allowed}
   <header>
     <div class="head">
       <h1>Stick Timing Trainer</h1>
-      <span class="headbtns"><button class="pill helpbtn" id="helpBtn" type="button" data-help="help-how">Help</button><span class="pill" id="micPill">Mic off</span></span>
+      <span class="headbtns"><button class="pill" id="helpBtn" type="button" data-help="help-how">Help</button><button class="pill" id="micPill" type="button" aria-pressed="false" title="Turn the microphone on or off">Mic off</button></span>
     </div>
     <p class="sub">Play a sticking on your pad. See which strokes lead the beat and which drag.</p>
   </header>
@@ -254,6 +255,8 @@ button.helpbtn:disabled{opacity:.5;cursor:not-allowed}
             <option value="20">± 20 ms</option>
             <option value="30">± 30 ms</option>
           </select></div>
+        <div class="field"><label for="pulse">Visual pulse</label>
+          <select id="pulse"><option value="on">On</option><option value="off">Off</option></select></div>
       </div>
       <div class="field"><label for="vol">Click volume <output id="volOut"></output></label><input type="range" id="vol" min="0" max="100" step="1"></div>
       <p class="hint mic-only">Use headphones for the click. A click from the speakers is picked up by the microphone and counted as a stroke.</p>
@@ -345,8 +348,6 @@ button.helpbtn:disabled{opacity:.5;cursor:not-allowed}
           <select id="eachUnit"><option value="min">Minutes</option><option value="pass">Passes of the bar</option></select></div>
         <div class="field"><label for="gap">Between bars</label>
           <select id="gap"><option value="4">4-beat count-in</option><option value="0">Straight on</option></select></div>
-        <div class="field"><label for="cue">Bar-change cue</label>
-          <select id="cue"><option value="both">Sound and flash</option><option value="flash">Flash only</option><option value="off">Off</option></select></div>
         <div class="field"><label for="startBar">Start at bar</label>
           <input type="number" id="startBar" min="1" max="1" step="1" inputmode="numeric"></div>
       </div>
@@ -521,8 +522,9 @@ RLRL RLRL RLRL RLRL  x6
 /4 RLRL /6 RLR LRL  x6</pre>
         <button class="btn small" type="button" data-try="page" data-text="title: Mixed&#10;RLRL RLRL RLRL RLRL  x6&#10;/3 RLR LRL RLR LRL RLR LRL RLR LRL  x6 @70&#10;/4 RLRL /6 RLR LRL  x6">Try it</button>
       </div>
-      <h4>Between bars and the bar-change cue</h4>
-      <p>"Between bars" can be a 4-beat count-in, or <b>Straight on</b> (the default), where the next bar starts without a pause. With Straight on, a cue tells you a change is coming: one high tick on the first beat of a bar's last pass, then two ticks and a flash on the first beat of the new bar. The "Bar-change cue" setting turns the sound or the flash off.</p>
+      <h4>Between bars and the visual pulse</h4>
+      <p>"Between bars" can be a 4-beat count-in, or <b>Straight on</b> (the default), where the next bar starts without a pause. With Straight on, nothing marks the change except the notation: the rows slide up and the new bar's first pass starts on the next beat.</p>
+      <p><b>Visual pulse</b> (on the Setup page) makes the moving line swell on every click, bigger on the first beat of a bar, so you can see the click as well as hear it. Turn it off for a plain moving line.</p>
       <h4>Loading a page</h4>
       <p>Use <b>Load file</b> for a .txt, .json or .csv, or <b>Load from URL</b>. JSON also works: a list such as <b>["RLRR LRLL", {"sticking":"RLRL RLRL","passes":16}]</b>, or an object with <b>title</b>, <b>each</b> and <b>bars</b>.</p>
     </section>
@@ -835,19 +837,7 @@ function buildPlan(bars,o){
     t=t0+totalBeats*beat;gp+=b.passes;
     segs.push({idx:b.idx,notes:b.notes,groupStart:b.groupStart,subs:b.subs,defSub:b.defSub,label:b.label,bpm:b.bpm,N:N,strokes:b.notes.filter(x=>x!=='_').length,passes:b.passes,passBeats:passBeats,beat:beat,leadStart:leadStart,lead:lead,leadBeats:leadBeats,t0:t0,end:t,first:first,cell0:cell0,g0:g0});
   });
-  /* Cue ticks for straight-on play, where nothing else announces a new bar:
-     'last' on the first beat of a bar's final pass, 'go' on the first beat of the next bar. */
-  let cues=[];
-  if(o.cueSound&&gap===0){
-    segs.forEach((sg,si)=>{
-      cues.push({t:sg.t0+(sg.passes-1)*sg.passBeats*sg.beat,k:'last'});
-      if(si>0)cues.push({t:sg.t0,k:'go'});
-    });
-    cues.sort((a,b)=>a.t-b.t||(a.k==='go'?-1:1));
-    /* a one-pass bar puts both on the same instant: the new-bar cue wins */
-    cues=cues.filter((c,i)=>!(i>0&&Math.abs(c.t-cues[i-1].t)<1e-6&&cues[i-1].k==='go'));
-  }
-  return {slots:slots,cells:cells,clicks:clicks,cues:cues,segs:segs,end:t};
+  return {slots:slots,cells:cells,clicks:clicks,segs:segs,end:t};
 }
 function nearestSlot(slots,t){
   let lo=0,hi=slots.length-1;
@@ -1050,8 +1040,9 @@ const CAL_N=12;
 const LAT_ROUNDS=3;                              /* times the calibration row repeats */
 const MAX_TEXT=200000;
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const LOOKAHEAD=0.35;                            /* how far ahead clicks are scheduled, in seconds */
 
-const S={mode:'single',pattern:'RLRL RLRL RLRL RLRL',pageText:SAMPLE,eachUnit:'min',eachVal:1,gap:0,cue:'both',startBar:1,
+const S={mode:'single',pattern:'RLRL RLRL RLRL RLRL',pageText:SAMPLE,eachUnit:'min',eachVal:1,gap:0,pulse:true,startBar:1,
   bpm:60,subdiv:4,click:'beat',tol:20,sens:-30,vol:60,latency:null,input:'mic'};
 let cal={L:[],R:[]},model=null;
 try{
@@ -1079,7 +1070,8 @@ if(typeof S.pageText!=='string'||S.pageText.length>MAX_TEXT)S.pageText=SAMPLE;
 S.eachUnit=S.eachUnit==='pass'?'pass':'min';
 S.eachVal=S.eachUnit==='pass'?clamp(Math.round(+S.eachVal)||8,1,200):clamp(+S.eachVal||1,0.25,60);
 S.gap=+S.gap===0?0:4;
-if(!['both','flash','off'].includes(S.cue))S.cue='both';
+S.pulse=S.pulse!==false;
+delete S.cue;
 S.startBar=1;
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({settings:S,cal:cal}));}catch(e){}};
 function setLatency(v){S.latency=v;$('latency').value=v;save();}
@@ -1136,7 +1128,7 @@ registerProcessor('onset',class extends AudioWorkletProcessor{
 });`;
 
 /* ---------- state ---------- */
-let ctx=null,node=null,stream=null,sendThr=null,wake=null;
+let ctx=null,node=null,micSrc=null,workletReady=false,noWorklet=false,stream=null,sendThr=null,wake=null;
 let run=null,view=null,timer=0,raf=0;
 let calMode=null,pageParsed=parsePage(S.pageText),prevPlan=null,rowMap=new Map(),rowTop=0,slideTimer=0,curTab='play';
 const latencySec=()=>(S.latency==null?40:S.latency)/1000;
@@ -1161,17 +1153,18 @@ async function ensureAudio(needMic){
     if(needMic&&!node){
       if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw {name:'insecure'};
       stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1}});
-      const src=ctx.createMediaStreamSource(stream);
+      const src=micSrc=ctx.createMediaStreamSource(stream);
       try{
-        if(!ctx.audioWorklet)throw new Error('noworklet');
+        if(!ctx.audioWorklet||noWorklet)throw new Error('noworklet');
         const url=URL.createObjectURL(new Blob([WORKLET_SRC],{type:'text/javascript'}));
-        try{await ctx.audioWorklet.addModule(url);}finally{URL.revokeObjectURL(url);}
+        if(!workletReady){try{await ctx.audioWorklet.addModule(url);workletReady=true;}finally{URL.revokeObjectURL(url);}}
         const wn=new AudioWorkletNode(ctx,'onset',{numberOfInputs:1,numberOfOutputs:1,channelCount:1,channelCountMode:'explicit'});
         wn.port.onmessage=onNodeMsg;
         src.connect(wn);wn.connect(ctx.destination);
         sendThr=thr=>wn.port.postMessage({thr:thr});
         node=wn;
       }catch(workletErr){
+        noWorklet=true;
         /* A page opened straight from disk (file://) cannot load a worklet from a blob in Chrome.
            Fall back to the older main-thread node, running the same detector. */
         const sp=ctx.createScriptProcessor(256,1,1);
@@ -1192,11 +1185,37 @@ async function ensureAudio(needMic){
         setLatency(Math.max(20,Math.round(((ctx.outputLatency||ctx.baseLatency||0.01)+(tl||0.02))*1000)));
       }
       $('micMsg').textContent='';
-      $('micPill').textContent='Mic on';$('micPill').classList.add('on');
+      setMicUI(true);
     }
     return true;
   }catch(err){showMicError(err);return false;}
 }
+function setMicUI(on){
+  const p=$('micPill');
+  p.textContent=on?'Mic on':'Mic off';p.classList.toggle('on',on);p.setAttribute('aria-pressed',String(on));
+  $('testMic').textContent=on?'Turn microphone off':'Turn microphone on';
+  if(!on){$('mFill').style.width='0%';$('heard').textContent='';}
+}
+/* Turning the microphone off releases it, so the browser's recording indicator goes out too. */
+function micOff(){
+  if(run&&!run.ended)return;
+  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+  if(micSrc){try{micSrc.disconnect();}catch(e){}micSrc=null;}
+  if(node){
+    try{node.disconnect();}catch(e){}
+    if(node.port)node.port.onmessage=null;
+    node.onaudioprocess=null;
+    node=null;
+  }
+  sendThr=null;
+  setMicUI(false);
+}
+async function toggleMic(){
+  if(run&&!run.ended)return;
+  if(node){micOff();setStatus('Microphone turned off.');}
+  else if(await ensureAudio(true))setStatus('Microphone is on. Hit the pad and watch the level bar.');
+}
+function syncMicBtn(){$('micPill').disabled=$('testMic').disabled=!!(run&&!run.ended)||S.input==='kb';}
 function pushSens(){if(sendThr)sendThr(Math.pow(10,S.sens/20));}
 function onNodeMsg(e){
   const m=e.data;
@@ -1215,8 +1234,12 @@ function setMeter(v){
   $('mFill').style.width=clamp((db+60)/60*100,0,100)+'%';
 }
 /* One short tone with a quick attack and decay. */
+const liveTones=new Set();
+/* Clicks are scheduled a little ahead, so pausing must also cancel the ones already queued. */
+function silenceTones(){liveTones.forEach(o=>{try{o.stop();}catch(e){}});liveTones.clear();}
 function blip(T,type,freq,peak,attack,decay,stop){
   const o=ctx.createOscillator(),g=ctx.createGain();
+  liveTones.add(o);o.onended=()=>liveTones.delete(o);
   o.type=type;o.frequency.value=freq;
   g.gain.setValueAtTime(0.0001,T);
   g.gain.exponentialRampToValueAtTime(peak,T+attack);
@@ -1229,11 +1252,12 @@ function click(time,level){
   if(v<0.002)return;
   blip(time,'triangle',level>=2?1500:(level===1?1250:1000),v,0.002,0.05,0.07);
 }
-function cueTone(time,kind){
-  const v=S.vol/100*0.5;
-  if(v<0.002)return;
-  const f=kind==='go'?2600:2000,n=kind==='go'?2:1;
-  for(let i=0;i<n;i++)blip(time+i*0.085,'sine',f,v*0.8,0.003,0.06,0.08);
+/* The point on the audio clock that is coming out of the speakers right now. The browser's output timestamp,
+   advanced by the page clock, is smoother and closer to what you hear than the audio clock minus a latency guess. */
+function heardNow(){
+  const o=ctx.getOutputTimestamp?ctx.getOutputTimestamp():null;
+  if(o&&o.performanceTime>0&&o.contextTime>0)return o.contextTime+(performance.now()-o.performanceTime)/1000;
+  return ctx.currentTime-(ctx.outputLatency||0);
 }
 function kbTime(ts){
   const o=ctx.getOutputTimestamp?ctx.getOutputTimestamp():null;
@@ -1268,10 +1292,10 @@ function beginRun(mode){
   const latNotes='RLRLRLRLRLRLRLRL'.split('');
   const bars=lat?[{idx:1,notes:latNotes,groupStart:latNotes.map((_,i)=>i%4===0),subs:latNotes.map(()=>2),defSub:2,label:'',bpm:75,passBeats:8,passes:LAT_ROUNDS,secs:6.4*LAT_ROUNDS,passSecs:6.4,own:true}]:currentBars();
   if(!bars.length)return;
-  const plan=buildPlan(bars,{gapBeats:S.gap,clickMode:lat?'note':S.click,cueSound:!lat&&S.mode==='page'&&S.cue==='both'});
+  const plan=buildPlan(bars,{gapBeats:S.gap,clickMode:lat?'note':S.click});
   const r={
     mode:mode,plan:plan,t0:ctx.currentTime+0.25,kb:S.input==='kb',
-    nextClick:0,nextCue:0,nextFin:0,pending:new Map(),cur:-1,showSeg:0,gridSeg:-1,
+    nextClick:0,pulseIdx:-1,nextFin:0,pending:new Map(),cur:-1,showSeg:0,gridSeg:-1,
     errs:[],hand:{L:[],R:[]},within:0,slots:0,miss:0,extras:0,streak:0,best:0,checked:0,bad:0,trace:[],res:new Map(),showG:0,
     fin:new Set(),paused:false,ci:null,
     seg:plan.segs.map(sg=>({errs:[],hand:{L:[],R:[]},within:0,slots:0,miss:0,extras:0,checked:0,bad:0,
@@ -1295,15 +1319,9 @@ function tick(){
   const plan=r.plan,now=ctx.currentTime;
   while(r.nextClick<plan.clicks.length){
     const c=plan.clicks[r.nextClick],T=r.t0+c.t;
-    if(T>now+0.2)break;
+    if(T>now+LOOKAHEAD)break;
     if(T>=now-0.1)click(T,c.a);
     r.nextClick++;
-  }
-  while(r.nextCue<plan.cues.length){
-    const c=plan.cues[r.nextCue],T=r.t0+c.t;
-    if(T>now+0.2)break;
-    if(T>=now-0.1)cueTone(T,c.k);
-    r.nextCue++;
   }
   const L=r.kb?0:latencySec();
   while(r.nextFin<plan.slots.length){
@@ -1337,8 +1355,30 @@ function finalizeSlot(i){
   r.res.set(i,{ms:ms,wrong:wrong?det.hand:null});
 }
 /* Pause freezes the run. Resume counts in again from the start of the pass you were on. */
-function startLoops(){clearInterval(timer);timer=setInterval(tick,25);cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);}
-function stopLoops(){clearInterval(timer);cancelAnimationFrame(raf);}
+/* The scheduler also runs from a worker, because browsers slow a page timer right down when the tab is hidden or busy
+   and a worker timer keeps its pace. tick() is safe to call twice, so both can run together. If a worker cannot
+   be made (some browsers refuse one when the page is opened from disk) the page timer carries on alone. */
+let tickWorker=null;
+function makeTickWorker(){
+  try{
+    const url=URL.createObjectURL(new Blob(['let id=0;onmessage=e=>{clearInterval(id);if(e.data>0)id=setInterval(()=>postMessage(0),e.data);};'],{type:'text/javascript'}));
+    const w=new Worker(url);URL.revokeObjectURL(url);
+    w.onmessage=tick;w.onerror=()=>{tickWorker=false;};
+    return w;
+  }catch(e){return false;}
+}
+function startLoops(){
+  clearInterval(timer);timer=setInterval(tick,25);
+  if(tickWorker===null)tickWorker=makeTickWorker();
+  if(tickWorker)tickWorker.postMessage(25);
+  cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);
+}
+function stopLoops(){
+  clearInterval(timer);
+  if(tickWorker)tickWorker.postMessage(0);
+  cancelAnimationFrame(raf);
+  silenceTones();
+}
 function pauseRun(){
   const r=run;if(!r||r.ended||r.paused||r.mode!=='play')return;
   tick();
@@ -1352,11 +1392,10 @@ function pauseRun(){
 function resumeRun(){
   const r=run;if(!r||r.ended||!r.paused)return;
   const plan=r.plan,cells=plan.cells,sg=plan.segs[passAt(plan,r.showG).si],pa=passAt(plan,r.showG);
-  const fc=sg.cell0+pa.p*sg.N,ps=cells[fc].t,beat=sg.beat,T=ctx.currentTime+0.35;
+  const fc=sg.cell0+pa.p*sg.N,ps=cells[fc].t,beat=sg.beat,T=ctx.currentTime+LOOKAHEAD;
   r.t0=T+4*beat-ps;
   r.ci={ps:ps,beat:beat};
   let i=0;while(i<plan.clicks.length&&plan.clicks[i].t<ps-1e-6)i++;r.nextClick=i;
-  i=0;while(i<plan.cues.length&&plan.cues[i].t<ps-1e-6)i++;r.nextCue=i;
   const fi=plan.slots.findIndex(x=>x.t>=ps-1e-6);
   if(fi>=0){
     r.nextFin=Math.min(r.nextFin,fi);
@@ -1680,16 +1719,32 @@ function applyLayout(plan){
   box.dataset.lines=String(L);
   return L;
 }
-function makeRow(plan,g){
+function buildRow(plan,g){
   const pa=passAt(plan,g),sg=plan.segs[pa.si],N=sg.N;
   const el=document.createElement('div');el.className='brow2';
   const lab=document.createElement('div');lab.className='rl';
   const st=buildStaff(sg),cards=st.cards;
   cards.forEach((c,i)=>{c._slot=plan.cells[sg.cell0+pa.p*N+i].slot;});
   el.append(lab,st.svg);
-  $('rowsTrack').appendChild(el);
-  const o={el:el,lab:lab,cards:cards,sg:sg,si:pa.si,p:pa.p};
   el.addEventListener('click',()=>{if(labelMode==='preview')goBar(sg.idx,true);});
+  return {el:el,lab:lab,cards:cards,sg:sg,si:pa.si,p:pa.p};
+}
+/* The row that will slide in next is built a moment after each shift, so building it never lands on the shift itself. */
+let preRow=null,preTimer=0;
+function prebuildNext(plan,g){
+  clearTimeout(preTimer);
+  if(!run||run.ended||run.mode!=='play'||g>=totalPasses(plan))return;
+  preTimer=setTimeout(()=>{
+    if(!run||run.ended||run.plan!==plan||rowMap.has(g))return;
+    preRow={plan:plan,g:g,w:staffAvail(),o:buildRow(plan,g)};
+  },250);
+}
+function makeRow(plan,g){
+  let o=null;
+  if(preRow&&preRow.plan===plan&&preRow.g===g&&preRow.w===staffAvail())o=preRow.o;
+  preRow=null;
+  if(!o)o=buildRow(plan,g);
+  $('rowsTrack').appendChild(o.el);
   rowMap.set(g,o);
   return o;
 }
@@ -1759,16 +1814,36 @@ function setRows(plan,g,animate){
     }
     rowMap.forEach(o=>{o.el.style.opacity='';});
     slideTimer=setTimeout(finishSlide,260);
+    prebuildNext(plan,g+rowsShown);
     return;
   }
   tr.textContent='';rowMap.clear();rowTop=g;
   if(plan)for(let k=g;k<Math.min(total,g+rowsShown);k++)makeRow(plan,k);
   roleRows();
+  if(plan)prebuildNext(plan,g+rowsShown);
 }
 /* Colours come from the result of each row's own pass; the cursor is the card being played now. */
 let phCur=null;
 /* The cursor moves at a steady pace from one note to the next, so it is on a note exactly when that note is due.
    Between notes, and across beat gaps and barlines, it keeps the same even pace. */
+/* The line swells on each click, firing when the click is due and the line is on its note. */
+let pulseEl=null;
+function clearPulse(){if(pulseEl){pulseEl.classList.remove('pulse','pulse2');pulseEl=null;}}
+function pulseOnClick(r,heard){
+  const clicks=r.plan.clicks;
+  let i=r.pulseIdx;
+  while(i+1<clicks.length&&clicks[i+1].t<=heard)i++;
+  while(i>=0&&clicks[i].t>heard)i--;
+  const fired=i>r.pulseIdx;
+  r.pulseIdx=i;
+  if(!fired||!S.pulse||!phCur)return;
+  const ph=phCur._ph;
+  if(pulseEl&&pulseEl!==ph)pulseEl.classList.remove('pulse','pulse2');
+  pulseEl=ph;
+  ph.classList.remove('pulse','pulse2');
+  void ph.getBoundingClientRect();
+  ph.classList.add(clicks[i].a>=2?'pulse2':'pulse');
+}
 function movePlayhead(r,cursor,heard){
   let el=null,c=null;
   if(r&&cursor&&heard!==undefined){
@@ -1840,11 +1915,6 @@ function goBar(i,animate){
   S.startBar=v;$('startBar').value=v;
   if(document.body.dataset.state!=='idle'){refreshPreview();return;}
   markBars(null);previewRows(animate);syncInfo();
-}
-function flashRows(){
-  const g=$('rows');
-  g.classList.remove('flash');void g.offsetWidth;g.classList.add('flash');
-  setTimeout(()=>g.classList.remove('flash'),750);
 }
 const TABS=['play','pattern','setup','progress'];
 const tabEl=n=>$('tab'+n[0].toUpperCase()+n.slice(1));
@@ -2150,7 +2220,7 @@ function frame(){
   if(!r||r.ended)return;
   raf=requestAnimationFrame(frame);
   const plan=r.plan,segs=plan.segs,cells=plan.cells,play=r.mode==='play';
-  const heard=ctx.currentTime-(ctx.outputLatency||0)-r.t0;
+  const heard=heardNow()-r.t0;
   while(r.cur+1<cells.length&&cells[r.cur+1].t<=heard)r.cur++;
   /* The rows shift up when a pass ends. With a count-in before a new bar they shift as it starts.
      Otherwise the cursor first steps onto the lower row and the rows shift up a moment later. */
@@ -2169,7 +2239,7 @@ function frame(){
     setRows(plan,g,play);
     if(s!==r.showSeg){
       r.showSeg=s;r.gridSeg=s;
-      if(play){if(S.mode==='page')markBars(r);if(S.cue!=='off')flashRows();}
+      if(play&&S.mode==='page')markBars(r);
     }
   }
   const sg=segs[s];
@@ -2198,6 +2268,7 @@ function frame(){
   let cursor=null;
   if(!ciK&&r.cur>=0&&heard>=cells[r.cur].t){const c=cells[r.cur];cursor={g:c.g,i:c.pos};}
   paintRows(r,cursor,heard);
+  pulseOnClick(r,heard);
   if(!play)return;
   if(S.mode==='page'){
     const tt=plan.end,pct=clamp(heard/tt,0,1);
@@ -2283,7 +2354,7 @@ async function loadUrl(){
 }
 
 /* ---------- controls ---------- */
-const LOCKED=['cue','pattern','bpm','bpmDown','bpmUp','subdiv','click','inputMode','modeSingle','modePage','pageText','fileBtn','urlBtn','urlGo','pageUrl','clearPage','eachVal','eachUnit','gap','startBar'];
+const LOCKED=['pulse','pattern','bpm','bpmDown','bpmUp','subdiv','click','inputMode','modeSingle','modePage','pageText','fileBtn','urlBtn','urlGo','pageUrl','clearPage','eachVal','eachUnit','gap','startBar'];
 function syncRunUI(){
   const on=!!(run&&!run.ended),play=on&&run.mode==='play',paused=on&&!!run.paused;
   const b=$('startBtn');
@@ -2299,6 +2370,7 @@ function setRunning(on){
   document.querySelectorAll('.chip').forEach(c=>{c.disabled=on;});
   ['setup','pattern','progress'].forEach(n=>{tabEl(n).disabled=on;});
   $('helpBtn').disabled=on;
+  syncMicBtn();
   if(on&&run&&run.mode==='play'&&S.mode==='page'){$('runInfo').hidden=false;lastTimeLeft='';}
   updateCalUI();
 }
@@ -2358,6 +2430,7 @@ function buildChips(){
 function setInputMode(){
   document.body.dataset.input=S.input;
   $('inputMode').value=S.input;
+  syncMicBtn();
 }
 function setMode(m){
   S.mode=m;save();
@@ -2397,7 +2470,7 @@ function wire(){
     syncEach();save();buildBarList();syncInfo();
   });
   $('gap').addEventListener('change',e=>{S.gap=+e.target.value===0?0:4;save();syncInfo();});
-  $('cue').addEventListener('change',e=>{S.cue=e.target.value;save();});
+  $('pulse').addEventListener('change',e=>{S.pulse=e.target.value==='on';save();if(!S.pulse)clearPulse();});
   $('startBar').addEventListener('change',e=>{
     S.startBar=clamp(Math.round(+e.target.value)||1,1,Math.max(1,pageParsed.bars.length));
     e.target.value=S.startBar;markBars(null);refreshPreview();
@@ -2445,9 +2518,8 @@ function wire(){
   $('sens').addEventListener('input',e=>{S.sens=+e.target.value;$('sensOut').textContent=S.sens+' dB';$('mThr').style.left=((S.sens+60)/60*100)+'%';pushSens();save();});
   $('vol').addEventListener('input',e=>{S.vol=+e.target.value;$('volOut').textContent=S.vol+'%';save();});
   $('latency').addEventListener('change',e=>{const v=e.target.value;S.latency=v===''?null:clamp(Math.round(+v)||0,0,400);save();});
-  $('testMic').addEventListener('click',async()=>{
-    if(await ensureAudio(true)){setStatus('Microphone is on. Hit the pad and watch the level bar.');$('testMic').textContent='Microphone is on';}
-  });
+  $('micPill').addEventListener('click',toggleMic);
+  $('testMic').addEventListener('click',toggleMic);
   $('calL').addEventListener('click',()=>startCal('L'));
   $('calR').addEventListener('click',()=>startCal('R'));
   $('calReset').addEventListener('click',()=>{cal={L:[],R:[]};rebuildModel();save();updateCalUI();});
@@ -2528,7 +2600,7 @@ function init(){
   $('click').value=S.click;
   $('tol').value=String(S.tol);
   $('gap').value=String(S.gap);
-  $('cue').value=S.cue;
+  $('pulse').value=S.pulse?'on':'off';
   syncEach();
   $('sens').value=S.sens;$('sensOut').textContent=S.sens+' dB';$('mThr').style.left=((S.sens+60)/60*100)+'%';
   $('vol').value=S.vol;$('volOut').textContent=S.vol+'%';
