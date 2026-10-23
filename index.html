@@ -382,7 +382,7 @@ button.pill.on{color:var(--ok)}
       <p class="hint" id="eachNote" hidden></p>
       <p class="hint">Tap an exercise to start there.</p>
       <div class="exercises" id="exerciseList" role="listbox" aria-label="Exercises in this routine. Choose the exercise to start at."></div>
-      <p class="hint">Need the routine format, <b>x16</b> passes or <b>/3</b> triplets? <button class="btn small" type="button" data-help="help-format">Open the format help</button></p>
+      <p class="hint">Need the routine format, <b>x16</b> passes or <b>8t</b> triplets? <button class="btn small" type="button" data-help="help-format">Open the format help</button></p>
     </section>
 
     <section class="panel routine-only cfg" aria-label="Routine library">
@@ -409,7 +409,7 @@ button.pill.on{color:var(--ok)}
           <option value="3">Triplet</option>
           <option value="4">Sixteenth note</option>
         </select></div>
-      <p class="hint">Used for strokes that have no /N marker.</p>
+      <p class="hint">Used for strokes that have no note code.</p>
     </section>
   </div>
 
@@ -483,7 +483,7 @@ button.pill.on{color:var(--ok)}
 
     <section class="panel" id="help-patterns">
       <h3>Writing a pattern</h3>
-      <p><b>L</b> and <b>R</b> are strokes. A <b>space</b> starts a new group, and groups are joined with a beam. <b>_</b> is a rest. A <b>/N</b> marker sets how many strokes fit in one beat from that point on: <b>/1</b> quarters, <b>/2</b> eighths, <b>/3</b> eighth triplets, <b>/4</b> sixteenths, up to <b>/6</b>. With no marker, the "Each stroke is a" setting on the Pattern page is used (sixteenths by default).</p>
+      <p><b>L</b> and <b>R</b> are strokes. A <b>space</b> starts a new group, and groups are joined with a beam. <b>_</b> is a rest. A <b>note code</b> says what the strokes are, and it means the same in any time signature: <b>q</b> quarter notes, <b>8</b> eighths, <b>16</b> sixteenths, <b>32</b> thirty-seconds, <b>8t</b> eighth-note triplets, <b>16t</b> sixteenth-note triplets, <b>5t</b> quintuplets and <b>7t</b> septuplets. A code applies to the strokes after it until the next code, so <b>8 RLRL 16 RLRL</b> is a beat of eighths, then a beat of sixteenths, in 4/4 or in cut time. A code only works where the strokes come out at a sensible speed for the beat. With no code, the "Each stroke is a" setting on the Pattern page is used (sixteenths by default)</p>
       <p>Every example below has a button that loads it for you.</p>
 
       <div class="ex">
@@ -500,21 +500,21 @@ button.pill.on{color:var(--ok)}
       </div>
       <div class="ex">
         <h4>Two triplets in one beat</h4>
-        <pre>/3 RLR LRL</pre>
+        <pre>8t RLR LRL</pre>
         <p>Two groups of three, each with its own "3". Triplets are drawn with a bracket and the click accents each beat.</p>
-        <button class="btn small" type="button" data-try="single" data-text="/3 RLR LRL">Try it</button>
+        <button class="btn small" type="button" data-try="single" data-text="8t RLR LRL">Try it</button>
       </div>
       <div class="ex">
         <h4>Sixteenths then sextuplets</h4>
-        <pre>/4 RLRL /6 RLR LRL</pre>
-        <p>One beat of sixteenths, then one beat of sextuplets written as two joined triplets (two "3" brackets). Writing <b>/6 RLRLRL</b> with no space instead gives one run of six, with a single "6".</p>
-        <button class="btn small" type="button" data-try="single" data-text="/4 RLRL /6 RLR LRL">Try it</button>
+        <pre>16 RLRL 16t RLR LRL</pre>
+        <p>One beat of sixteenths, then one beat of sextuplets written as two joined triplets (two "3" brackets). Writing <b>16t RLRLRL</b> with no space instead gives one run of six, with a single "6".</p>
+        <button class="btn small" type="button" data-try="single" data-text="16 RLRL 16t RLR LRL">Try it</button>
       </div>
       <div class="ex">
         <h4>Rests</h4>
-        <pre>/4 R _ L _ R L _ L</pre>
+        <pre>16 R _ L _ R L _ L</pre>
         <p>A rest takes up time but no hit is expected. A hit during a rest counts as an extra hit.</p>
-        <button class="btn small" type="button" data-try="single" data-text="/4 R _ L _ R L _ L">Try it</button>
+        <button class="btn small" type="button" data-try="single" data-text="16 R _ L _ R L _ L">Try it</button>
       </div>
     </section>
 
@@ -527,10 +527,11 @@ RLRR LRLL
 RLRL RLRL  x16
 LRLL RLRR  90s  @100
 Exercise 4: RRLL RRLL
-/4 RLRL /3 RLR LRL</pre>
+16 RLRL 8t RLR LRL</pre>
       <h4>How long each exercise plays</h4>
       <ul>
         <li><b>each:</b> sets the default for every exercise: <b>1m</b> (a minute), <b>90s</b> or <b>x8</b> (eight passes). With no <b>each:</b> line, the "Each exercise plays for" setting is used.</li>
+        <li><b>strokes:</b> sets what the strokes are for every exercise after it, so you do not repeat a marker on each line: <b>strokes: 8</b>, <b>strokes: 16</b> or <b>strokes: 8t</b>. A code inside an exercise still wins, and <b>strokes: off</b> goes back to the "Each stroke is a" setting.</li>
         <li><b>x16</b> at the end of an exercise's line means <b>play this exercise 16 times</b>. One pass is the exercise played once through.</li>
         <li><b>90s</b> or <b>1.5m</b> means play for about that long. Time is rounded to whole passes.</li>
         <li><b>@100</b> plays just that exercise at 100 BPM. Combine them freely: <b>RLRL RLRL x16 @80</b>.</li>
@@ -562,18 +563,18 @@ RRLR LLRL RRLR LLRL</pre>
         <h4>Mixed subdivisions and tempos</h4>
         <pre>title: Mixed
 RLRL RLRL RLRL RLRL  x6
-/3 RLR LRL RLR LRL RLR LRL RLR LRL  x6 @70
-/4 RLRL /6 RLR LRL  x6</pre>
-        <button class="btn small" type="button" data-try="routine" data-text="title: Mixed&#10;RLRL RLRL RLRL RLRL  x6&#10;/3 RLR LRL RLR LRL RLR LRL RLR LRL  x6 @70&#10;/4 RLRL /6 RLR LRL  x6">Try it</button>
+8t RLR LRL RLR LRL RLR LRL RLR LRL  x6 @70
+16 RLRL 16t RLR LRL  x6</pre>
+        <button class="btn small" type="button" data-try="routine" data-text="title: Mixed&#10;RLRL RLRL RLRL RLRL  x6&#10;8t RLR LRL RLR LRL RLR LRL RLR LRL  x6 @70&#10;16 RLRL 16t RLR LRL  x6">Try it</button>
       </div>
       <h4>Time signatures</h4>
       <p>By default an exercise is as long as the strokes in it. Add a time signature to say how long it should be. Write it with a colon, like <b>7/8:</b>, at the start of a line, or on its own line as <b>time: 7/8</b> to set it for every exercise after it. <b>time: off</b> goes back to plain exercises, and an exercise's own signature wins over the routine one.</p>
       <ul>
-        <li><b>The pulse is the beat you count.</b> In x/4 it is a quarter note and in x/8 an eighth note. <b>BPM counts pulses</b>, so 7/8 at 120 BPM is 120 eighth notes a minute. The summary says "per eighth note" when that applies. Only /4 and /8 are supported.</li>
-        <li><b>/N still means notes per pulse.</b> In 7/8, <b>RLRLRLR</b> is seven eighth notes. With no /N marker, the exercise's strokes are shared out evenly, so 14 strokes in 7/8 become sixteenths. Strokes before the first marker count one per pulse.</li>
+        <li><b>The pulse is the beat you count.</b> In x/4 it is a quarter note, in x/8 an eighth note and in x/2 a half note, so <b>2/2</b> is cut time. <b>BPM counts pulses</b>, so 7/8 at 120 BPM is 120 eighth notes a minute and 2/2 at 60 BPM is 60 half notes a minute, which is how a cut-time book marks its tempo. The summary says "per eighth note" or "per half note" when that applies. Only /2, /4 and /8 are supported.</li>
+        <li><b>Codes mean what they say.</b> <b>8</b> is eighth notes in any signature. In 7/8, <b>RLRLRLR</b> with no code is seven eighth notes: with no code, the exercise's strokes are shared out evenly, so 14 strokes in 7/8 become sixteenths.</li>
         <li><b>Grouping.</b> 7/8 is felt as 2+2+3, 6/8 as 3+3, 5/4 as 3+2. Write your own in brackets: <b>7/8 (3+2+2):</b>. The click is strong on the first pulse and lighter at the start of each group, and the notation is beamed the same way. A line with its own spaces keeps your spacing.</li>
         <li><b>The count-in is one measure</b> of the signature, with the same accents.</li>
-        <li><b>The exercise has to add up.</b> If the strokes do not fill the signature, a note appears, such as "this exercise holds 5 eighth notes but 7/8 has 7". Use <b>_</b> for rests. The exercise still plays as you wrote it.</li>
+        <li><b>The exercise has to add up.</b> It can be one bar or a whole number of bars, such as two bars of 2/2, with a barline between them and a strong click on each bar's first pulse. If the strokes do not fill the signature, a note appears, such as "this exercise holds 5 eighth notes but 7/8 has 7". Use <b>_</b> for rests. The exercise still plays as you wrote it.</li>
       </ul>
       <div class="ex">
         <h4>Odd meters</h4>
@@ -588,6 +589,16 @@ RLRLRLRLRLRL  x8
 time: 5/4
 RLRLR  x8</pre>
         <button class="btn small" type="button" data-try="routine" data-text="title: Odd meters&#10;time: 7/8&#10;RLRLRLR  x8&#10;RLRLRLRLRLRLRL  x8&#10;7/8 (3+2+2): RLRLRLR  x8&#10;time: 6/8&#10;RLRLRL  x8&#10;RLRLRLRLRLRL  x8&#10;time: 5/4&#10;RLRLR  x8">Try it</button>
+      </div>
+      <div class="ex">
+        <h4>A cut-time book page</h4>
+        <pre>title: Cut time
+time: 2/2
+strokes: 8
+RLRL RLRL RLRL RLRL  x8
+LRLR LRLR LRLR LRLR  x8</pre>
+        <p>Two bars of eighth notes, written the way the page reads. The ¢ sign means the beat is a half note, so BPM is the book's half-note tempo.</p>
+        <button class="btn small" type="button" data-try="routine" data-text="title: Cut time&#10;time: 2/2&#10;strokes: 8&#10;RLRL RLRL RLRL RLRL  x8&#10;LRLR LRLR LRLR LRLR  x8">Try it</button>
       </div>
       <h4>Between exercises and the visual pulse</h4>
       <p>"Between exercises" can be a 4-beat count-in, or <b>Straight on</b> (the default), where the next exercise starts without a pause. With Straight on, nothing marks the change except the notation: the rows slide up and the new exercise's first pass starts on the next beat.</p>
@@ -742,22 +753,29 @@ https://example.com/another-routine.txt</pre>
 
 <script id="core">
 /* Pure logic: pattern parsing, hit matching, stick classifier, onset detector. No DOM access. */
-/* Strokes with optional /N subdivision markers, e.g. "/4 RLRL /3 RLR LRL".
+/* Strokes with optional note codes, e.g. "16 RLRL 8t RLR LRL" (q quarter, 8 eighth, 16 sixteenth, 32, 8t eighth triplet, 16t, 5t, 7t).
    subs[i] is the marker in force for stroke i (null before any marker). */
 const MAXSTROKES=64;                              /* longest exercise, in strokes and rests */
-function parseStrokes(str){
-  const notes=[],gs=[],subs=[],src=String(str),re=/\/\s*(\d+)|(\/)|([^\/]+)/g;
+/*  With a pulse
+   of d (4 = quarter), 16ths are 16/d strokes per pulse, so in 2/2 (d = 2) they are 8 and eighths are 4. */
+const NV_SRC='\\b(?:8t|16t|5t|7t|q|8|16|32)\\b';
+const NV_VAL={q:4,'8':8,'16':16,'32':32,'8t':12,'16t':24,'5t':20,'7t':28};     /* strokes per quarter-note beat x 4 */
+function parseStrokes(str,pd){
+  const dd=pd||4;
+  const notes=[],gs=[],subs=[],src=String(str),re=new RegExp('\\/\\s*(\\d+)|(\\/)|('+NV_SRC+')|((?:(?!'+NV_SRC+')[^\\/])+)','gi');
   let cur=null,ng=true,m;
   while((m=re.exec(src))){
     if(m[1]!==undefined){
-      const v=+m[1];
-      if(v<1||v>6)return {err:'a /N marker needs a number from 1 to 6'};
-      cur=v;ng=true;
+      return {err:'write the note without a slash: q, 8, 16, 32, 8t, 16t, 5t or 7t'};
+    }else if(m[3]!==undefined){
+      const sub=NV_VAL[m[3].toLowerCase()]/dd;
+      if(!Number.isInteger(sub)||sub<1||sub>8)return {err:m[3].trim()+' does not fit a beat of 1/'+dd+' (the notes would be too fast or too slow)'};
+      cur=sub;ng=true;
     }else if(m[2]){ng=true;}
     else{
       /* A lone hyphen between spaces is a rest. A hyphen joined to strokes still separates groups. */
-      const txt=m[3].replace(/(^|\s)-(?=\s|$)/g,'$1_');
-      if(!/^[LRlr_\s,\-|.]+$/.test(txt))return {err:'only L, R and _ (rest) are allowed, plus spaces and /N markers'};
+      const txt=m[4].replace(/(^|\s)-(?=\s|$)/g,'$1_');
+      if(!/^[LRlr_\s,\-|.]+$/.test(txt))return {err:'only L, R and _ (rest) are allowed, plus spaces and the note codes q, 8, 16, 32, 8t, 16t, 5t, 7t'};
       for(const ch of txt){
         const c=ch.toUpperCase();
         if(c==='L'||c==='R'||c==='_'){notes.push(c);gs.push(ng);subs.push(cur);ng=false;}
@@ -767,7 +785,7 @@ function parseStrokes(str){
   }
   const total=notes.length,rawGs=gs.slice(0,MAXSTROKES);
   /* A run of strokes under one marker with no spaces is grouped by four, or by six for triplets (two triplets joined),
-     or by the subdivision for /5 and /6. */
+     or by the subdivision above that. */
   for(let a=0;a<total;){
     let b=a;while(b<total&&subs[b]===subs[a])b++;
     const g=subs[a]===3?6:(subs[a]>=3?subs[a]:4);
@@ -812,13 +830,13 @@ function jsonDur(x){
   return null;
 }
 /* ---------- time signatures ---------- */
-/* A signature is a bar of n pulses. The pulse is a quarter note (d = 4) or an eighth note (d = 8), and BPM counts pulses.
-   groups says how the pulses are felt, like 2+2+3. A /N marker still means notes per pulse. */
+/* A signature is a bar of n pulses. The pulse is a half note (d = 2), a quarter note (d = 4) or an eighth note (d = 8), and BPM counts pulses.
+   groups says how the pulses are felt, like 2+2+3. A note code means the same in any signature. */
 function defGroups(n,d){
   const t={5:[3,2],7:d===8?[2,2,3]:[4,3],8:[3,3,2],10:[3,3,2,2],11:[3,3,3,2],13:[3,3,3,2,2]};
   if(n===4&&d===8)return [2,2];
   if(n>3&&n%3===0)return Array(n/3).fill(3);
-  if(t[n]&&!(n===8&&d===4))return t[n];
+  if(t[n]&&!(n===8&&d!==8))return t[n];
   if(d===8&&n>3){const g=[];let r=n;while(r>3){g.push(3);r-=3;}g.push(r);return g;}
   return [n];
 }
@@ -826,7 +844,7 @@ function parseSig(txt){
   const m=/^\s*(\d{1,2})\s*\/\s*(\d{1,2})\s*(?:\(\s*([\d\s+]+?)\s*\))?\s*$/.exec(String(txt));
   if(!m)return {err:'a time signature looks like 7/8 or 7/8 (3+2+2)'};
   const n=+m[1],d=+m[2];
-  if(d!==4&&d!==8)return {err:'the bottom number of a time signature must be 4 or 8'};
+  if(d!==2&&d!==4&&d!==8)return {err:'the bottom number of a time signature must be 2, 4 or 8'};
   if(n<1||n>16)return {err:'the top number of a time signature must be from 1 to 16'};
   let groups=defGroups(n,d);
   if(m[3]){
@@ -844,7 +862,7 @@ function groupStarts(sig,beats){
   for(const g of sig.groups){if(c<beats-1e-6)out.push(c);c+=g;}
   return out;
 }
-/* Gives a bar its signature: strokes with no /N marker share the bar out evenly, the grouping follows the
+/* Gives a bar its signature: strokes with no note code share the bar out evenly, the grouping follows the
    signature when the line has no spaces of its own, and a bar that does not add up gets a warning. */
 function fitSig(p,sig){
   const N=p.notes.length,allNull=p.subs.every(x=>x===null);
@@ -858,13 +876,13 @@ function fitSig(p,sig){
     const gst=new Set(groupStarts(sig,sig.n));
     gs=off.map((o,i)=>i===0||(sig.d===8?gst.has(o):isInt(o)));
   }
-  const word=sig.d===8?'eighth notes':'beats';
-  const warn=beats===sig.n?'':'this exercise holds '+(+beats.toFixed(2))+' '+word+' but '+sigText(sig)+' has '+sig.n+'. Use _ for rests, or change the /N markers';
+  const word=sig.d===8?'eighth notes':(sig.d===2?'half notes':'beats');
+  const warn=(beats===sig.n||(beats>sig.n&&isInt(beats/sig.n)))?'':'this exercise holds '+(+beats.toFixed(2))+' '+word+' but '+sigText(sig)+' has '+sig.n+'. Use _ for rests, or change the note codes';
   return {subs:subs,groupStart:gs,warn:warn};
 }
 /* One line of a routine. Returns null (blank), {err} or {exercise}. Only L and R may remain once labels, numbering and options are removed.
    defSig is the routine's current time signature, if it has set one. */
-function parseExerciseLine(raw,defSig){
+function parseExerciseLine(raw,defSig,defStrokes){
   let line=String(raw).replace(/#.*$/,'').trim();
   if(!line)return null;
   let label='',sig=defSig||null;
@@ -889,18 +907,20 @@ function parseExerciseLine(raw,defSig){
     else if(m[4])bpm=Math.min(220,Math.max(40,+m[4]));
   }
   const core=line.replace(new RegExp(DUR_SRC,'gi'),' ').trim();
-  const p=parseStrokes(core);
+  const p=parseStrokes((defStrokes?defStrokes+' ':'')+core,sig?sig.d:4);
   if(p.err)return {err:p.err};
   if(p.strokes<2)return {err:'an exercise needs at least two strokes (rests do not count)'};
   const warns=[];
   if(p.letters>MAXSTROKES)warns.push('more than '+MAXSTROKES+' strokes and rests, the remainder was cut off');
   let subs=p.subs,gs=p.groupStart;
   if(sig){const f=fitSig(p,sig);subs=f.subs;gs=f.groupStart;if(f.warn)warns.push(f.warn);}
-  return {exercise:{notes:p.notes,groupStart:gs,subs:subs,label:label,dur:dur,bpm:bpm,sig:sig,warn:warns.join('; ')}};
+  return {exercise:{src:((defStrokes?defStrokes+' ':'')+core).replace(/\s+/g,' ').trim(),notes:p.notes,groupStart:gs,subs:subs,label:label,dur:dur,bpm:bpm,sig:sig,warn:warns.join('; ')}};
 }
 function parseRoutine(text){
   const out={title:'',each:null,exercises:[],errors:[]};
-  let routineSig=null;
+  let routineSig=null,routineStrokes='';
+  const STROKESRE=new RegExp('^'+NV_SRC+'$','i');
+  const readStrokes=v=>{v=String(v).trim();if(/^(off|none|-|)$/i.test(v))return '';return STROKESRE.test(v)?v:null;};
   const t=String(text||'').replace(/^\uFEFF/,'').trim();
   if(!t)return out;
   const take=(res,where)=>{
@@ -918,14 +938,15 @@ function parseRoutine(text){
       if(typeof j.title==='string')out.title=j.title.slice(0,80);
       out.each=jsonDur(j.each);
       if(j.time!=null){const ps=parseSig(j.time);if(ps.err)out.errors.push('time: '+ps.err);else routineSig=ps.sig;}
+      if(j.strokes!=null){const v=readStrokes(j.strokes);if(v===null)out.errors.push('strokes: needs a note code like 8, 16 or 8t');else routineStrokes=v;}
     }
     arr.slice(0,200).forEach((it,i)=>{
       const where='Exercise '+(i+1);
-      if(typeof it==='string')return take(parseExerciseLine(it,routineSig),where);
+      if(typeof it==='string')return take(parseExerciseLine(it,routineSig,routineStrokes),where);
       if(!it||typeof it!=='object')return out.errors.push(where+': not an exercise');
       let exerciseSig=routineSig;
       if(it.time!=null){const ps=parseSig(it.time);if(ps.err)return out.errors.push(where+': '+ps.err);exerciseSig=ps.sig;}
-      const res=parseExerciseLine(String(it.sticking||it.pattern||''),exerciseSig);
+      const res=parseExerciseLine(String(it.sticking||it.pattern||''),exerciseSig,routineStrokes);
       if(res&&res.exercise){
         const d=jsonDur(it);if(d)res.exercise.dur=d;
         if(typeof it.bpm==='number')res.exercise.bpm=Math.min(220,Math.max(40,Math.round(it.bpm)));
@@ -936,17 +957,21 @@ function parseRoutine(text){
   }else{
     t.split(/\r?\n/).forEach((raw,i)=>{
       const s=raw.replace(/#.*$/,'');
-      const hm=/^\s*(title|each|time)\s*:\s*(.*)$/i.exec(s);
+      const hm=/^\s*(title|each|time|strokes)\s*:\s*(.*)$/i.exec(s);
       if(hm){
         const kw=hm[1].toLowerCase();
         if(kw==='title')out.title=hm[2].trim().slice(0,80);
-        else if(kw==='time'){
+        else if(kw==='strokes'){
+          const v=readStrokes(hm[2]);
+          if(v===null)out.errors.push('Line '+(i+1)+': "strokes:" needs a note code like 8, 16 or 8t, or off');
+          else routineStrokes=v;
+        }else if(kw==='time'){
           if(/^\s*(off|none|-)?\s*$/i.test(hm[2]))routineSig=null;
           else{const ps=parseSig(hm[2]);if(ps.err)out.errors.push('Line '+(i+1)+': '+ps.err);else routineSig=ps.sig;}
         }else{const d=readDur(hm[2]);if(d)out.each=d;else out.errors.push('Line '+(i+1)+': "each:" needs a time like 1m, 90s or x8');}
         return;
       }
-      take(parseExerciseLine(raw,routineSig),'Line '+(i+1));
+      take(parseExerciseLine(raw,routineSig,routineStrokes),'Line '+(i+1));
     });
   }
   if(out.exercises.length>200){out.exercises.length=200;out.errors.push('Only the first 200 exercises are used.');}
@@ -954,7 +979,7 @@ function parseRoutine(text){
   return out;
 }
 /* def is the default duration {unit:'pass'|'sec', v}. An exercise's own duration wins. Time is rounded to whole passes.
-   A stroke with no /N marker uses o.subdiv. A pass lasts the sum of its strokes, each 1/sub of a beat. */
+   A stroke with no note code uses o.subdiv. A pass lasts the sum of its strokes, each 1/sub of a beat. */
 const rb9=x=>Math.round(x*1e9)/1e9;
 function resolveExercises(exercises,def,o){
   return exercises.map(b=>{
@@ -963,7 +988,7 @@ function resolveExercises(exercises,def,o){
     beats=rb9(beats);
     const pass=beats*60/bpm,dur=b.dur||def;
     const passes=dur.unit==='pass'?dur.v:Math.max(1,Math.round(dur.v/pass));
-    return {idx:b.idx,notes:b.notes,groupStart:b.groupStart,subs:subs,defSub:o.subdiv,sig:b.sig||null,label:b.label||'',bpm:bpm,passBeats:beats,passes:passes,secs:passes*pass,passSecs:pass,own:!!b.dur};
+    return {idx:b.idx,notes:b.notes,groupStart:b.groupStart,subs:subs,defSub:o.subdiv,sig:b.sig||null,label:b.label||'',bpm:bpm,src:b.src||'',passBeats:beats,passes:passes,secs:passes*pass,passSecs:pass,own:!!b.dur};
   });
 }
 /* Lays out every click and every stroke slot of a session in seconds from the start of the first count-in. */
@@ -978,14 +1003,14 @@ function buildPlan(exercises,o){
     const passBeats=rb9(acc),totalBeats=passBeats*b.passes;
     /* Group accents only mean something when the bar has groups of more than one position. */
     const grouped=b.groupStart.some((g,i)=>i>0&&!g);
-    const sig=b.sig||null,gst=sig?groupStarts(sig,passBeats):[];
+    const sig=b.sig||null,gst=sig?groupStarts(sig,sig.n):[],barBeats=sig?sig.n:passBeats;
     const cin=sig?sig.n:4,leadBeats=si===0?cin:gap,leadStart=t,lead=leadBeats*beat;
     for(let j=0;j<leadBeats;j++)clicks.push({t:t+j*beat,a:j===0?2:(gst.indexOf(j)>=0?1:0)});
     const t0=t+lead,first=slots.length,cell0=cells.length,g0=gp;
     if(o.clickMode==='beat'){
       const nb=Math.ceil(totalBeats-1e-9);
       for(let j=0;j<nb;j++){
-        const q=rb9(j%passBeats);
+        const q=rb9(j%barBeats);
         clicks.push({t:t0+j*beat,a:q<1-1e-9?2:(isInt(q)&&gst.indexOf(Math.round(q))>=0?1:0)});
       }
     }
@@ -998,13 +1023,13 @@ function buildPlan(exercises,o){
         /* Strong at the start of the bar, lighter at group starts. Inside triplets every beat start is lighter too,
            and inside sextuplets every half beat (1 2 3, 1 2 3), whatever the beaming. */
         const sb=b.subs[i];
-        let a=i===0?2:(grouped&&b.groupStart[i]?1:0);
+        let a=(i===0||(sig&&isInt(off[i]/sig.n)))?2:(grouped&&b.groupStart[i]?1:0);
         if(a===0&&((sb===3&&isInt(off[i]))||(sb===6&&isInt(off[i]*2))))a=1;
         clicks.push({t:st,a:a});
       }
     }
     t=t0+totalBeats*beat;gp+=b.passes;
-    segs.push({idx:b.idx,notes:b.notes,groupStart:b.groupStart,subs:b.subs,defSub:b.defSub,sig:sig,cin:cin,gst:gst,label:b.label,bpm:b.bpm,N:N,strokes:b.notes.filter(x=>x!=='_').length,passes:b.passes,passBeats:passBeats,beat:beat,leadStart:leadStart,lead:lead,leadBeats:leadBeats,t0:t0,end:t,first:first,cell0:cell0,g0:g0});
+    segs.push({idx:b.idx,src:b.src||'',notes:b.notes,groupStart:b.groupStart,subs:b.subs,defSub:b.defSub,sig:sig,cin:cin,gst:gst,label:b.label,bpm:b.bpm,N:N,strokes:b.notes.filter(x=>x!=='_').length,passes:b.passes,passBeats:passBeats,beat:beat,leadStart:leadStart,lead:lead,leadBeats:leadBeats,t0:t0,end:t,first:first,cell0:cell0,g0:g0});
   });
   return {slots:slots,cells:cells,clicks:clicks,segs:segs,end:t};
 }
@@ -1018,7 +1043,7 @@ function fmtTime(s){
   s=Math.max(0,Math.round(s));
   return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
 }
-/* Shows /N markers wherever the subdivision changes. def is the routine default, which needs no marker. */
+/* Writes the subdivision wherever it changes. def is the routine default, which needs no marker. */
 function fmtPattern(notes,gs,subs,def){
   let s='',cur=def;
   for(let i=0;i<notes.length;i++){
@@ -1028,6 +1053,14 @@ function fmtPattern(notes,gs,subs,def){
   }
   return s;
 }
+/* What the list shows: the line as typed (with the routine's strokes: default in front), or the written-out pattern when there is none. */
+/* fmtPattern writes subdivisions as /N for the saved keys. For people, /N becomes a note code given the beat d, and a
+   subdivision with no code is left out. */
+function nameMarkers(str,d){
+  const dd=d||4,NAME={4:'q',8:'8',16:'16',32:'32',12:'8t',24:'16t',20:'5t',28:'7t'};
+  return String(str).replace(/\/(\d+) /g,(m,n)=>(NAME[+n*dd]||'')+(NAME[+n*dd]?' ':''));
+}
+const showPattern=(notes,gs,subs,def,sig,src)=>sigPrefix(sig)+(src||nameMarkers(fmtPattern(notes,gs,subs,def),sig?sig.d:4));
 /* ---------- records: scores kept per exercise and tempo ---------- */
 const TARGET=0.9;                                /* accuracy that counts as cleared at a tempo */
 function hash32(str){let h=5381;for(let i=0;i<str.length;i++)h=((h<<5)+h+str.charCodeAt(i))>>>0;return h.toString(36);}
@@ -1338,7 +1371,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.3.2';                           /* shown beside the title */
+const VERSION='0.4.1';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const SAMPLE='# Example routine. Replace these with your own exercises, one per line.\n# To change how long an exercise plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example routine\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
@@ -2054,7 +2087,7 @@ function staffLine(sg,opt){
   const E=padL+beats*u+totalExt+24;
   svg.appendChild(mk('line',{class:'sl',x1:2,x2:E,y1:Y,y2:Y}));
   /* faint guides at each beat start, so the width of a beat is visible whatever it holds */
-  const eighths=!!sg.sig&&sg.sig.d===8;
+  const eighths=!!sg.sig&&sg.sig.d===8,halves=!!sg.sig&&sg.sig.d===2;
   for(let i=1;i<N;i++)if(eighths?sg.groupStart[i]:isInt(off[i]))svg.appendChild(mk('line',{class:'bt',x1:bx(i),x2:bx(i),y1:Y-30,y2:Y+34}));
   /* neutral (percussion) clef: two thick exercises */
   svg.appendChild(mk('rect',{class:'clef',x:6,y:Y-9,width:4.4,height:18}));
@@ -2064,6 +2097,9 @@ function staffLine(sg,opt){
     [[String(sg.sig.n),Y-3],[String(sg.sig.d),Y+14]].forEach(p=>{const t=mk('text',{class:'ts',x:34,y:p[1]});t.textContent=p[0];svg.appendChild(t);});
   }
   /* a barline every two beats, as in 2/4. A time signature has none inside the bar. */
+  if(sg.sig){
+    for(let i=1;i<N;i++)if(off[i]>0.001&&isInt(off[i]/sg.sig.n))svg.appendChild(mk('line',{class:'bar',x1:bx(i),x2:bx(i),y1:Y-18,y2:Y+18}));
+  }
   if(!sg.sig&&isInt(beats/2)){
     for(let i=1;i<N;i++){
       const o=off[i];
@@ -2079,15 +2115,15 @@ function staffLine(sg,opt){
   }else{
     svg.appendChild(mk('line',{class:'bar',x1:E-12,x2:E-12,y1:Y-18,y2:Y+18}));
   }
-  /* sub 1 quarter, 2 eighth, 3 eighth triplet, 4+ sixteenth. When the pulse is an eighth note, everything is one flag more. */
-  const beamsOf=s=>Math.min(2,(s>=4?2:(s>=2?1:0))+(eighths?1:0));
+  /* sub 1 quarter, 2 eighth, 3 eighth triplet, 4+ sixteenth. When the pulse is an eighth note, everything is one flag more, and when it is a half note (2/2) one flag fewer. */
+  const beamsOf=s=>Math.max(0,Math.min(eighths?2:3,(s>=8?3:(s>=4?2:(s>=2?1:0)))+(eighths?1:0)-(halves?1:0)));
   const cards=[];
   for(let i=0;i<N;i++){
     const h=sg.notes[i],rest=h==='_',cx=xc(i);
     const g=mk('g',{class:'cd'});
     g.appendChild(mk('rect',{class:'bg',x:x0(i)+1,y:Y0+2,width:Math.max(2,xw(i)-2),height:H-4,rx:6}));
     if(rest){
-      const d=durs[i]*(eighths?0.5:1);
+      const d=durs[i]*(eighths?0.5:(halves?2:1));
       if(d>=0.75){
         g.appendChild(mk('path',{class:'rsz',d:'M'+(cx-3)+','+(Y-15)+' L'+(cx+3)+','+(Y-7)+' L'+(cx-3)+','+(Y+1)+' L'+(cx+3)+','+(Y+9)+' Q'+(cx-4)+','+(Y+8)+' '+(cx-3)+','+(Y+16)}));
       }else{
@@ -2128,6 +2164,17 @@ function staffLine(sg,opt){
           const dir=i<b?1:-1;
           svg.appendChild(mk('rect',{class:'beam',x:dir>0?sx(i)-0.8:sx(i)-9,y:TOP+7,width:9.8,height:4.2}));
         }
+        /* third beam, for thirty-second notes */
+        for(let k=i;k<=j;){
+          if(bm(k)<3){k++;continue;}
+          let m=k;while(m+1<=j&&bm(m+1)>=3&&!sg.groupStart[m+1])m++;
+          if(m>k)svg.appendChild(mk('rect',{class:'beam',x:sx(k)-0.8,y:TOP+14,width:sx(m)-sx(k)+1.6,height:4.2}));
+          else{
+            const dir3=k<j?1:-1;
+            svg.appendChild(mk('rect',{class:'beam',x:dir3>0?sx(k)-0.8:sx(k)-9,y:TOP+14,width:9.8,height:4.2}));
+          }
+          k=m+1;
+        }
         i=j+1;
       }
     }
@@ -2142,7 +2189,7 @@ function staffLine(sg,opt){
   };
   for(let a=0;a<N;){
     const sb=subs[a];
-    if(sb<3||sb===4){a++;continue;}
+    if(sb<3||sb===4||sb===8){a++;continue;}
     let b=a;while(b+1<N&&subs[b+1]===sb&&beat(b+1)===beat(a))b++;
     if(b>a){
       let parts=[[a,b]];
@@ -2577,7 +2624,16 @@ function discardRun(){
 }
 /* ---------- progress page ---------- */
 function fmtDate(t){try{return new Date(t).toLocaleDateString(undefined,{day:'numeric',month:'short'});}catch(e){return '';}}
-function showKey(k){return k.replace(/^\/(\d) /,(m,n)=>(n==='4'&&k.indexOf('/',1)<0)?'':m);}
+/* A saved key back into text the pattern box understands: the signature stays, /N becomes a name. */
+function keyToText(k){
+  const m=/^(\d+)\/(\d+) \([\d+]+\): /.exec(k);
+  return m?k.slice(0,m[0].length)+nameMarkers(k.slice(m[0].length),+m[2]).trim():nameMarkers(k,4).trim();
+}
+function showKey(k){
+  const m=/^(\d+)\/(\d+) \([\d+]+\): /.exec(k);
+  if(m)return k.slice(0,m[0].length)+nameMarkers(k.slice(m[0].length),+m[2]).trim();
+  return nameMarkers(k.replace(/^\/4 (?![^\/]*\/)/,''),4).trim();
+}
 /* Replaces a table's contents. A cell is text, [text, class] or a node. */
 function fillTable(tbl,cols,rows){
   tbl.textContent='';
@@ -2638,7 +2694,8 @@ function renderProgress(){
 }
 function practisePattern(k){
   if(run&&!run.ended)return;
-  S.pattern=k;$('pattern').value=k;save();
+  const txt=keyToText(k);
+  S.pattern=txt;$('pattern').value=txt;save();
   setMode('single');
   showTab('play');
 }
@@ -2683,7 +2740,7 @@ function exerciseRows(r){
   r.plan.segs.forEach((sg,si)=>{
     const Q=r.seg[si];
     if(!Q.slots)return;
-    rows.push({idx:sg.idx,key:patKey(sg.notes,sg.groupStart,sg.subs,sg.defSub,sg.sig),label:sg.label,seq:sigPrefix(sg.sig)+fmtPattern(sg.notes,sg.groupStart,sg.subs,sg.defSub),bpm:sg.bpm,
+    rows.push({idx:sg.idx,key:patKey(sg.notes,sg.groupStart,sg.subs,sg.defSub,sg.sig),label:sg.label,seq:showPattern(sg.notes,sg.groupStart,sg.subs,sg.defSub,sg.sig,sg.src),bpm:sg.bpm,
       passes:Math.floor(Q.slots/sg.strokes),due:Q.slots,heard:Q.errs.length,
       pct:Q.within/Q.slots,avg:Q.errs.length?mean(Q.errs):NaN,spread:sd(Q.errs),miss:Q.miss,
       L:Q.hand.L.length?mean(Q.hand.L):NaN,R:Q.hand.R.length?mean(Q.hand.R):NaN});
@@ -2811,7 +2868,7 @@ function buildExerciseList(){
     row.addEventListener('click',()=>pickExercise(b.idx));
     row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pickExercise(b.idx);}});
     const n=document.createElement('span');n.textContent=b.idx;
-    const q=document.createElement('span');q.className='seq';q.textContent=sigPrefix(b.sig)+fmtPattern(b.notes,b.groupStart,b.subs,b.defSub)+(b.label?'  ('+b.label+')':'');
+    const q=document.createElement('span');q.className='seq';q.textContent=showPattern(b.notes,b.groupStart,b.subs,b.defSub,b.sig,b.src)+(b.label?'  ('+b.label+')':'');
     const m=document.createElement('span');m.className='meta';
     m.textContent=b.passes+(b.passes===1?' pass':' passes')+' · '+fmtTime(b.secs)+(b.bpm!==S.bpm?' · @'+b.bpm:'');
     row.append(n,q,m);box.appendChild(row);
@@ -2969,7 +3026,7 @@ function syncInfo(){
       const b=exercises[0],uniform=b.subs.every(s=>s===b.subs[0]);
       const beats=b.passBeats;
       const rests=b.notes.filter(n=>n==='_').length,strokes=b.notes.length-rests;
-      $('patInfo').textContent=strokes+' strokes'+(rests?' and '+rests+(rests===1?' rest':' rests'):'')+' = '+(Number.isInteger(beats)?beats:+beats.toFixed(2))+(b.sig&&b.sig.d===8?' eighth-note pulses':' beats')+' at '+S.bpm+' BPM.'+(uniform?' Each stroke lasts '+Math.round(60/S.bpm/b.subs[0]*1000)+' ms.':'')+' Runs until you press Stop. Put /3 or /4 before strokes to change the subdivision mid-bar, and _ for a rest.'+(res.exercise.warn?' Note: '+res.exercise.warn+'.':'');
+      $('patInfo').textContent=strokes+' strokes'+(rests?' and '+rests+(rests===1?' rest':' rests'):'')+' = '+(Number.isInteger(beats)?beats:+beats.toFixed(2))+(b.sig&&b.sig.d===8?' eighth-note pulses':(b.sig&&b.sig.d===2?' half-note pulses':' beats'))+' at '+S.bpm+' BPM.'+(uniform?' Each stroke lasts '+Math.round(60/S.bpm/b.subs[0]*1000)+' ms.':'')+' Runs until you press Stop. Put a note code such as 8 or 8t before strokes to change the subdivision mid-bar, and _ for a rest.'+(res.exercise.warn?' Note: '+res.exercise.warn+'.':'');
     }else $('patInfo').textContent='';
     document.querySelectorAll('.chip').forEach(c=>{
       const cr=parseExerciseLine(c.dataset.p);
@@ -2994,12 +3051,14 @@ function syncInfo(){
   }
   const sum=$('playSummary');
   if(!exercises.length)sum.textContent=S.mode==='single'?'Type a sticking on the Pattern page, then press Start.':'Add some exercises on the Pattern page, then press Start.';
-  else if(S.mode==='single'){const b=exercises[0];sum.textContent=sigPrefix(b.sig)+fmtPattern(b.notes,b.groupStart,b.subs,b.defSub)+' · '+S.bpm+' BPM'+pulseNote(exercises)+' · runs until you press Stop';}
+  else if(S.mode==='single'){const b=exercises[0];sum.textContent=showPattern(b.notes,b.groupStart,b.subs,b.defSub,b.sig,b.src)+' · '+S.bpm+' BPM'+pulseNote(exercises)+' · runs until you press Stop';}
   else{let tt=0;exercises.forEach(b=>{tt+=b.secs;});sum.textContent=(routineParsed.title||'Routine')+' · '+exercises.length+(exercises.length===1?' exercise':' exercises')+(S.startExercise>1?' from exercise '+S.startExercise:'')+' · about '+fmtTime(tt)+' · '+S.bpm+' BPM'+pulseNote(exercises)+routineGuide();}
   $('bpmOut').textContent=S.bpm+' BPM';
 }
 /* BPM counts the pulse. Say so when that is the eighth note. */
-function pulseNote(exercises){return exercises.some(b=>b.sig&&b.sig.d===8)?' (per eighth note)':'';}
+function pulseNote(exercises){
+  return exercises.some(b=>b.sig&&b.sig.d===8)?' (per eighth note)':(exercises.some(b=>b.sig&&b.sig.d===2)?' (per half note)':'');
+}
 function routineGuide(){
   const e=guide().rt.get(routineKeyOf(allExercises().map(b=>patKey(b.notes,b.groupStart,b.subs,b.defSub,b.sig))));
   return e&&e.cleared?' · routine cleared at '+e.cleared+' BPM':'';
