@@ -74,8 +74,7 @@ input[type=range]{width:100%;accent-color:var(--accent);min-height:32px}
 .hand.R{background:var(--ink);color:var(--bg)}
 .hand.rest{border:2px dashed var(--line);color:var(--muted);font-size:18px}
 .rowswrap{position:relative}
-.barnav{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px}
-.barnav .hint{flex:1 1 100%;margin:0}
+.barnav{margin:0 0 10px}
 .rows.pick .brow2{cursor:pointer}
 .rows.pick{touch-action:none;overscroll-behavior:contain;user-select:none;-webkit-user-select:none}
 .rows.pick:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
@@ -196,10 +195,18 @@ th{text-align:left;font:600 10px var(--font-body);letter-spacing:.07em;text-tran
 td{padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
 tr:last-child td{border-bottom:0}
 td.seq{letter-spacing:.08em;font-weight:600}
-td.early{color:var(--early)} td.late{color:var(--late)} td.ok{color:var(--ok)}
-.fmt{font-size:13px;color:var(--muted)}
-.fmt pre{margin:6px 0;padding:10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;overflow-x:auto;font:12.5px/1.5 var(--font-data);color:var(--ink)}
-.fmt p{margin:6px 0}
+td.early{color:var(--early)} td.late{color:var(--late)} td.ok{color:var(--ok)} td.muted{color:var(--muted)}
+.headbtns{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+button.helpbtn{cursor:pointer;color:var(--ink);font-weight:700}
+button.helpbtn:disabled{opacity:.5;cursor:not-allowed}
+.help p,.help li{font-size:14.5px;line-height:1.55;margin:6px 0}
+.help ul,.help ol{padding-left:20px;margin:6px 0}
+.help h4{font:700 14px var(--font-body);margin:14px 0 4px}
+.help pre{margin:6px 0;padding:10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;overflow-x:auto;font:12.5px/1.5 var(--font-data);color:var(--ink)}
+.help .ex{border-top:1px solid var(--line);padding-top:4px;display:grid;justify-items:start;gap:2px}
+.help .ex h4{margin-top:10px}
+.help .panel>h3{margin:0}
+.help .panel{gap:4px}
 </style>
 </head>
 <body data-input="mic" data-mode="single" data-tab="pattern" data-state="idle" data-run="0">
@@ -207,7 +214,7 @@ td.early{color:var(--early)} td.late{color:var(--late)} td.ok{color:var(--ok)}
   <header>
     <div class="head">
       <h1>Stick Timing Trainer</h1>
-      <span class="pill" id="micPill">Mic off</span>
+      <span class="headbtns"><button class="pill helpbtn" id="helpBtn" type="button" data-help="help-how">Help</button><span class="pill" id="micPill">Mic off</span></span>
     </div>
     <p class="sub">Play a sticking on your pad. See which strokes lead the beat and which drag.</p>
   </header>
@@ -344,25 +351,9 @@ td.early{color:var(--early)} td.late{color:var(--late)} td.ok{color:var(--ok)}
           <input type="number" id="startBar" min="1" max="1" step="1" inputmode="numeric"></div>
       </div>
       <p class="hint" id="eachNote" hidden></p>
-      <p class="hint" id="barHint">Tap a bar to start there.</p>
+      <p class="hint">Tap a bar to start there.</p>
       <div class="bars" id="barList" role="listbox" aria-label="Bars in this page. Choose the bar to start at."></div>
-      <details class="fmt">
-        <summary style="font:600 14px var(--font-body);letter-spacing:0;text-transform:none;padding:6px 0">File format</summary>
-        <p>Plain text, one bar per line. L and R are strokes, and a space starts a new group. With the click on "Every stroke", the start of the bar gets the strongest click and the first stroke of each group a lighter one, so 7/8 written <b>RL RL RLR</b> is heard as 2+2+3. Lines starting with # are notes to yourself. This page does not come with any book content. You supply the bars.</p>
-        <pre>title: My warm-up page
-each: 1m
-RLRR LRLL
-RLRL RLRL  x16
-LRLL RLRR  90s  @100
-Bar 4: RRLL RRLL
-/4 RLRL /3 RLR LRL
-R L _ L R _ L R</pre>
-        <p><b>each:</b> sets the default time for every bar (<b>1m</b>, <b>90s</b> or <b>x8</b> for eight passes). A bar can override it with <b>x16</b>, <b>90s</b> or <b>1.5m</b> at the end of its line, and can set its own tempo with <b>@100</b>. Bars without any of these use the setting above. Time is rounded to whole passes. A name before a colon (Bar 4:) is just a label.</p>
-        <p><b>/N</b> sets the subdivision for the strokes that follow, until the next marker: <b>/1</b> quarters, <b>/2</b> eighths, <b>/3</b> triplets, <b>/4</b> sixteenths (up to /6). So <b>/4 RLRL /3 RLR LRL</b> is one beat of sixteenths then two beats of triplets. Strokes before any marker use the "Each stroke is a" setting below. A marker can start a line to set the whole bar.</p>
-        <p><b>_</b> is a rest, and so is a lone <b>-</b> with spaces around it (<b>R - L -</b>). A rest takes up time like a stroke, and the click still counts it, but no hit is expected. A hit during a rest counts as an extra hit. A hyphen joined to strokes (<b>RLRR-LRLL</b>) just separates groups.</p>
-        <p><b>Bar-change cue.</b> With "Straight on" there is no count-in between bars, so the page gives its own cue. On the first beat of a bar's last pass you hear one high tick. On the first beat of the new bar you hear two ticks and the strokes flash. The ticks sound whatever the click is set to. They are only used with "Straight on". The next bar always sits under the current one, and the rows shift up when it starts.</p>
-        <p>JSON also works: a list such as <b>["RLRR LRLL", {"sticking":"RLRL RLRL","passes":16}]</b>, or an object with <b>title</b>, <b>each</b> and <b>bars</b>.</p>
-      </details>
+      <p class="hint">Need the bar format, <b>x16</b> passes or <b>/3</b> triplets? <button class="btn small" type="button" data-help="help-format">Open the format help</button></p>
     </section>
 
     <section class="panel cfg" aria-label="Stroke timing">
@@ -402,6 +393,173 @@ R L _ L R _ L R</pre>
     </section>
   </div>
 
+  <!-- ===== Help ===== -->
+  <div class="page help" id="pageHelp" role="region" aria-label="Help" hidden>
+    <div class="btns"><button class="btn small" id="helpBack" type="button">← Back</button></div>
+
+    <section class="panel" id="help-how">
+      <h3>How it works</h3>
+      <p>The app plays a click at your tempo and listens to your pad through the microphone. It matches each hit you play to the stroke that was due, then measures how many milliseconds early (<b>leading</b>) or late (<b>dragging</b>) it was. Nothing is uploaded. Everything stays in this browser.</p>
+      <p>Pick a sticking, press Start on the Play page, and play along with the moving line. Your strokes light up as you play, and the numbers appear when you stop.</p>
+    </section>
+
+    <section class="panel" id="help-start">
+      <h3>Quick start</h3>
+      <ol>
+        <li><b>Setup:</b> pick a tempo, use headphones for the click, press "Turn microphone on" and hit the pad. The level bar should cross the trigger line on every stroke. Calibrating each stick is optional but lets the app tell L from R.</li>
+        <li><b>Pattern:</b> choose "One pattern" (a single sticking that repeats) or "Practice page" (a list of bars played one after another).</li>
+        <li><b>Play:</b> press Start. After a count-in, play on the moving line. Press Stop when you are done to see your results.</li>
+      </ol>
+      <p>No microphone? On Setup, change Input to "Keyboard or pads". Press <b>F</b> for left and <b>J</b> for right. This is a test mode, and its timing is rougher than a microphone on a pad.</p>
+    </section>
+
+    <section class="panel" id="help-pages">
+      <h3>The four pages</h3>
+      <ul>
+        <li><b>Play:</b> Start, Pause, Restart and Stop, the notation, the lead/drag gauge and your results. With a practice page loaded, scroll or swipe the rows (or press ↑ ↓) to choose which bar to start at.</li>
+        <li><b>Pattern:</b> what you practise: one pattern, or a page of bars you type, load from a file or load from a URL.</li>
+        <li><b>Setup:</b> tempo, click, on-time window, microphone, stick calibration and latency.</li>
+        <li><b>Progress:</b> your scores for each pattern, weakest first, and each page's best cleared tempo.</li>
+      </ul>
+    </section>
+
+    <section class="panel" id="help-play">
+      <h3>Reading the Play page</h3>
+      <ul>
+        <li><b>Each row is one pass</b> of a bar, the way it is played. The top row is the one you are playing, and the next passes sit underneath. A bar with 16 passes shows the same notation 16 times as it comes round. When a pass ends the rows slide up.</li>
+        <li><b>The moving line</b> glides across the row at an even pace and reaches a note exactly when it is due. Strike as the line reaches the note.</li>
+        <li><b>Letter colours:</b> green is on time, blue is early (leading), pink is late (dragging), and a faded letter means no hit was heard. The "on-time window" in Setup decides how close counts as green.</li>
+        <li><b>A small arrow tag</b> such as →R beside a letter means that stroke was due on the other hand but the app heard R. This needs both sticks calibrated.</li>
+        <li><b>The gauge</b> shows your average lead or drag over the last 32 strokes. Left of the middle is leading and right is dragging.</li>
+        <li><b>On narrow screens</b> a busy pass wraps onto two lines at the barline so the notes stay roomy.</li>
+        <li><b>Pause</b> stops the click. Resume counts you in again from the start of that pass. <b>Restart</b> goes back to your chosen start bar.</li>
+      </ul>
+    </section>
+
+    <section class="panel" id="help-patterns">
+      <h3>Writing a pattern</h3>
+      <p><b>L</b> and <b>R</b> are strokes. A <b>space</b> starts a new group, and groups are joined with a beam. <b>_</b> is a rest. A <b>/N</b> marker sets how many strokes fit in one beat from that point on: <b>/1</b> quarters, <b>/2</b> eighths, <b>/3</b> eighth triplets, <b>/4</b> sixteenths, up to <b>/6</b>. With no marker, the "Each stroke is a" setting on the Pattern page is used (sixteenths by default).</p>
+      <p>Every example below has a button that loads it for you.</p>
+
+      <div class="ex">
+        <h4>Four beats of sixteenths</h4>
+        <pre>RLRL RLRL RLRL RLRL</pre>
+        <p>Four groups of four. Each group is one beat. The notation shows a barline every two beats.</p>
+        <button class="btn small" type="button" data-try="single" data-text="RLRL RLRL RLRL RLRL">Try it</button>
+      </div>
+      <div class="ex">
+        <h4>Accent patterns</h4>
+        <pre>RLRR LRLL RLRR LRLL</pre>
+        <p>Set the click to "Every stroke" in Setup to hear each note, or leave it "On the beat".</p>
+        <button class="btn small" type="button" data-try="single" data-text="RLRR LRLL RLRR LRLL">Try it</button>
+      </div>
+      <div class="ex">
+        <h4>Two triplets in one beat</h4>
+        <pre>/3 RLR LRL</pre>
+        <p>Two groups of three, each with its own "3". Triplets are drawn with a bracket and the click accents each beat.</p>
+        <button class="btn small" type="button" data-try="single" data-text="/3 RLR LRL">Try it</button>
+      </div>
+      <div class="ex">
+        <h4>Sixteenths then sextuplets</h4>
+        <pre>/4 RLRL /6 RLR LRL</pre>
+        <p>One beat of sixteenths, then one beat of sextuplets written as two joined triplets (two "3" brackets). Writing <b>/6 RLRLRL</b> with no space instead gives one run of six, with a single "6".</p>
+        <button class="btn small" type="button" data-try="single" data-text="/4 RLRL /6 RLR LRL">Try it</button>
+      </div>
+      <div class="ex">
+        <h4>Rests</h4>
+        <pre>/4 R _ L _ R L _ L</pre>
+        <p>A rest takes up time but no hit is expected. A hit during a rest counts as an extra hit.</p>
+        <button class="btn small" type="button" data-try="single" data-text="/4 R _ L _ R L _ L">Try it</button>
+      </div>
+    </section>
+
+    <section class="panel" id="help-format">
+      <h3>The practice page format</h3>
+      <p>A practice page is plain text with one bar per line. Lines starting with <b>#</b> are notes to yourself, and a name before a colon (<b>Bar 4:</b>) is just a label. This app does not come with any book content. You supply the bars.</p>
+      <pre>title: My warm-up page
+each: 1m
+RLRR LRLL
+RLRL RLRL  x16
+LRLL RLRR  90s  @100
+Bar 4: RRLL RRLL
+/4 RLRL /3 RLR LRL</pre>
+      <h4>How long each bar plays</h4>
+      <ul>
+        <li><b>each:</b> sets the default for every bar: <b>1m</b> (a minute), <b>90s</b> or <b>x8</b> (eight passes). With no <b>each:</b> line, the "Each bar plays for" setting is used.</li>
+        <li><b>x16</b> at the end of a bar's line means <b>play this bar 16 times</b>. One pass is the bar played once through.</li>
+        <li><b>90s</b> or <b>1.5m</b> means play for about that long. Time is rounded to whole passes.</li>
+        <li><b>@100</b> plays just that bar at 100 BPM. Combine them freely: <b>RLRL RLRL x16 @80</b>.</li>
+      </ul>
+      <div class="ex">
+        <h4>Passes: how x16 works</h4>
+        <pre>title: Passes demo
+each: x4
+RLRL RLRL RLRL RLRL
+LRLR LRLR LRLR LRLR  x8
+RRLL RRLL RRLL RRLL  30s</pre>
+        <p>At 60 BPM one pass of each bar takes 4 seconds. The first bar gets the page default of 4 passes, the second gets 8 passes, and the third plays for 30 seconds, which is 7 passes.</p>
+        <button class="btn small" type="button" data-try="page" data-text="title: Passes demo&#10;each: x4&#10;RLRL RLRL RLRL RLRL&#10;LRLR LRLR LRLR LRLR  x8&#10;RRLL RRLL RRLL RRLL  30s">Try it</button>
+      </div>
+      <div class="ex">
+        <h4>A page of Stick Control-style lines</h4>
+        <pre>title: Stick Control warm-up
+each: x8
+RLRL RLRL RLRL RLRL
+LRLR LRLR LRLR LRLR
+RRLL RRLL RRLL RRLL
+LLRR LLRR LLRR LLRR
+RLRR LRLL RLRR LRLL
+RLLR LRRL RLLR LRRL
+RRLR LLRL RRLR LLRL</pre>
+        <button class="btn small" type="button" data-try="page" data-text="title: Stick Control warm-up&#10;each: x8&#10;RLRL RLRL RLRL RLRL&#10;LRLR LRLR LRLR LRLR&#10;RRLL RRLL RRLL RRLL&#10;LLRR LLRR LLRR LLRR&#10;RLRR LRLL RLRR LRLL&#10;RLLR LRRL RLLR LRRL&#10;RRLR LLRL RRLR LLRL">Try it</button>
+      </div>
+      <div class="ex">
+        <h4>Mixed subdivisions and tempos</h4>
+        <pre>title: Mixed
+RLRL RLRL RLRL RLRL  x6
+/3 RLR LRL RLR LRL RLR LRL RLR LRL  x6 @70
+/4 RLRL /6 RLR LRL  x6</pre>
+        <button class="btn small" type="button" data-try="page" data-text="title: Mixed&#10;RLRL RLRL RLRL RLRL  x6&#10;/3 RLR LRL RLR LRL RLR LRL RLR LRL  x6 @70&#10;/4 RLRL /6 RLR LRL  x6">Try it</button>
+      </div>
+      <h4>Between bars and the bar-change cue</h4>
+      <p>"Between bars" can be a 4-beat count-in, or <b>Straight on</b> (the default), where the next bar starts without a pause. With Straight on, a cue tells you a change is coming: one high tick on the first beat of a bar's last pass, then two ticks and a flash on the first beat of the new bar. The "Bar-change cue" setting turns the sound or the flash off.</p>
+      <h4>Loading a page</h4>
+      <p>Use <b>Load file</b> for a .txt, .json or .csv, or <b>Load from URL</b>. JSON also works: a list such as <b>["RLRR LRLL", {"sticking":"RLRL RLRL","passes":16}]</b>, or an object with <b>title</b>, <b>each</b> and <b>bars</b>.</p>
+    </section>
+
+    <section class="panel" id="help-scores">
+      <h3>Scores, tempo and progress</h3>
+      <ul>
+        <li><b>On time</b> is the share of due strokes that landed inside your on-time window. A bar needs at least one full pass to be scored.</li>
+        <li><b>Bar table:</b> after a practice page run, each bar gets its own accuracy, average error and spread, plus your earlier best at that tempo.</li>
+        <li><b>The target is 90%.</b> A bar is "cleared" at a tempo when it reaches 90% there. After a run the app says whether every bar cleared, and suggests +4 BPM if so. Otherwise it names the weak bars and suggests staying at the same tempo. These are only suggestions. Any tempo is always allowed.</li>
+        <li><b>Discard this run</b> removes a run from your records, for example after a bad microphone read.</li>
+        <li><b>Progress page:</b> every pattern, weakest first, with accuracy at the tempo you last played, your fastest cleared tempo and your lead/drag bias. "Practise" loads that pattern. A page counts as cleared at a tempo when one run covered every bar and all reached 90%.</li>
+        <li><b>Records are saved in this browser only.</b> Use Export to keep a copy or move to another device, and Import to bring one back.</li>
+      </ul>
+    </section>
+
+    <section class="panel" id="help-setup">
+      <h3>Setup details</h3>
+      <ul>
+        <li><b>Trigger line:</b> raise it if room noise counts as hits, and lower it if soft strokes are missed.</li>
+        <li><b>Stick calibration:</b> hit the same spot of the pad with one stick only, at normal strength, until the count finishes. Do it for both sticks.</li>
+        <li><b>Latency:</b> sound reaches the page late, and the click reaches your ears late. Press Calibrate latency, then hit right on each click for three rounds. It assumes you were on the click on average. You can also type a number.</li>
+        <li><b>Click:</b> "On the beat", "Every stroke" or "Count-in only". Use headphones, or the click will be picked up as strokes.</li>
+      </ul>
+    </section>
+
+    <section class="panel" id="help-trouble">
+      <h3>If something is off</h3>
+      <ul>
+        <li><b>The microphone will not turn on:</b> the page needs a secure address. Opening the file from your computer works in Chrome and Edge. Otherwise serve it with <b>python3 -m http.server</b> or switch Input to Keyboard.</li>
+        <li><b>Every stroke looks late or early:</b> run Calibrate latency.</li>
+        <li><b>Extra hits show up:</b> raise the trigger line, or use headphones for the click.</li>
+        <li><b>Wrong-hand tags look random:</b> calibrate both sticks again on the same spot of the pad.</li>
+      </ul>
+    </section>
+  </div>
+
   <div class="page" id="pagePlay" role="tabpanel" aria-labelledby="tabPlay" hidden>
     <div class="transport">
       <button class="btn primary" id="startBtn" type="button">Start</button>
@@ -418,16 +576,14 @@ R L _ L R _ L R</pre>
     </div>
 
     <section aria-label="Strokes">
-      <div class="barnav page-only cfg" id="barNav">
-        <span class="hint" id="barNavHint">Scroll, swipe or tap a bar to choose where to start.</span>
-      </div>
+      <p class="hint page-only cfg barnav">Scroll, swipe or tap a bar to choose where to start.</p>
       <div class="rowswrap">
       <div class="bigcount" id="bigCount" hidden aria-hidden="true"></div>
       <div class="rows" id="rows" tabindex="0"><div class="rows-track" id="rowsTrack"></div></div>
       <p class="hint" id="rowEnd" hidden></p>
       </div>
       <p class="cap">The moving line marks the stroke to play now. Letter colour: green on time, blue early, pink late, faded no hit heard. An arrow such as →R under a letter means the other stick was heard. Numbers appear after you stop.</p>
-      <div class="pads kb-only" id="pads">
+      <div class="pads kb-only">
         <button class="pad" type="button" data-hand="L" aria-label="Left stick pad">L</button>
         <button class="pad" type="button" data-hand="R" aria-label="Right stick pad">R</button>
       </div>
@@ -439,7 +595,7 @@ R L _ L R _ L R</pre>
         <div class="big"><span id="gVal">—</span><small>ms</small></div>
         <div class="word" id="gWord">Waiting for strokes</div>
       </div>
-      <div class="gauge" id="gauge" aria-hidden="true">
+      <div class="gauge" aria-hidden="true">
         <div class="g-track"></div>
         <div class="g-zone" id="gZone"></div>
         <div class="g-mid"></div>
@@ -644,6 +800,7 @@ function resolveBars(bars,def,o){
   });
 }
 /* Lays out every click and every stroke slot of a session in seconds from the start of the first count-in. */
+function isInt(x){return Math.abs(x-Math.round(x))<1e-6;}
 function buildPlan(bars,o){
   const slots=[],cells=[],clicks=[],segs=[],gap=o.gapBeats||0;
   let t=0,gp=0;
@@ -669,7 +826,7 @@ function buildPlan(bars,o){
       if(o.clickMode==='note'){
         /* Strong at the start of the bar, lighter at group starts. Inside triplets every beat start is lighter too,
            and inside sextuplets every half beat (1 2 3, 1 2 3), whatever the beaming. */
-        const sb=b.subs[i],isInt=x=>Math.abs(x-Math.round(x))<1e-6;
+        const sb=b.subs[i];
         let a=i===0?2:(grouped&&b.groupStart[i]?1:0);
         if(a===0&&((sb===3&&isInt(off[i]))||(sb===6&&isInt(off[i]*2))))a=1;
         clicks.push({t:st,a:a});
@@ -888,14 +1045,14 @@ const $=id=>document.getElementById(id);
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const OLD_SAMPLE='# Example page. Replace these with your own bars, one per line.\n# Add x16, 90s or @100 to the end of a line to change just that bar.\ntitle: Example page\nRLRR LRLL\nRLRL RLRL\nRRLL RRLL\nLRLL RLRR\n';
-const SAMPLE='# Example page. Replace these with your own bars, one per line.\n# Add x16, 90s or @100 to the end of a line to change just that bar.\ntitle: Example page\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
+const SAMPLE='# Example page. Replace these with your own bars, one per line.\n# To change how long a bar plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example page\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
 const CAL_N=12;
 const LAT_ROUNDS=3;                              /* times the calibration row repeats */
 const MAX_TEXT=200000;
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 
 const S={mode:'single',pattern:'RLRL RLRL RLRL RLRL',pageText:SAMPLE,eachUnit:'min',eachVal:1,gap:0,cue:'both',startBar:1,
-  bpm:60,subdiv:4,click:'beat',tol:20,sens:-30,vol:60,latency:null,input:'mic',setupOpen:true};
+  bpm:60,subdiv:4,click:'beat',tol:20,sens:-30,vol:60,latency:null,input:'mic'};
 let cal={L:[],R:[]},model=null;
 try{
   const o=JSON.parse(localStorage.getItem(KEY)||'null');
@@ -925,6 +1082,7 @@ S.gap=+S.gap===0?0:4;
 if(!['both','flash','off'].includes(S.cue))S.cue='both';
 S.startBar=1;
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({settings:S,cal:cal}));}catch(e){}};
+function setLatency(v){S.latency=v;$('latency').value=v;save();}
 /* Scores live under their own key so clearing them never touches your settings or calibration. */
 const RKEY='stick-timing-trainer.records.v1',MAX_RUNS=800;
 function cleanRun(x){
@@ -1031,8 +1189,7 @@ async function ensureAudio(needMic){
       pushSens();
       if(S.latency==null){
         const tl=((stream.getAudioTracks()[0].getSettings&&stream.getAudioTracks()[0].getSettings())||{}).latency;
-        S.latency=Math.max(20,Math.round(((ctx.outputLatency||ctx.baseLatency||0.01)+(tl||0.02))*1000));
-        $('latency').value=S.latency;save();
+        setLatency(Math.max(20,Math.round(((ctx.outputLatency||ctx.baseLatency||0.01)+(tl||0.02))*1000)));
       }
       $('micMsg').textContent='';
       $('micPill').textContent='Mic on';$('micPill').classList.add('on');
@@ -1057,30 +1214,26 @@ function setMeter(v){
   const db=20*Math.log10(v+1e-6);
   $('mFill').style.width=clamp((db+60)/60*100,0,100)+'%';
 }
+/* One short tone with a quick attack and decay. */
+function blip(T,type,freq,peak,attack,decay,stop){
+  const o=ctx.createOscillator(),g=ctx.createGain();
+  o.type=type;o.frequency.value=freq;
+  g.gain.setValueAtTime(0.0001,T);
+  g.gain.exponentialRampToValueAtTime(peak,T+attack);
+  g.gain.exponentialRampToValueAtTime(0.0001,T+decay);
+  o.connect(g);g.connect(ctx.destination);
+  o.start(T);o.stop(T+stop);
+}
 function click(time,level){
   const v=S.vol/100*0.5;
   if(v<0.002)return;
-  const o=ctx.createOscillator(),g=ctx.createGain();
-  o.type='triangle';o.frequency.value=level>=2?1500:(level===1?1250:1000);
-  g.gain.setValueAtTime(0.0001,time);
-  g.gain.exponentialRampToValueAtTime(v,time+0.002);
-  g.gain.exponentialRampToValueAtTime(0.0001,time+0.05);
-  o.connect(g);g.connect(ctx.destination);
-  o.start(time);o.stop(time+0.07);
+  blip(time,'triangle',level>=2?1500:(level===1?1250:1000),v,0.002,0.05,0.07);
 }
 function cueTone(time,kind){
   const v=S.vol/100*0.5;
   if(v<0.002)return;
   const f=kind==='go'?2600:2000,n=kind==='go'?2:1;
-  for(let i=0;i<n;i++){
-    const T=time+i*0.085,o=ctx.createOscillator(),g=ctx.createGain();
-    o.type='sine';o.frequency.value=f;
-    g.gain.setValueAtTime(0.0001,T);
-    g.gain.exponentialRampToValueAtTime(v*0.8,T+0.003);
-    g.gain.exponentialRampToValueAtTime(0.0001,T+0.06);
-    o.connect(g);g.connect(ctx.destination);
-    o.start(T);o.stop(T+0.08);
-  }
+  for(let i=0;i<n;i++)blip(time+i*0.085,'sine',f,v*0.8,0.003,0.06,0.08);
 }
 function kbTime(ts){
   const o=ctx.getOutputTimestamp?ctx.getOutputTimestamp():null;
@@ -1132,8 +1285,7 @@ function beginRun(mode){
     document.body.dataset.state='idle';updateGauge(null);
     applyLayout(plan);rowsShown=1;labelsOn=true;labelMode='lat';showTab('play');setRows(plan,0,false);paintRows(r,null);
   }
-  clearInterval(timer);timer=setInterval(tick,25);
-  cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);
+  startLoops();
   setRunning(true);
   lockScreen();
   setStatus(lat?'Latency calibration. Count in, then hit the pad on every click, following the cursor.':'Count-in…');
@@ -1185,12 +1337,14 @@ function finalizeSlot(i){
   r.res.set(i,{ms:ms,wrong:wrong?det.hand:null});
 }
 /* Pause freezes the run. Resume counts in again from the start of the pass you were on. */
+function startLoops(){clearInterval(timer);timer=setInterval(tick,25);cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);}
+function stopLoops(){clearInterval(timer);cancelAnimationFrame(raf);}
 function pauseRun(){
   const r=run;if(!r||r.ended||r.paused||r.mode!=='play')return;
   tick();
   if(r.ended)return;
   r.paused=true;
-  clearInterval(timer);cancelAnimationFrame(raf);
+  stopLoops();
   $('bigCount').hidden=true;
   setStatus('Paused. Resume counts you in again from the start of this pass.');
   syncRunUI();
@@ -1210,13 +1364,12 @@ function resumeRun(){
   }
   r.cur=fc-1;r.paused=false;
   for(let j=0;j<4;j++)click(T+j*beat,j===0?2:0);
-  clearInterval(timer);timer=setInterval(tick,25);
-  cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);
+  startLoops();
   syncRunUI();
 }
 function restartRun(){
   const r=run;if(!r||r.ended||r.mode!=='play')return;
-  clearInterval(timer);cancelAnimationFrame(raf);
+  stopLoops();
   r.ended=true;unlockScreen();
   $('bigCount').hidden=true;
   beginRun('play');
@@ -1232,13 +1385,12 @@ function stopRun(){
 function endRun(){
   const r=run;if(!r||r.ended)return;
   r.ended=true;r.dirty=true;r.paused=false;
-  clearInterval(timer);cancelAnimationFrame(raf);
+  stopLoops();
   unlockScreen();
   if(r.mode==='lat'){
     if(r.errs.length>=5){
       const med=median(r.errs);
-      S.latency=clamp(Math.round((S.latency==null?40:S.latency)+med),0,400);
-      $('latency').value=S.latency;save();
+      setLatency(clamp(Math.round((S.latency==null?40:S.latency)+med),0,400));
       $('latMsg').textContent='Latency set to '+S.latency+' ms (moved by '+fmtMs(med)+' ms from '+r.errs.length+' of '+r.plan.slots.length+' hits). This assumes you were on the click on average.';
       setStatus('Latency calibrated: '+S.latency+' ms.');
     }else{
@@ -1350,12 +1502,11 @@ const MINSLOT=28;                                /* narrowest slot for the short
 const GB=0,GBAR=0;                               /* extra gap at beats and barlines. Zero keeps every note an even distance apart, so the cursor moves at a steady speed */
 function gapsOf(durs){
   const n=durs.length,beats=durs.reduce((a,b)=>a+b,0),ext=[],gapAt=[],offs=[];
-  const isInt=x=>Math.abs(x-Math.round(x))<1e-6;
   let a=0,c=0;
   for(let i=0;i<n;i++){
     offs.push(a);a+=durs[i];
     let gp=0;
-    if(i>0&&offs[i]>0.001&&isInt(offs[i])){gp=GB;if(Math.abs(beats/2-Math.round(beats/2))<1e-6&&isInt(offs[i]/2))gp+=GBAR;}
+    if(i>0&&offs[i]>0.001&&isInt(offs[i])){gp=GB;if(isInt(beats/2)&&isInt(offs[i]/2))gp+=GBAR;}
     c+=gp;ext.push(c);gapAt.push(gp);
   }
   return {beats:beats,ext:ext,gapAt:gapAt,offs:offs,total:ext[n-1]||0};
@@ -1367,7 +1518,7 @@ function staffPlan(sg,avail){
   const dmin=Math.min.apply(null,durs),gp=gapsOf(durs),pads=64;
   const whole={lines:[[0,N]],beats:gp.beats,ext:gp.total,dmin:dmin};
   const M=gp.beats/2;
-  if(!(Math.abs(M-Math.round(M))<1e-6)||M<2)return whole;
+  if(!isInt(M)||M<2)return whole;
   const starts=[];                                 /* index of the first note of each two-beat measure */
   for(let m=0;m<M;m++){
     const i=gp.offs.findIndex(o=>Math.abs(o-2*m)<1e-6);
@@ -1396,9 +1547,7 @@ function staffLine(sg,opt){
   const H=92,Y0=8,Y=54,TOP=28,SX=6;                  /* staff line, stem top, stem offset from note centre */
   const mk=(n,a)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
   const svg=mk('svg',{viewBox:'0 '+Y0+' '+LW+' '+H,class:'staff','aria-hidden':'true'});
-  const isInt=x=>Math.abs(x-Math.round(x))<1e-6;
-  const off=[];let acc=0;
-  for(let i=0;i<N;i++){off.push(acc);acc+=durs[i];}
+  const off=gp.offs;
   const x0=i=>padL+off[i]*u+ext[i],xw=i=>durs[i]*u,xc=i=>x0(i)+xw(i)/2,bx=i=>x0(i)-gapAt[i]/2;
   const E=padL+beats*u+totalExt+24;
   svg.appendChild(mk('line',{class:'sl',x1:2,x2:E,y1:Y,y2:Y}));
@@ -1408,10 +1557,10 @@ function staffLine(sg,opt){
   svg.appendChild(mk('rect',{class:'clef',x:6,y:Y-9,width:4.4,height:18}));
   svg.appendChild(mk('rect',{class:'clef',x:15,y:Y-9,width:4.4,height:18}));
   /* a barline every two beats, as in 2/4 */
-  if(Number.isInteger(beats)&&beats%2===0){
+  if(isInt(beats/2)){
     for(let i=1;i<N;i++){
       const o=off[i];
-      if(o>0.001&&Math.abs(o/2-Math.round(o/2))<0.001)svg.appendChild(mk('line',{class:'bar',x1:bx(i),x2:bx(i),y1:Y-18,y2:Y+18}));
+      if(o>0.001&&isInt(o/2))svg.appendChild(mk('line',{class:'bar',x1:bx(i),x2:bx(i),y1:Y-18,y2:Y+18}));
     }
   }
   if(opt.last){
@@ -1516,11 +1665,10 @@ function buildStaff(sg){
   return {svg:box,cards:cards,lines:pl.lines.length};
 }
 /* How tall a row is and how many passes fit, from the most lines any bar needs at this width. */
-function layoutPlan(plan){
-  if(S.mode!=='page')return plan;
-  const bars=allBars().map(b=>Object.assign({},b,{passes:1}));
-  return bars.length?buildPlan(bars,{gapBeats:S.gap,clickMode:'off'}):plan;
-}
+const withPasses=(b,n)=>Object.assign({},b,{passes:n});
+function previewPlan(bars){return bars.length?buildPlan(bars,{gapBeats:S.gap,clickMode:'off'}):null;}
+const pagePlan=()=>previewPlan(allBars().map(b=>withPasses(b,1)));
+function layoutPlan(plan){return S.mode==='page'?(pagePlan()||plan):plan;}
 function applyLayout(plan){
   const avail=staffAvail();
   let L=1;
@@ -1591,7 +1739,6 @@ function setRows(plan,g,animate){
   if(animate&&!reduce&&plan&&g!==oldTop&&Math.abs(g-oldTop)<rowsShown&&rowMap.has(oldTop)){
     const back=g<oldTop,h0=gEl.offsetHeight;
     const oldEl=rowMap.get(oldTop).el;
-    const oldY=oldEl.offsetTop;
     rowTop=g;
     for(let k=g;k<Math.min(total,g+rowsShown);k++)if(!rowMap.has(k)){const o=makeRow(plan,k);o.el.style.opacity='0';}
     /* keep the rows in pass order in the page */
@@ -1668,17 +1815,14 @@ function paintRows(r,cursor,heard){
 function previewRows(animate){
   if(S.mode==='page'){
     /* Before a run each row is one bar, so you can scroll to any bar and start there. */
-    const bars=allBars().map(b=>Object.assign({},b,{passes:1}));
-    prevPlan=bars.length?buildPlan(bars,{gapBeats:S.gap,clickMode:'off'}):null;
+    prevPlan=pagePlan();
     applyLayout(prevPlan);rowsShown=ROWS;labelsOn=true;labelMode='preview';
     const g=prevPlan?clamp(S.startBar-1,0,totalPasses(prevPlan)-1):0;
     setRows(prevPlan,g,!!animate);
   }else{
     const all=currentBars();
-    const p0=all.length?buildPlan([Object.assign({},all[0],{passes:1})],{gapBeats:S.gap,clickMode:'off'}):null;
-    applyLayout(p0);
-    const bars=all.slice(0,ROWS).map(b=>Object.assign({},b,{passes:Math.min(b.passes,ROWS)}));
-    prevPlan=bars.length?buildPlan(bars,{gapBeats:S.gap,clickMode:'off'}):null;
+    applyLayout(previewPlan(all.slice(0,1).map(b=>withPasses(b,1))));
+    prevPlan=previewPlan(all.slice(0,ROWS).map(b=>withPasses(b,Math.min(b.passes,ROWS))));
     rowsShown=ROWS;labelsOn=true;labelMode='page';
     setRows(prevPlan,0,false);
   }
@@ -1702,14 +1846,18 @@ function flashRows(){
   g.classList.remove('flash');void g.offsetWidth;g.classList.add('flash');
   setTimeout(()=>g.classList.remove('flash'),750);
 }
+const TABS=['play','pattern','setup','progress'];
+const tabEl=n=>$('tab'+n[0].toUpperCase()+n.slice(1));
+let helpFrom='play';
 function showTab(t){
+  if(t==='help'&&curTab!=='help')helpFrom=curTab;
   curTab=t;
-  ['setup','pattern','play','progress'].forEach(n=>{
-    const cap=n[0].toUpperCase()+n.slice(1);
-    $('page'+cap).hidden=n!==t;
-    const b=$('tab'+cap);
+  $('pageHelp').hidden=t!=='help';
+  TABS.forEach(n=>{
+    $('page'+n[0].toUpperCase()+n.slice(1)).hidden=n!==t;
+    const b=tabEl(n);
     b.setAttribute('aria-selected',String(n===t));
-    b.tabIndex=n===t?0:-1;
+    b.tabIndex=(n===t||(t==='help'&&n===TABS[0]))?0:-1;
   });
   document.body.dataset.tab=t;
   if(t==='play')drawTrace();
@@ -1868,48 +2016,47 @@ function discardRun(){
 /* ---------- progress page ---------- */
 function fmtDate(t){try{return new Date(t).toLocaleDateString(undefined,{day:'numeric',month:'short'});}catch(e){return '';}}
 function showKey(k){return k.replace(/^\/(\d) /,(m,n)=>(n==='4'&&k.indexOf('/',1)<0)?'':m);}
+/* Replaces a table's contents. A cell is text, [text, class] or a node. */
+function fillTable(tbl,cols,rows){
+  tbl.textContent='';
+  if(cols.length){
+    const hr=document.createElement('tr');
+    cols.forEach(x=>{const th=document.createElement('th');th.textContent=x;hr.appendChild(th);});
+    const head=document.createElement('thead');head.appendChild(hr);tbl.appendChild(head);
+  }
+  const body=document.createElement('tbody');
+  rows.forEach(cells=>{
+    const tr=document.createElement('tr');
+    cells.forEach(c=>{
+      const td=document.createElement('td');
+      if(c instanceof Node)td.appendChild(c);
+      else{const a=Array.isArray(c)?c:[c];td.textContent=a[0];if(a[1])td.className=a[1];}
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+  tbl.appendChild(body);
+}
+const biasCls=v=>isNaN(v)?'':(v<-2.5?'early':(v>2.5?'late':'ok'));
+const accCls=p=>p>=TARGET?'ok':'late';
 function renderProgress(){
-  const pt=$('patTable'),gt=$('pgTable');pt.textContent='';gt.textContent='';
   const stats=patStats(recs.runs),pages=pageStats(recs.runs);
   const tgt=Math.round(TARGET*100);
   $('progHint').textContent=stats.length
     ?'Accuracy is the share of strokes inside your timing window over your last three runs at the tempo you played most recently. Cleared means '+tgt+'% or better at that tempo.'
     :'Nothing yet. Play a pattern or a page and each bar\'s score shows up here, so you can see which rudiments need work.';
-  const mkHead=(tbl,cols)=>{
-    const tr=document.createElement('tr');
-    cols.forEach(x=>{const th=document.createElement('th');th.textContent=x;tr.appendChild(th);});
-    const th=document.createElement('thead');th.appendChild(tr);tbl.appendChild(th);
+  const practise=k=>{
+    const b=document.createElement('button');
+    b.type='button';b.className='btn small';b.textContent='Practise';
+    b.addEventListener('click',()=>practisePattern(k));
+    return b;
   };
-  if(stats.length){
-    mkHead(pt,['Pattern','BPM','Accuracy','Cleared','Bias ms','']);
-    const tb=document.createElement('tbody');
-    stats.forEach(x=>{
-      const tr=document.createElement('tr');
-      const add=(txt,cls)=>{const td=document.createElement('td');td.textContent=txt;if(cls)td.className=cls;tr.appendChild(td);return td;};
-      add(showKey(x.k),'seq');add(String(x.bpm));
-      add(Math.round(x.recent*100)+'%',x.recent>=TARGET?'ok':'late');
-      add(x.cleared?String(x.cleared):'—');
-      add(isNaN(x.bias)?'—':fmtMs(x.bias,1),isNaN(x.bias)?'':(x.bias<-2.5?'early':(x.bias>2.5?'late':'ok')));
-      const td=document.createElement('td'),b=document.createElement('button');
-      b.type='button';b.className='btn small';b.textContent='Practise';b.dataset.k=x.k;
-      b.addEventListener('click',()=>practisePattern(x.k));
-      td.appendChild(b);tr.appendChild(td);tb.appendChild(tr);
-    });
-    pt.appendChild(tb);
-  }
-  if(pages.length){
-    mkHead(gt,['Page','Bars','Runs','Cleared at','Last']);
-    const tb=document.createElement('tbody');
-    pages.forEach(x=>{
-      const tr=document.createElement('tr');
-      const add=(txt)=>{const td=document.createElement('td');td.textContent=txt;tr.appendChild(td);};
-      add(x.title||'Untitled page');add(String(x.nb));add(String(x.runs));add(x.cleared?x.cleared+' BPM':'—');add(fmtDate(x.t));
-      tb.appendChild(tr);
-    });
-    gt.appendChild(tb);
-  }else{
-    const tr=document.createElement('tr'),td=document.createElement('td');td.textContent='No page runs yet.';td.style.color='var(--muted)';tr.appendChild(td);gt.appendChild(tr);
-  }
+  fillTable($('patTable'),stats.length?['Pattern','BPM','Accuracy','Cleared','Bias ms','']:[],
+    stats.map(x=>[[showKey(x.k),'seq'],String(x.bpm),[Math.round(x.recent*100)+'%',accCls(x.recent)],x.cleared?String(x.cleared):'—',
+      [isNaN(x.bias)?'—':fmtMs(x.bias,1),biasCls(x.bias)],practise(x.k)]));
+  fillTable($('pgTable'),pages.length?['Page','Bars','Runs','Cleared at','Last']:[],
+    pages.length?pages.map(x=>[x.title||'Untitled page',String(x.nb),String(x.runs),x.cleared?x.cleared+' BPM':'—',fmtDate(x.t)])
+      :[[['No page runs yet.','muted']]]);
   $('recMsg').textContent=recs.runs.length+(recs.runs.length===1?' run':' runs')+' stored.';
 }
 function practisePattern(k){
@@ -1918,11 +2065,19 @@ function practisePattern(k){
   setMode('single');
   showTab('play');
 }
+/* Hands text to the browser as a download. */
+function saveFile(name,type,text){
+  const url=URL.createObjectURL(new Blob([text],{type:type})),a=document.createElement('a');
+  a.href=url;a.download=name;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+function stamp(withTime){
+  const d=new Date(),p=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+(withTime?'-'+p(d.getHours())+p(d.getMinutes()):'');
+}
 function exportRecs(){
-  const blob=new Blob([JSON.stringify({v:1,runs:recs.runs})],{type:'application/json'});
-  const url=URL.createObjectURL(blob),a=document.createElement('a'),d=new Date(),pad=n=>String(n).padStart(2,'0');
-  a.href=url;a.download='stick-timing-records-'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'.json';
-  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
+  saveFile('stick-timing-records-'+stamp()+'.json','application/json',JSON.stringify({v:1,runs:recs.runs}));
 }
 async function importRecs(file){
   if(!file)return;
@@ -1964,25 +2119,10 @@ function renderResults(r){
   const rows=barRows(r),prevBest=lastRun?lastRun.prevBest:null;
   if(!rows.length){box.hidden=true;return;}
   box.hidden=false;
-  const t=$('resTable');t.textContent='';
-  const head=document.createElement('tr');
-  ['Bar','Sticking','Passes','On time','Best before','Avg ms','Spread','Miss'].forEach(x=>{const th=document.createElement('th');th.textContent=x;head.appendChild(th);});
-  const thead=document.createElement('thead');thead.appendChild(head);t.appendChild(thead);
-  const tb=document.createElement('tbody');
-  rows.forEach(x=>{
-    const tr=document.createElement('tr');
-    const add=(txt,cls)=>{const td=document.createElement('td');td.textContent=txt;if(cls)td.className=cls;tr.appendChild(td);};
-    add(String(x.idx));
-    add(x.seq,'seq');
-    add(String(x.passes));
-    add(Math.round(x.pct*100)+'%',x.pct>=TARGET?'ok':'late');
-    add(x.passes<1?'—':(prevBest&&prevBest.has(x.key)?(x.pct>prevBest.get(x.key)+1e-9?'new best':Math.round(prevBest.get(x.key)*100)+'%'):'first run'),'');
-    add(fmtMs(x.avg,1),isNaN(x.avg)?'':(x.avg<-2.5?'early':(x.avg>2.5?'late':'ok')));
-    add(isNaN(x.spread)?'—':x.spread.toFixed(1));
-    add(String(x.miss));
-    tb.appendChild(tr);
-  });
-  t.appendChild(tb);
+  fillTable($('resTable'),['Bar','Sticking','Passes','On time','Best before','Avg ms','Spread','Miss'],rows.map(x=>[
+    String(x.idx),[x.seq,'seq'],String(x.passes),[Math.round(x.pct*100)+'%',accCls(x.pct)],
+    x.passes<1?'—':(prevBest&&prevBest.has(x.key)?(x.pct>prevBest.get(x.key)+1e-9?'new best':Math.round(prevBest.get(x.key)*100)+'%'):'first run'),
+    [fmtMs(x.avg,1),biasCls(x.avg)],isNaN(x.spread)?'—':x.spread.toFixed(1),String(x.miss)]));
   const rated=rows.filter(x=>x.heard>=8&&!isNaN(x.avg));
   const parts=[];
   if(rated.length>=2){
@@ -2000,12 +2140,7 @@ function downloadCsv(){
   const out=[['bar','label','sticking','bpm','passes','strokes_due','strokes_heard','on_time_pct','avg_ms','spread_ms','missed','left_avg_ms','right_avg_ms'].join(',')];
   const n1=v=>isNaN(v)?'':v.toFixed(1);
   rows.forEach(x=>out.push([x.idx,csvCell(x.label),csvCell(x.seq),x.bpm,x.passes,x.due,x.heard,Math.round(x.pct*100),n1(x.avg),n1(x.spread),x.miss,n1(x.L),n1(x.R)].join(',')));
-  const blob=new Blob([out.join('\n')+'\n'],{type:'text/csv'});
-  const url=URL.createObjectURL(blob),a=document.createElement('a');
-  const d=new Date(),pad=n=>String(n).padStart(2,'0');
-  a.href=url;a.download='stick-timing-'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes())+'.csv';
-  document.body.appendChild(a);a.click();a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),2000);
+  saveFile('stick-timing-'+stamp(true)+'.csv','text/csv',out.join('\n')+'\n');
 }
 
 /* ---------- run display ---------- */
@@ -2162,7 +2297,8 @@ function setRunning(on){
   document.body.dataset.run=on?'1':'0';
   LOCKED.forEach(id=>{$(id).disabled=on;});
   document.querySelectorAll('.chip').forEach(c=>{c.disabled=on;});
-  $('tabSetup').disabled=on;$('tabPattern').disabled=on;$('tabProgress').disabled=on;
+  ['setup','pattern','progress'].forEach(n=>{tabEl(n).disabled=on;});
+  $('helpBtn').disabled=on;
   if(on&&run&&run.mode==='play'&&S.mode==='page'){$('runInfo').hidden=false;lastTimeLeft='';}
   updateCalUI();
 }
@@ -2267,6 +2403,17 @@ function wire(){
     e.target.value=S.startBar;markBars(null);refreshPreview();
   });
   $('csvBtn').addEventListener('click',downloadCsv);
+  document.querySelectorAll('[data-help]').forEach(b=>b.addEventListener('click',()=>{
+    showTab('help');
+    $(b.dataset.help).scrollIntoView({behavior:'auto',block:'start'});
+  }));
+  $('helpBack').addEventListener('click',()=>{showTab(helpFrom);window.scrollTo(0,0);});
+  document.querySelectorAll('[data-try]').forEach(b=>b.addEventListener('click',()=>{
+    if(run&&!run.ended)return;
+    if(b.dataset.try==='single'){S.pattern=b.dataset.text;$('pattern').value=S.pattern;save();setMode('single');}
+    else{setPageText(b.dataset.text);setMode('page');}
+    showTab('play');window.scrollTo(0,0);
+  }));
   $('advUse').addEventListener('click',e=>{setBpm(+e.currentTarget.dataset.bpm);e.currentTarget.hidden=true;});
   $('advDiscard').addEventListener('click',discardRun);
   $('recExport').addEventListener('click',exportRecs);
@@ -2322,15 +2469,15 @@ function wire(){
     if(!(await ensureAudio(S.input==='mic')))return;
     beginRun('play');
   });
-  ['setup','pattern','play','progress'].forEach(n=>{
-    const b=$('tab'+n[0].toUpperCase()+n.slice(1));
+  TABS.forEach(n=>{
+    const b=tabEl(n);
     b.addEventListener('click',()=>showTab(n));
     b.addEventListener('keydown',e=>{
       if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;
-      const order=['play','pattern','setup','progress'].filter(x=>!$('tab'+x[0].toUpperCase()+x.slice(1)).disabled);
+      const order=TABS.filter(x=>!tabEl(x).disabled);
       const i=order.indexOf(n);if(i<0)return;
       const to=order[(i+(e.key==='ArrowRight'?1:order.length-1))%order.length];
-      showTab(to);$('tab'+to[0].toUpperCase()+to.slice(1)).focus();e.preventDefault();
+      showTab(to);tabEl(to).focus();e.preventDefault();
     });
   });
   window.addEventListener('keydown',e=>{
