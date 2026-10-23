@@ -37,6 +37,7 @@ body{
 }
 .app{max-width:760px;margin:0 auto;display:grid;gap:22px}
 .app>*{min-width:0}
+h1 .ver{font:600 12px var(--font-data);letter-spacing:.04em;text-transform:none;color:var(--muted);white-space:nowrap;vertical-align:baseline}
 h1{font:800 clamp(36px,10vw,56px)/.92 var(--font-display);text-transform:uppercase;letter-spacing:.01em;margin:0}
 h3{font:600 11px var(--font-body);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
 .sub{color:var(--muted);font-size:14px;margin:8px 0 0}
@@ -222,7 +223,7 @@ button.pill.on{color:var(--ok)}
 <main class="app">
   <header>
     <div class="head">
-      <h1>Stick Timing Trainer</h1>
+      <h1>Stick Timing Trainer <small class="ver" id="ver"></small></h1>
       <span class="headbtns"><button class="pill" id="helpBtn" type="button" data-help="help-how">Help</button><button class="pill" id="micPill" type="button" aria-pressed="false" title="Turn the microphone on or off">Mic off</button></span>
     </div>
     <p class="sub">Play a sticking on your pad. See which strokes lead the beat and which drag.</p>
@@ -1206,6 +1207,7 @@ function analyseCheck(noise,hits,settleMs){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
+const VERSION='0.1.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const SAMPLE='# Example routine. Replace these with your own exercises, one per line.\n# To change how long an exercise plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example routine\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
@@ -2926,6 +2928,7 @@ function init(){
   $('gap').value=String(S.gap);
   $('pulse').value=S.pulse?'on':'off';
   syncEach();
+  $('ver').textContent='v'+VERSION;
   $('settle').value=S.settle;$('settleOut').textContent=S.settle+' ms';
   $('sens').value=S.sens;$('sensOut').textContent=S.sens+' dB';$('mThr').style.left=((S.sens+60)/60*100)+'%';
   $('vol').value=S.vol;$('volOut').textContent=S.vol+'%';
