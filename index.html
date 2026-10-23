@@ -85,11 +85,13 @@ input[type=range]{width:100%;accent-color:var(--accent);min-height:32px}
 .rows.sliding{overflow:hidden;transition:height .24s ease}
 .rows-track{position:relative;display:grid;gap:4px;align-content:start;min-height:calc(var(--nrows,3)*var(--rowh) + (var(--nrows,3) - 1)*4px);transition:transform .24s ease}
 #rowEnd{margin-top:8px}
-.prow{display:grid;gap:4px;align-content:start;min-height:var(--rowh);transition:opacity .24s ease}
+.prow{display:grid;gap:4px;align-content:start;min-height:var(--rowh);box-shadow:inset 0 0 0 transparent;transition:opacity .24s ease,background-color 1.1s ease,box-shadow 1.1s ease}
 .prow.r1{opacity:.62}
 .prow.r2{opacity:.46}
 .prow.r3{opacity:.34}
-.prow .rl{font:600 12px var(--font-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);min-height:28px;padding:5px 9px;border-radius:8px;display:flex;align-items:center}
+.prow.change{opacity:.9;box-shadow:inset 0 3px 0 var(--accent)}
+.prow.change .rl{color:var(--accent)}
+.prow .rl{font:600 12px var(--font-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);min-height:28px;padding:5px 9px;border-radius:8px;display:flex;align-items:center;transition:color 1.1s ease}
 .prow .rl.alert{background:var(--accent);color:var(--accent-ink);font-size:14px}
 .prow .rl.newex{color:var(--accent)}
 .staff{display:block;width:100%;height:auto;overflow:visible}
@@ -153,7 +155,16 @@ summary{cursor:pointer;padding:14px;font:800 20px var(--font-display);letter-spa
 summary::-webkit-details-marker{display:none}
 summary::after{content:"+";float:right;font-family:var(--font-data)}
 details[open] summary::after{content:"–"}
+.libitem{display:flex;justify-content:space-between;gap:8px;width:100%;text-align:left;padding:9px 12px;border:0;border-bottom:1px solid var(--line);background:transparent;font:600 14px var(--font-body);color:var(--ink);cursor:pointer}
+.libitem:last-child{border-bottom:0}
+.libitem:hover{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.libitem.cur{background:color-mix(in srgb,var(--accent) 20%,transparent)}
+.libitem:disabled{opacity:.5;cursor:default}
+.libitem span{color:var(--muted);font:12px var(--font-data);white-space:nowrap}
 .chkout{margin:0;padding-left:18px;font-size:13px;display:grid;gap:4px} .chkout:empty{display:none} .chkout .bad,.chkout .warn{color:var(--late)} .chkout .good{color:var(--ok)}
+.ctbox{display:grid;gap:6px;justify-items:center;text-align:center}
+.ctp{font:800 72px/1 var(--font-display);color:var(--accent);min-height:76px;display:flex;align-items:center}
+.ctp.hit{opacity:.35}
 .meter{position:relative;height:16px;border-radius:8px;background:var(--bg);border:1px solid var(--line);overflow:hidden}
 .m-fill{height:100%;width:0;background:var(--accent)}
 .m-thr{position:absolute;top:0;bottom:0;width:2px;background:var(--ink)}
@@ -308,8 +319,12 @@ button.pill.on{color:var(--ok)}
         <button class="btn small" id="calL" type="button">Calibrate left stick</button>
         <button class="btn small" id="calR" type="button">Calibrate right stick</button>
         <button class="btn small" id="calReset" type="button">Clear</button>
+        <button class="btn small" id="calTest" type="button">Test left vs right</button>
       </div>
       <p class="hint" id="calInfo"></p>
+      <div class="ctbox" id="calTestBox" hidden><div class="ctp" id="calTestPrompt" aria-live="polite"></div><p class="hint" id="calTestMsg"></p></div>
+      <ul class="chkout" id="calTestOut"></ul>
+      <p class="hint">Test left vs right asks for 20 single hits, one hand at a time in a shuffled order, and shows how often the app named the right stick. Calibrate both sticks first.</p>
       <p class="hint">Each stick sounds a little different. Calibrate by hitting the same spot of the pad with one stick only, at your normal playing strength. The app learns the tone of each stick and then flags strokes where the wrong hand seems to have played.</p>
     </section>
 
@@ -371,6 +386,22 @@ button.pill.on{color:var(--ok)}
       <p class="hint">Tap an exercise to start there.</p>
       <div class="exercises" id="exerciseList" role="listbox" aria-label="Exercises in this routine. Choose the exercise to start at."></div>
       <p class="hint">Need the routine format, <b>x16</b> passes or <b>/3</b> triplets? <button class="btn small" type="button" data-help="help-format">Open the format help</button></p>
+    </section>
+
+    <section class="panel routine-only cfg" aria-label="Routine library">
+      <h3>Routine library</h3>
+      <div class="field">
+        <label for="libraryUrl">Library address</label>
+        <input type="text" id="libraryUrl" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://example.com/routines.list">
+        <div class="btns">
+          <button class="btn small" id="libGo" type="button">Load list</button>
+          <button class="btn small" id="libClear" type="button">Remove</button>
+        </div>
+        <p class="err" id="libErr" role="alert"></p>
+        <p class="hint" id="libInfo"></p>
+      </div>
+      <div class="exercises" id="libList" role="list" aria-label="Routines in the library" hidden></div>
+      <p class="hint">A library is a text file that lists routine files, one per line: <b>Title | address</b>, or just an address. Addresses can be relative to the list. <button class="btn small" type="button" data-help="help-library">Open the library help</button></p>
     </section>
 
     <section class="panel cfg" aria-label="Stroke timing">
@@ -568,6 +599,24 @@ RLRLR  x8</pre>
       <p>Use <b>Load file</b> for a .txt, .json or .csv, or <b>Load from URL</b>. JSON also works: a list such as <b>["RLRR LRLL", {"sticking":"RLRL RLRL","passes":16}]</b>, or an object with <b>title</b>, <b>each</b> and <b>exercises</b>.</p>
     </section>
 
+    <section class="panel" id="help-library">
+      <h3>The routine library</h3>
+      <p>On the Pattern screen, in Routine mode, you can point the app at a <b>library</b>: a web address that lists routine files. Press <b>Load list</b>, then tap a routine to load it into the editor. The address is remembered, and the list is fetched when you open the Routine screen. <b>Remove</b> forgets it. This app does not come with any routines. You choose the library.</p>
+      <h4>The list file</h4>
+      <p>A plain text file with one routine per line. Put a title before a <b>|</b>, or leave it out and the file name is used. Lines starting with <b>#</b> are notes. An address can be a full web address or one relative to the list file, so a folder of routines can be moved without editing the list.</p>
+      <pre># my routines
+Stick Control page 5 | stick-control-page-5
+Stick Control page 6 | stick-control-page-6
+https://example.com/another-routine.txt</pre>
+      <p>JSON also works: <b>["file-one", {"title":"Page 6","url":"file-two"}]</b>, or an object with a <b>routines</b> list.</p>
+      <h4>Hosting one on GitHub</h4>
+      <ul>
+        <li>Put the list and the routine files in a repository, then open each file and use the <b>Raw</b> button. The address that opens is the one to use, starting with <b>raw.githubusercontent.com</b>.</li>
+        <li>Each routine file is a routine in the normal format, with its own <b>title:</b> line if you like. Without one, the title from the list is added.</li>
+        <li>The host has to allow other sites to read the file. GitHub's raw addresses do. Many other sites do not, and the app will say it could not reach the address.</li>
+      </ul>
+    </section>
+
     <section class="panel" id="help-scores">
       <h3>Scores, tempo and progress</h3>
       <ul>
@@ -588,6 +637,7 @@ RLRLR  x8</pre>
         <li><b>Mic check:</b> in Setup, press Mic check, stay quiet for two seconds, then hit the pad ten times. It sets the trigger line and settle time, and tells you if the signal is too quiet, clipping, uneven or double triggering.</li>
         <li><b>Trigger line:</b> raise it if room noise counts as hits, and lower it if soft strokes are missed.</li>
         <li><b>Stick calibration:</b> hit the same spot of the pad with one stick only, at normal strength, until the count finishes. Do it for both sticks.</li>
+        <li><b>Test left vs right:</b> after calibrating, press it and hit once with whichever hand is shown, 20 times in a shuffled order. It reports how often the app named the right stick, how each hand did, and how many hits would be tagged with the wrong hand in a run. Below 90% is worth recalibrating.</li>
         <li><b>Latency:</b> sound reaches the page late, and the click reaches your ears late. Press Calibrate latency, then hit right on each click for three rounds. It assumes you were on the click on average. You can also type a number.</li>
         <li><b>Click:</b> "On the beat", "Every stroke" or "Count-in only". Use headphones, or the click will be picked up as strokes.</li>
       </ul>
@@ -1201,13 +1251,96 @@ function analyseCheck(noise,hits,settleMs){
   if(out.level==='good')out.lines.unshift('Mic check passed. Your quietest hit is '+Math.round(above)+' dB above the noise, and no double triggers were found.');
   return out;
 }
+/* Hand test. A balanced run of prompts, shuffled so no hand comes up more than three times in a row. */
+function handTestOrder(n,rnd){
+  rnd=rnd||Math.random;
+  for(let tries=0;tries<50;tries++){
+    const a=[];for(let i=0;i<n;i++)a.push(i%2?'R':'L');
+    for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));const t=a[i];a[i]=a[j];a[j]=t;}
+    let ok=true;for(let i=3;i<a.length;i++)if(a[i]===a[i-1]&&a[i]===a[i-2]&&a[i]===a[i-3]){ok=false;break;}
+    if(ok)return a;
+  }
+  const a=[];for(let i=0;i<n;i++)a.push(i%2?'R':'L');return a;
+}
+/* results: {want:'L'|'R', got:'L'|'R', conf} per prompted hit. A hit with conf under SURE counts as unsure,
+   which a run treats as the expected hand rather than tagging it. */
+const SURE=0.2;
+function summariseHandTest(results){
+  const n=results.length,out={n:n,correct:0,wrong:0,unsure:0,falseTags:0,L:{n:0,ok:0,to:0},R:{n:0,ok:0,to:0},acc:0,level:'good',lines:[]};
+  results.forEach(r=>{
+    const h=out[r.want];h.n++;
+    if(r.got===r.want){out.correct++;h.ok++;}else{out.wrong++;h.to++;}
+    if(r.conf<SURE)out.unsure++;
+    else if(r.got!==r.want)out.falseTags++;
+  });
+  out.acc=n?out.correct/n:0;
+  const pct=x=>Math.round(x*100);
+  out.level=out.acc>=0.9?'good':(out.acc>=0.75?'warn':'bad');
+  out.lines.push(out.level==='good'
+    ?'Hand detection is reliable: '+out.correct+' of '+n+' hits ('+pct(out.acc)+'%) were told apart correctly.'
+    :(out.level==='warn'
+      ?'Hand detection is fair: '+out.correct+' of '+n+' hits ('+pct(out.acc)+'%) were right. Recalibrating both sticks on the same spot may help.'
+      :'Hand detection is poor: only '+out.correct+' of '+n+' hits ('+pct(out.acc)+'%) were right, about the same as guessing. Calibrate both sticks again, hitting the same spot at your normal strength.'));
+  ['L','R'].forEach(k=>{
+    const h=out[k],name=k==='L'?'Left':'Right',other=k==='L'?'right':'left';
+    if(h.n)out.lines.push(name+' stick: '+h.ok+' of '+h.n+' right'+(h.to?', '+h.to+' heard as '+other:'')+'.');
+  });
+  if(out.falseTags)out.lines.push(out.falseTags+(out.falseTags===1?' hit':' hits')+' would be tagged with the wrong hand in a run (the app was confident and wrong).');
+  if(out.unsure)out.lines.push(out.unsure+(out.unsure===1?' hit was':' hits were')+' too close to call. A run counts those as the expected hand.');
+  return out;
+}
+/* ---------- routine library ---------- */
+/* A library list names routines. Text form: one per line, "Title | address" or just an address, # for notes. Addresses
+   may be relative to the list's own address. JSON also works: an array, or {routines:[...]}, of addresses or
+   {title,url} objects. Returns {items:[{title,url}], errors:[]}. */
+function libTitle(url){
+  let seg='';
+  try{seg=decodeURIComponent(new URL(url).pathname.split('/').filter(Boolean).pop()||'');}catch(e){}
+  seg=seg.replace(/\.(txt|json|routine|list)$/i,'').replace(/[-_]+/g,' ').trim();
+  return seg?seg.charAt(0).toUpperCase()+seg.slice(1):url;
+}
+function parseLibrary(text,base){
+  const out={items:[],errors:[]},seen=new Set();
+  const t=String(text||'').replace(/^\uFEFF/,'').trim();
+  const add=(title,addr,where)=>{
+    let u;
+    try{u=new URL(String(addr).trim(),base);if(!/^https?:$/.test(u.protocol))throw new Error('scheme');}
+    catch(e){out.errors.push(where+': "'+String(addr).trim().slice(0,60)+'" is not a web address');return;}
+    if(seen.has(u.href))return;
+    seen.add(u.href);
+    out.items.push({title:(String(title||'').trim().slice(0,80))||libTitle(u.href),url:u.href});
+  };
+  if(!t)return out;
+  if(t[0]==='['||t[0]==='{'){
+    let j;
+    try{j=JSON.parse(t);}catch(e){out.errors.push('That looks like JSON but could not be read ('+e.message+').');return out;}
+    const arr=Array.isArray(j)?j:(j&&Array.isArray(j.routines)?j.routines:null);
+    if(!arr){out.errors.push('JSON needs a "routines" list.');return out;}
+    arr.slice(0,200).forEach((it,i)=>{
+      const where='Entry '+(i+1);
+      if(typeof it==='string')return add('',it,where);
+      if(it&&typeof it==='object'){const a=it.url||it.file||it.path;if(a)return add(it.title||it.name,a,where);}
+      out.errors.push(where+': needs an address');
+    });
+  }else{
+    t.split(/\r?\n/).slice(0,400).forEach((raw,i)=>{
+      const line=raw.replace(/^\s*#.*$/,'').trim();
+      if(!line)return;
+      const k=line.lastIndexOf('|');
+      if(k>=0)add(line.slice(0,k),line.slice(k+1),'Line '+(i+1));
+      else add('',line,'Line '+(i+1));
+    });
+  }
+  if(out.items.length>200){out.items.length=200;out.errors.push('Only the first 200 routines are shown.');}
+  return out;
+}
 </script>
 
 <script id="app">
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.1.0';                           /* shown beside the title */
+const VERSION='0.3.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const SAMPLE='# Example routine. Replace these with your own exercises, one per line.\n# To change how long an exercise plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example routine\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
@@ -1218,7 +1351,7 @@ const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const LOOKAHEAD=0.35;                            /* how far ahead clicks are scheduled, in seconds */
 
 const S={mode:'single',pattern:'RLRL RLRL RLRL RLRL',routineText:SAMPLE,eachUnit:'min',eachVal:1,gap:0,pulse:true,startExercise:1,
-  bpm:60,subdiv:4,click:'beat',tol:20,sens:-30,settle:40,vol:60,latency:null,input:'mic'};
+  bpm:60,subdiv:4,click:'beat',tol:20,sens:-30,settle:40,library:'',vol:60,latency:null,input:'mic'};
 let cal={L:[],R:[]},model=null;
 try{
   const o=JSON.parse(localStorage.getItem(KEY)||'null');
@@ -1233,6 +1366,7 @@ S.subdiv=clamp(Math.round(+S.subdiv)||2,1,4);
 S.tol=[10,15,20,30].includes(+S.tol)?+S.tol:20;
 S.sens=clamp(Math.round(+S.sens)||-30,-55,-8);
 S.settle=clamp(Math.round(+S.settle)||40,20,120);
+S.library=typeof S.library==='string'&&S.library.length<=500?S.library.trim():'';
 S.vol=clamp(Math.round(+S.vol),0,100);if(isNaN(S.vol))S.vol=60;
 S.latency=(S.latency==null||isNaN(+S.latency))?null:clamp(Math.round(+S.latency),0,400);
 if(S.input!=='kb')S.input='mic';
@@ -1388,13 +1522,16 @@ async function toggleMic(){
 }
 function syncMicBtn(){
   const busy=!!(run&&!run.ended);
-  $('micPill').disabled=$('testMic').disabled=busy||S.input==='kb'||!!chk;
-  $('micCheck').disabled=busy||!!calMode||S.input==='kb';
+  $('micPill').disabled=$('testMic').disabled=busy||S.input==='kb'||!!chk||!!calTest;
+  $('micCheck').disabled=busy||!!calMode||S.input==='kb'||!!calTest;
   $('micCheck').textContent=chk?'Cancel check':'Mic check';
 }
 /* ---------- mic check ---------- */
 let chk=null;
 const CHK_STROKES=10;
+/* Left vs right test */
+const TEST_N=20;
+let calTest=null;
 function chkStop(msg){
   if(!chk)return;
   clearTimeout(chk.timer);
@@ -1405,6 +1542,7 @@ async function toggleCheck(){
   if(chk){chkStop('Mic check cancelled.');return;}
   if(run&&!run.ended)return;
   if(calMode){calMode=null;updateCalUI();}
+  if(calTest)return;
   if(!(await ensureAudio(true)))return;
   $('chkOut').textContent='';
   chk={phase:'quiet',levels:[],hits:[],thr:0.003,timer:0};
@@ -1659,6 +1797,7 @@ function restartRun(){
 }
 /* Starts a practice run. With a list of exercise numbers it plays only those exercises. */
 async function startPlay(only){
+  if(calTest)endHandTest('');
   if(calMode){calMode=null;updateCalUI();}
   if(!(only||currentExercises()).length)return;
   showTab('play');
@@ -1717,6 +1856,7 @@ function inLead(plan,tc){
 }
 function handleHit(h){
   if(chk){chkHit(h);return;}
+  if(calTest&&h.f){testHit(h);return;}
   flashHeard(h);
   if(calMode&&h.f){collectCal(h.f);return;}
   const r=run;if(!r||r.ended)return;
@@ -1746,10 +1886,11 @@ function flashHeard(h){
 
 /* ---------- stick calibration ---------- */
 async function startCal(hand){
+  if(calTest)return;
   if(calMode===hand){calMode=null;updateCalUI();return;}
   if(run&&!run.ended)stopRun();
   if(!(await ensureAudio(true)))return;
-  calMode=hand;cal[hand]=[];rebuildModel();updateCalUI();
+  calMode=hand;cal[hand]=[];rebuildModel();$('calTestOut').textContent='';updateCalUI();
   setStatus('Calibrating the '+(hand==='L'?'left':'right')+' stick. Hit the pad '+CAL_N+' times.');
 }
 function collectCal(f){
@@ -1770,15 +1911,58 @@ function calText(){
     ?'Hand detection is on. '+pct+'% of your calibration hits were told apart correctly.'
     :'Hand detection is off. Only '+pct+'% of calibration hits were told apart, so the two sticks sound too alike. Hit the same spot with each stick, or use a different spot per stick, then calibrate again.';
 }
+/* ---------- left vs right test ---------- */
+async function startHandTest(){
+  if(calTest){endHandTest('Test cancelled.');return;}
+  if(!model||(run&&!run.ended)||chk)return;
+  if(calMode){calMode=null;}
+  if(!(await ensureAudio(true)))return;
+  calTest={order:handTestOrder(TEST_N),i:0,res:[],last:-1};
+  $('calTestOut').textContent='';
+  showTestPrompt();updateCalUI();syncMicBtn();
+  setStatus('Left vs right test. Hit once with the hand shown.');
+}
+function showTestPrompt(){
+  const t=calTest,want=t.order[t.i];
+  $('calTestBox').hidden=false;
+  const p=$('calTestPrompt');p.textContent=want;p.classList.remove('hit');
+  $('calTestMsg').textContent='Hit once with your '+(want==='L'?'LEFT':'RIGHT')+' stick. '+(t.i+1)+' of '+t.order.length+'. Leave a short gap between hits.';
+}
+function testHit(h){
+  const t=calTest;
+  if(t.last>=0&&h.t-t.last<0.15)return;           /* a double trigger is not a new hit */
+  t.last=h.t;
+  const d=h.det||(model?classify(model,h.f):null);
+  if(!d)return;
+  t.res.push({want:t.order[t.i],got:d.hand,conf:d.conf});
+  t.i++;
+  if(t.i>=t.order.length){finishHandTest();return;}
+  showTestPrompt();updateCalUI();
+}
+function endHandTest(msg){
+  calTest=null;
+  $('calTestBox').hidden=true;
+  updateCalUI();syncMicBtn();
+  if(msg)setStatus(msg);
+}
+function finishHandTest(){
+  const res=summariseHandTest(calTest.res);
+  endHandTest('Left vs right test done.');
+  const ul=$('calTestOut');ul.textContent='';
+  res.lines.forEach((t,i)=>{const li=document.createElement('li');li.textContent=t;li.className=i===0?res.level:(i>2||res.level==='good'?'':'warn');ul.appendChild(li);});
+}
 function updateCalUI(){
   $('calL').textContent=calMode==='L'?'Cancel ('+cal.L.length+'/'+CAL_N+')':'Calibrate left stick';
   $('calR').textContent=calMode==='R'?'Cancel ('+cal.R.length+'/'+CAL_N+')':'Calibrate right stick';
   $('calInfo').textContent=calText();
   const busy=!!(run&&!run.ended);
-  $('calL').disabled=busy||calMode==='R';
-  $('calR').disabled=busy||calMode==='L';
-  $('calReset').disabled=busy||!!calMode;
-  $('calLatency').disabled=busy||!!calMode;
+  const tst=!!calTest;
+  $('calL').disabled=busy||calMode==='R'||tst;
+  $('calR').disabled=busy||calMode==='L'||tst;
+  $('calReset').disabled=busy||!!calMode||tst;
+  $('calLatency').disabled=busy||!!calMode||tst;
+  $('calTest').disabled=busy||!!calMode||!model||!!chk;
+  $('calTest').textContent=tst?'Cancel test ('+calTest.res.length+'/'+TEST_N+')':'Test left vs right';
 }
 
 /* ---------- rendering ---------- */
@@ -2037,6 +2221,7 @@ function makeRow(plan,g){
 }
 let ROWS=3;                                   /* how many passes are on screen */
 let rowsShown=ROWS,labelsOn=true,labelMode='routine';
+const rowKey=o=>o.key||(o.key=patKey(o.sg.notes,o.sg.groupStart,o.sg.subs,o.sg.defSub,o.sg.sig));
 function roleRows(){
   const multi=labelsOn&&S.mode==='routine'&&labelMode==='routine',latL=labelMode==='lat',prevL=labelMode==='preview';
   rowMap.forEach((o,g)=>{
@@ -2046,6 +2231,8 @@ function roleRows(){
     const prev=d>0?rowMap.get(g-1):null;
     const same=!!prev&&prev.si===o.si;
     o.lab.classList.toggle('newex',d>0&&!same&&!prevL);
+    /* An upcoming row that is a different pattern or tempo from the row above it is lifted out of the dimmed rows. */
+    o.el.classList.toggle('change',multi&&d>0&&!same&&!!prev&&(rowKey(prev)!==rowKey(o)||prev.sg.bpm!==o.sg.bpm));
     const tail='pass '+(o.p+1)+' of '+o.sg.passes,sgs=o.sg.sig?' · '+sigText(o.sg.sig):'';
     let t='';
     if(prevL)t=(d===0?'Start · exercise '+o.sg.idx+' of '+routineParsed.exercises.length:'Exercise '+o.sg.idx)+sgs+' · '+exerciseGuide(o.sg);
@@ -2084,7 +2271,8 @@ function setRows(plan,g,animate){
     rowTop=g;
     for(let k=g;k<Math.min(total,g+rowsShown);k++)if(!rowMap.has(k)){const o=makeRow(plan,k);o.el.style.opacity='0';}
     /* keep the rows in pass order in the track */
-    [...rowMap.keys()].sort((x,y)=>x-y).forEach(k=>tr.appendChild(rowMap.get(k).el));
+    /* Only move a row that is out of place. Re-appending a row restarts its fade, which made the highlight jump off. */
+    [...rowMap.keys()].sort((x,y)=>x-y).forEach((k,i)=>{const el=rowMap.get(k).el;if(tr.children[i]!==el)tr.insertBefore(el,tr.children[i]||null);});
     roleRows();
     const topEl=rowMap.get(g).el,lastEl=rowMap.get(Math.min(total,g+rowsShown)-1).el;
     const h1=Math.max(lastEl.offsetTop+lastEl.offsetHeight-topEl.offsetTop,parseFloat(getComputedStyle(tr).minHeight)||0);
@@ -2654,6 +2842,21 @@ async function loadFile(file){
   try{setRoutineText(await file.text());}
   catch(e){$('routineErr').textContent='Could not read that file.';}
 }
+/* Fetches text from a web address, with a time limit and a size limit. */
+async function fetchText(href,max){
+  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),12000);
+  try{
+    const res=await fetch(href,{credentials:'omit',signal:ctl.signal});
+    if(!res.ok)throw new Error('the server answered '+res.status);
+    const txt=await res.text();
+    if(txt.length>max)throw new Error('the file is too large');
+    return txt;
+  }catch(e){
+    if(e&&e.name==='AbortError')throw new Error('it took too long to answer');
+    if(e instanceof TypeError)throw new Error('it could not be reached, or it does not allow other sites to read it');
+    throw e;
+  }finally{clearTimeout(timer);}
+}
 async function loadUrl(){
   const raw=$('routineUrl').value.trim();
   if(!raw)return;
@@ -2663,19 +2866,80 @@ async function loadUrl(){
   catch(e){$('routineErr').textContent='Enter a full web address starting with https://';return;}
   $('urlGo').disabled=true;
   try{
-    const res=await fetch(u.href,{credentials:'omit'});
-    if(!res.ok)throw new Error('the server answered '+res.status);
-    const txt=await res.text();
-    if(txt.length>MAX_TEXT)throw new Error('the file is too large');
-    setRoutineText(txt);
+    setRoutineText(await fetchText(u.href,MAX_TEXT));
     $('urlRow').hidden=true;
   }catch(e){
-    $('routineErr').textContent='Could not load that address ('+(e&&e.message?e.message:'blocked')+'). Many sites do not allow other pages to read their files. Download the file and use Load file, or paste the text into the box.';
+    $('routineErr').textContent='Could not load that address ('+(e&&e.message?e.message:'blocked')+'). Download the file and use Load file, or paste the text into the box.';
   }finally{$('urlGo').disabled=false;}
+}
+/* ---------- routine library ---------- */
+let lib={items:[],loaded:false,busy:false,cur:''};
+function renderLibrary(){
+  const box=$('libList');box.textContent='';
+  lib.items.forEach(it=>{
+    const b=document.createElement('button');
+    b.type='button';b.className='libitem'+(it.url===lib.cur?' cur':'');b.setAttribute('role','listitem');
+    b.disabled=lib.busy||!!(run&&!run.ended);
+    const n=document.createElement('b');n.textContent=it.title;
+    const h=document.createElement('span');
+    try{h.textContent=new URL(it.url).hostname;}catch(e){}
+    b.append(n,h);
+    b.addEventListener('click',()=>openLibraryItem(it));
+    box.appendChild(b);
+  });
+  box.hidden=!lib.items.length;
+  $('libGo').disabled=lib.busy||!$('libraryUrl').value.trim();
+  $('libClear').disabled=lib.busy||!S.library;
+}
+async function loadLibrary(){
+  const raw=$('libraryUrl').value.trim();
+  $('libErr').textContent='';
+  if(!raw){return;}
+  let u;
+  try{u=new URL(raw);if(!/^https?:$/.test(u.protocol))throw new Error('scheme');}
+  catch(e){$('libErr').textContent='Enter a full web address starting with https://';return;}
+  lib.busy=true;$('libInfo').textContent='Loading the list…';renderLibrary();
+  try{
+    const res=parseLibrary(await fetchText(u.href,200000),u.href);
+    lib.items=res.items;lib.loaded=true;
+    S.library=u.href;save();
+    $('libErr').textContent=res.errors.slice(0,3).join(' ')+(res.errors.length>3?' (+'+(res.errors.length-3)+' more)':'');
+    $('libInfo').textContent=res.items.length?res.items.length+(res.items.length===1?' routine':' routines')+' in this library. Tap one to load it.':'The list has no routines in it.';
+  }catch(e){
+    lib.items=[];lib.loaded=false;
+    $('libErr').textContent='Could not load the list ('+(e&&e.message?e.message:'blocked')+').';
+    $('libInfo').textContent='';
+  }finally{lib.busy=false;renderLibrary();}
+}
+async function openLibraryItem(it){
+  if(lib.busy||(run&&!run.ended))return;
+  $('libErr').textContent='';
+  lib.busy=true;$('libInfo').textContent='Loading '+it.title+'…';renderLibrary();
+  try{
+    let txt=await fetchText(it.url,MAX_TEXT);
+    /* A routine with no title of its own takes the name it has in the list. */
+    if(!parseRoutine(txt).title)txt='title: '+it.title+'\n'+txt;
+    lib.cur=it.url;
+    setRoutineText(txt);
+    $('libInfo').textContent='Loaded '+it.title+'. '+routineParsed.exercises.length+(routineParsed.exercises.length===1?' exercise.':' exercises.');
+  }catch(e){
+    $('libErr').textContent='Could not load '+it.title+' ('+(e&&e.message?e.message:'blocked')+').';
+    $('libInfo').textContent='';
+  }finally{lib.busy=false;renderLibrary();}
+}
+/* The saved library list is fetched the first time the Routine screen is opened. */
+function ensureLibrary(){
+  if(S.library&&!lib.loaded&&!lib.busy)loadLibrary();
+}
+function clearLibrary(){
+  S.library='';save();
+  lib={items:[],loaded:false,busy:false,cur:''};
+  $('libraryUrl').value='';$('libErr').textContent='';$('libInfo').textContent='';
+  renderLibrary();
 }
 
 /* ---------- controls ---------- */
-const LOCKED=['pulse','pattern','bpm','bpmDown','bpmUp','subdiv','click','inputMode','modeSingle','modeRoutine','routineText','fileBtn','urlBtn','urlGo','routineUrl','clearRoutine','eachVal','eachUnit','gap','startExercise'];
+const LOCKED=['pulse','pattern','bpm','bpmDown','bpmUp','subdiv','click','inputMode','modeSingle','modeRoutine','routineText','fileBtn','urlBtn','urlGo','routineUrl','clearRoutine','libraryUrl','libGo','libClear','eachVal','eachUnit','gap','startExercise'];
 function syncRunUI(){
   const on=!!(run&&!run.ended),play=on&&run.mode==='play',paused=on&&!!run.paused;
   const b=$('startBtn');
@@ -2690,6 +2954,7 @@ function setRunning(on){
   document.body.dataset.run=on?'1':'0';
   LOCKED.forEach(id=>{$(id).disabled=on;});
   document.querySelectorAll('.chip').forEach(c=>{c.disabled=on;});
+  renderLibrary();
   ['setup','pattern','progress'].forEach(n=>{tabEl(n).disabled=on;});
   $('helpBtn').disabled=on;
   syncMicBtn();
@@ -2766,7 +3031,7 @@ function setMode(m){
   $('modeSingle').setAttribute('aria-pressed',String(m==='single'));
   $('modeRoutine').setAttribute('aria-pressed',String(m==='routine'));
   $('runInfo').hidden=true;
-  if(m==='routine')onRoutineChanged();else refreshPreview();
+  if(m==='routine'){onRoutineChanged();ensureLibrary();}else refreshPreview();
 }
 function wire(){
   $('pattern').addEventListener('input',e=>{S.pattern=e.target.value;save();refreshPreview();});
@@ -2785,6 +3050,10 @@ function wire(){
   $('routineFile').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];await loadFile(f);e.target.value='';});
   $('urlBtn').addEventListener('click',()=>{const row=$('urlRow');row.hidden=!row.hidden;if(!row.hidden)$('routineUrl').focus();});
   $('urlGo').addEventListener('click',loadUrl);
+  $('libGo').addEventListener('click',loadLibrary);
+  $('libClear').addEventListener('click',clearLibrary);
+  $('libraryUrl').addEventListener('input',renderLibrary);
+  $('libraryUrl').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();loadLibrary();}});
   $('routineUrl').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();loadUrl();}});
   $('clearRoutine').addEventListener('click',()=>{setRoutineText('');$('routineText').focus();});
   $('eachVal').addEventListener('change',e=>{
@@ -2845,6 +3114,7 @@ function wire(){
   $('stopBtn').addEventListener('click',()=>{if(run&&!run.ended)stopRun();});
   $('settle').addEventListener('input',e=>{S.settle=+e.target.value;$('settleOut').textContent=S.settle+' ms';pushDet();save();});
   $('micCheck').addEventListener('click',toggleCheck);
+  $('calTest').addEventListener('click',startHandTest);
   $('sens').addEventListener('input',e=>{S.sens=+e.target.value;$('sensOut').textContent=S.sens+' dB';$('mThr').style.left=((S.sens+60)/60*100)+'%';pushDet();save();});
   $('vol').addEventListener('input',e=>{S.vol=+e.target.value;$('volOut').textContent=S.vol+'%';save();});
   $('latency').addEventListener('change',e=>{const v=e.target.value;S.latency=v===''?null:clamp(Math.round(+v)||0,0,400);save();});
@@ -2852,7 +3122,7 @@ function wire(){
   $('testMic').addEventListener('click',toggleMic);
   $('calL').addEventListener('click',()=>startCal('L'));
   $('calR').addEventListener('click',()=>startCal('R'));
-  $('calReset').addEventListener('click',()=>{cal={L:[],R:[]};rebuildModel();save();updateCalUI();});
+  $('calReset').addEventListener('click',()=>{cal={L:[],R:[]};rebuildModel();save();$('calTestOut').textContent='';updateCalUI();});
   $('calLatency').addEventListener('click',async()=>{
     if(calMode||(run&&!run.ended))return;
     if(S.input!=='mic')return;
@@ -2929,6 +3199,7 @@ function init(){
   $('pulse').value=S.pulse?'on':'off';
   syncEach();
   $('ver').textContent='v'+VERSION;
+  $('libraryUrl').value=S.library;renderLibrary();
   $('settle').value=S.settle;$('settleOut').textContent=S.settle+' ms';
   $('sens').value=S.sens;$('sensOut').textContent=S.sens+' dB';$('mThr').style.left=((S.sens+60)/60*100)+'%';
   $('vol').value=S.vol;$('volOut').textContent=S.vol+'%';
