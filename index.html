@@ -114,7 +114,7 @@ input[type=range]{width:100%;accent-color:var(--accent);min-height:32px}
 .cd.early .lt,.cd.early .ft{fill:var(--early)}
 .cd.late .lt,.cd.late .ft{fill:var(--late)}
 .cd.miss .lt{fill:var(--muted);opacity:.4}
-.cd.now .bg{stroke:var(--accent);stroke-width:3}
+.staff .ph{stroke:var(--accent);stroke-width:3;stroke-linecap:round;pointer-events:none}
 @keyframes goflash{from{background:color-mix(in srgb,var(--accent) 45%,transparent)}to{background:transparent}}
 @media (prefers-reduced-motion:no-preference){.rows.flash{animation:goflash .75s ease-out}}
 .cap{font-size:12px;color:var(--muted);margin:8px 0 0}
@@ -426,7 +426,7 @@ R L _ L R _ L R</pre>
       <div class="rows" id="rows" tabindex="0"><div class="rows-track" id="rowsTrack"></div></div>
       <p class="hint" id="rowEnd" hidden></p>
       </div>
-      <p class="cap">The boxed stroke is the one to play now. Letter colour: green on time, blue early, pink late, faded no hit heard. An arrow such as →R under a letter means the other stick was heard. Numbers appear after you stop.</p>
+      <p class="cap">The moving line marks the stroke to play now. Letter colour: green on time, blue early, pink late, faded no hit heard. An arrow such as →R under a letter means the other stick was heard. Numbers appear after you stop.</p>
       <div class="pads kb-only" id="pads">
         <button class="pad" type="button" data-hand="L" aria-label="Left stick pad">L</button>
         <button class="pad" type="button" data-hand="R" aria-label="Right stick pad">R</button>
@@ -1346,8 +1346,8 @@ function passAt(plan,g){
 function totalPasses(plan){const l=plan.segs[plan.segs.length-1];return l.g0+l.passes;}
 /* One pass drawn as rhythm notation on a one-line staff: noteheads, stems, beams, triplet brackets and
    rests, with the sticking letter under each note. Spacing follows time, so every beat has the same width. */
-const MINSLOT=24;                                /* narrowest slot for the shortest note, in staff units */
-const GB=9,GBAR=12;                              /* gap at every beat; extra gap at every barline */
+const MINSLOT=28;                                /* narrowest slot for the shortest note, in staff units */
+const GB=0,GBAR=0;                               /* extra gap at beats and barlines. Zero keeps every note an even distance apart, so the cursor moves at a steady speed */
 function gapsOf(durs){
   const n=durs.length,beats=durs.reduce((a,b)=>a+b,0),ext=[],gapAt=[],offs=[];
   const isInt=x=>Math.abs(x-Math.round(x))<1e-6;
@@ -1446,9 +1446,12 @@ function staffLine(sg,opt){
     const lt=mk('text',{class:'lt',x:cx,y:84});lt.textContent=rest?'':h;g.appendChild(lt);
     const tg=mk('text',{class:'tg',x:cx+8,y:74});g.appendChild(tg);
     const ft=mk('text',{class:'ft',x:cx,y:97});g.appendChild(ft);
-    g._sig='\u0000';g._now=false;g._ft=ft;g._tg=tg;
+    g._sig='\u0000';g._now=false;g._ft=ft;g._tg=tg;g._cx=cx;g._w=xw(i);
     svg.appendChild(g);cards.push(g);
   }
+  /* the sliding cursor: one box per line, moved by time rather than by note */
+  const ph=mk('line',{class:'ph',x1:0,x2:0,y1:Y0+4,y2:Y0+H-6,visibility:'hidden'});
+  cards.forEach((c,i)=>{c._nx=cards[i+1]||null;c._ph=ph;});
   /* beams: notes shorter than a quarter, joined within a group. A space inside a beat (3+3 in a sextuplet) keeps the top beam
      joined and splits the lower beam; a space on a beat line starts a new beam. */
   const beat=i=>Math.floor(off[i]+1e-6),bm=i=>sg.notes[i]==='_'?0:beamsOf(subs[i]);
@@ -1496,6 +1499,7 @@ function staffLine(sg,opt){
     }
     a=b+1;
   }
+  svg.appendChild(ph);
   return {svg:svg,cards:cards};
 }
 /* A pass as one or more lines. Cards come back in stroke order whichever line they sit on. */
@@ -1615,7 +1619,26 @@ function setRows(plan,g,animate){
   roleRows();
 }
 /* Colours come from the result of each row's own pass; the cursor is the card being played now. */
-function paintRows(r,cursor){
+let phCur=null;
+/* The cursor moves at a steady pace from one note to the next, so it is on a note exactly when that note is due.
+   Between notes, and across beat gaps and barlines, it keeps the same even pace. */
+function movePlayhead(r,cursor,heard){
+  let el=null,c=null;
+  if(r&&cursor&&heard!==undefined){
+    const o=rowMap.get(cursor.g);
+    if(o){el=o.cards[cursor.i];c=r.plan.cells[r.cur];}
+  }
+  if(phCur&&(!el||phCur._ph!==el._ph)&&phCur._ph)phCur._ph.setAttribute('visibility','hidden');
+  phCur=el;
+  if(!el||!c||c.slot===undefined)return;
+  const f=clamp((heard-c.t)/(c.d||1),0,1),nx=el._nx;
+  const x1=nx?nx._cx:el._cx+el._w;
+  const cx=(el._cx+(x1-el._cx)*f).toFixed(2);
+  const ph=el._ph;
+  ph.setAttribute('x1',cx);ph.setAttribute('x2',cx);
+  ph.setAttribute('visibility','visible');
+}
+function paintRows(r,cursor,heard){
   const ended=!!(r&&r.ended);
   rowMap.forEach((o,g)=>{
     o.cards.forEach((el,i)=>{
@@ -1640,6 +1663,7 @@ function paintRows(r,cursor){
       if(on!==el._now){el._now=on;el.classList.toggle('now',on);}
     });
   });
+  movePlayhead(r,cursor,heard);
 }
 function previewRows(animate){
   if(S.mode==='page'){
@@ -2038,7 +2062,7 @@ function frame(){
   }
   let cursor=null;
   if(!ciK&&r.cur>=0&&heard>=cells[r.cur].t){const c=cells[r.cur];cursor={g:c.g,i:c.pos};}
-  paintRows(r,cursor);
+  paintRows(r,cursor,heard);
   if(!play)return;
   if(S.mode==='page'){
     const tt=plan.end,pct=clamp(heard/tt,0,1);
