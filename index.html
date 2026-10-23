@@ -86,10 +86,7 @@ input[type=range]{width:100%;accent-color:var(--accent);min-height:32px}
 .rows-track{position:relative;display:grid;gap:4px;align-content:start;min-height:calc(var(--nrows,3)*var(--rowh) + (var(--nrows,3) - 1)*4px);transition:transform .24s ease}
 #rowEnd{margin-top:8px}
 .prow{display:grid;gap:4px;align-content:start;min-height:var(--rowh);box-shadow:inset 0 0 0 transparent;transition:opacity .24s ease,background-color 1.1s ease,box-shadow 1.1s ease}
-.prow.r1{opacity:.62}
-.prow.r2{opacity:.46}
-.prow.r3{opacity:.34}
-.prow.change{opacity:.9;box-shadow:inset 0 3px 0 var(--accent)}
+.prow.change{box-shadow:inset 0 3px 0 var(--accent)}
 .prow.change .rl{color:var(--accent)}
 .prow .rl{font:600 12px var(--font-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);min-height:28px;padding:5px 9px;border-radius:8px;display:flex;align-items:center;transition:color 1.1s ease}
 .prow .rl.alert{background:var(--accent);color:var(--accent-ink);font-size:14px}
@@ -747,6 +744,7 @@ https://example.com/another-routine.txt</pre>
 /* Pure logic: pattern parsing, hit matching, stick classifier, onset detector. No DOM access. */
 /* Strokes with optional /N subdivision markers, e.g. "/4 RLRL /3 RLR LRL".
    subs[i] is the marker in force for stroke i (null before any marker). */
+const MAXSTROKES=64;                              /* longest exercise, in strokes and rests */
 function parseStrokes(str){
   const notes=[],gs=[],subs=[],src=String(str),re=/\/\s*(\d+)|(\/)|([^\/]+)/g;
   let cur=null,ng=true,m;
@@ -767,7 +765,7 @@ function parseStrokes(str){
       }
     }
   }
-  const total=notes.length,rawGs=gs.slice(0,32);
+  const total=notes.length,rawGs=gs.slice(0,MAXSTROKES);
   /* A run of strokes under one marker with no spaces is grouped by four, or by six for triplets (two triplets joined),
      or by the subdivision for /5 and /6. */
   for(let a=0;a<total;){
@@ -777,8 +775,8 @@ function parseStrokes(str){
     if(b-a>g&&groups<=1)for(let i=a;i<b;i++)gs[i]=((i-a)%g===0);
     a=b;
   }
-  const n=notes.slice(0,32);
-  return {notes:n,groupStart:gs.slice(0,32),rawGs:rawGs,subs:subs.slice(0,32),letters:total,strokes:n.filter(x=>x!=='_').length};
+  const n=notes.slice(0,MAXSTROKES);
+  return {notes:n,groupStart:gs.slice(0,MAXSTROKES),rawGs:rawGs,subs:subs.slice(0,MAXSTROKES),letters:total,strokes:n.filter(x=>x!=='_').length};
 }
 function mean(a){if(!a.length)return NaN;let s=0;for(const v of a)s+=v;return s/a.length;}
 function sd(a){if(a.length<2)return NaN;const m=mean(a);let s=0;for(const v of a)s+=(v-m)*(v-m);return Math.sqrt(s/(a.length-1));}
@@ -895,7 +893,7 @@ function parseExerciseLine(raw,defSig){
   if(p.err)return {err:p.err};
   if(p.strokes<2)return {err:'an exercise needs at least two strokes (rests do not count)'};
   const warns=[];
-  if(p.letters>32)warns.push('more than 32 strokes and rests, the remainder was cut off');
+  if(p.letters>MAXSTROKES)warns.push('more than '+MAXSTROKES+' strokes and rests, the remainder was cut off');
   let subs=p.subs,gs=p.groupStart;
   if(sig){const f=fitSig(p,sig);subs=f.subs;gs=f.groupStart;if(f.warn)warns.push(f.warn);}
   return {exercise:{notes:p.notes,groupStart:gs,subs:subs,label:label,dur:dur,bpm:bpm,sig:sig,warn:warns.join('; ')}};
@@ -1340,7 +1338,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.3.0';                           /* shown beside the title */
+const VERSION='0.3.2';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const SAMPLE='# Example routine. Replace these with your own exercises, one per line.\n# To change how long an exercise plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example routine\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
@@ -1993,7 +1991,7 @@ function gapsOf(durs){
 const PADL=34,PADR=30,PADL_SIG=48;
 function staffPlan(sg,avail){
   const N=sg.N,subs=sg.subs.map(x=>x||sg.defSub),durs=subs.map(x=>1/x);
-  const dmin=Math.min.apply(null,durs),gp=gapsOf(durs),pads=(sg.sig?PADL_SIG:PADL)+PADR,bt=gp.beats;
+  const dmin=Math.min.apply(null,durs),gp=gapsOf(durs),pads=(sg.sig?PADL_SIG:PADL)+PADR,bt=rb9(gp.beats);
   const whole={lines:[[0,N]],beats:bt,ext:gp.total,dmin:dmin};
   const need=b=>Math.ceil(MINSLOT*b/dmin)+pads;
   if(need(bt)<=avail)return whole;
@@ -2002,8 +2000,8 @@ function staffPlan(sg,avail){
     if(sg.sig.d===8){let c=0;sg.sig.groups.forEach(g=>{cuts.push(c);c+=g;});}
     else for(let c=0;c<bt-1e-6;c++)cuts.push(c);
   }else{
-    const M=bt/2;
-    if(!isInt(M)||M<2)return whole;
+    const M=Math.round(bt/2);
+    if(!isInt(bt/2)||M<2)return whole;
     for(let m=0;m<M;m++)cuts.push(2*m);
   }
   if(cuts.length<2)return whole;
