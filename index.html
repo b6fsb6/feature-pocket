@@ -495,12 +495,7 @@ button.pill.on{color:var(--ok)}
         <div class="row b-single">
           <div class="field"><label for="bTime1">Time</label><select id="bTime1"></select></div>
           <div class="field"><label for="bGroup1">Grouping</label><select id="bGroup1"></select></div>
-          <div class="field" id="fSubdiv" title="Used for strokes that have no note code"><label for="subdiv">Strokes are</label><select id="subdiv">
-            <option value="1">Quarter</option>
-            <option value="2">Eighth</option>
-            <option value="3">Triplet</option>
-            <option value="4">Sixteenth</option>
-          </select></div>
+          <div class="field"><label for="subdiv">Strokes are</label><select id="subdiv"></select></div>
         </div>
         <div class="switch" id="bMode" role="group" aria-label="How to enter the strokes">
           <button type="button" id="bModeType" aria-pressed="true">Type</button>
@@ -661,7 +656,7 @@ button.pill.on{color:var(--ok)}
 
     <section class="panel" id="help-patterns">
       <h3>Writing a pattern</h3>
-      <p><b>L</b> and <b>R</b> are strokes. A <b>space</b> starts a new group, and groups are joined with a beam. <b>_</b> is a rest. A <b>note code</b> says what the strokes are, and it means the same in any time signature: <b>q</b> quarter notes, <b>8</b> eighths, <b>16</b> sixteenths, <b>32</b> thirty-seconds, <b>8t</b> eighth-note triplets, <b>16t</b> sixteenth-note triplets, <b>5t</b> quintuplets and <b>7t</b> septuplets. A code applies to the strokes after it until the next code, so <b>8 RLRL 16 RLRL</b> is a beat of eighths, then a beat of sixteenths, in 4/4 or in cut time. A code only works where the strokes come out at a sensible speed for the beat. With no code, the "Each stroke is a" setting in Pattern mode is used (sixteenths by default)</p>
+      <p><b>L</b> and <b>R</b> are strokes. A <b>space</b> starts a new group, and groups are joined with a beam. <b>_</b> is a rest. A <b>note code</b> says what the strokes are, and it means the same in any time signature: <b>q</b> quarter notes, <b>8</b> eighths, <b>16</b> sixteenths, <b>32</b> thirty-seconds, <b>8t</b> eighth-note triplets, <b>16t</b> sixteenth-note triplets, <b>5t</b> quintuplets and <b>7t</b> septuplets. A code applies to the strokes after it until the next code, so <b>8 RLRL 16 RLRL</b> is a beat of eighths, then a beat of sixteenths, in 4/4 or in cut time. A code only works where the strokes come out at a sensible speed for the beat. With no code, strokes are sixteenths</p>
       <p>Every example below has a button that loads it for you.</p>
 
       <div class="ex">
@@ -710,7 +705,7 @@ Exercise 4: RRLL RRLL
       <h4>How long each exercise plays</h4>
       <ul>
         <li><b>each:</b> sets the default for every exercise: <b>1m</b> (a minute), <b>90s</b> or <b>x8</b> (eight passes). With no <b>each:</b> line, the "Each exercise plays for" setting is used.</li>
-        <li><b>strokes:</b> sets what the strokes are for every exercise after it, so you do not repeat a marker on each line: <b>strokes: 8</b>, <b>strokes: 16</b> or <b>strokes: 8t</b>. A code inside an exercise still wins, and <b>strokes: off</b> goes back to the default, which is the "Each stroke is a" setting you pick in Pattern mode.</li>
+        <li><b>strokes:</b> sets what the strokes are for every exercise after it, so you do not repeat a marker on each line: <b>strokes: 8</b>, <b>strokes: 16</b> or <b>strokes: 8t</b>. A code inside an exercise still wins, and <b>strokes: off</b> goes back to sixteenths.</li>
         <li><b>x16</b> at the end of an exercise's line means <b>play this exercise 16 times</b>. One pass is the exercise played once through.</li>
         <li><b>90s</b> or <b>1.5m</b> means play for about that long. Time is rounded to whole passes.</li>
         <li><b>@100</b> plays just that exercise at 100 BPM. Combine them freely: <b>RLRL RLRL x16 @80</b>.</li>
@@ -1821,7 +1816,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.5.82';                           /* shown beside the title */
+const VERSION='0.5.84';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const SAMPLE='# Example routine. Replace these with your own exercises, one per line.\n# To change how long an exercise plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example routine\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
@@ -1845,7 +1840,7 @@ S.mode=S.mode==='routine'?'routine':'single';
 S.latCal=S.latCal===true;                          /* set once a calibration has run or a number was typed */
 S.editMode=S.editMode==='build'?'build':'type';       /* Type or Build, remembered on each device. Type is first. */
 S.bpm=clamp(Math.round(+S.bpm)||60,40,220);
-S.subdiv=clamp(Math.round(+S.subdiv)||2,1,4);
+S.subdiv=4;                                        /* strokes with no note code are sixteenths */
 S.tol=[10,15,20,30].includes(+S.tol)?+S.tol:20;
 S.sens=clamp(Math.round(+S.sens)||-30,-55,-8);
 S.settle=clamp(Math.round(+S.settle)||40,20,120);
@@ -3938,6 +3933,8 @@ function fillGroup(sel,t,cur){
   if(cur&&L.indexOf(cur)<0)add(cur,cur);
   sel.value=cur;
 }
+const CODE_NAME={q:'Quarter',8:'Eighth',16:'Sixteenth',32:'Thirty-second','8t':'Eighth triplet','16t':'Sixteenth triplet','5t':'Quintuplet','7t':'Septuplet'};
+const LEAD=/^\s*(q|8t|16t|32|16|8|5t|7t)(?=\s)/;
 const B_CODES=['q','8','16','32','8t','16t','5t','7t'];
 function bLines(){return S.routineText.split(/\r?\n/);}
 function bIsJson(){return S.mode==='routine'&&/^\s*[\[{]/.test(S.routineText);}
@@ -4076,6 +4073,8 @@ function renderBuilder(){
     const tt=m?m[1]+'/'+m[2]:'';
     bFillSelect($('bTime1'),B_TIMES,v=>v||'No signature',tt);
     fillGroup($('bGroup1'),tt,m&&m[3]);
+    const ld=LEAD.exec(S.pattern.slice(m?m[0].length:0));
+    bFillSelect($('subdiv'),B_CODES,v=>CODE_NAME[v],ld?ld[1]:'16');   /* the pattern's own opening code, or sixteenths when it has none */
   }
   if(routine){
     bSnap();
@@ -4094,7 +4093,7 @@ function renderBuilder(){
     bFillSelect($('bTime'),B_TIMES,v=>v||'No signature',tb);
     fillGroup($('bGroup'),tb,tm&&tm[2]);
     let st=(getHeader(S.routineText,'strokes')||'').toLowerCase().replace(/^(off|none|-)$/,'');
-    bFillSelect($('bStrokes'),[''].concat(B_CODES),v=>v||'Default ('+['','Quarter','Eighth','Triplet','Sixteenth'][S.subdiv]+')',st);
+    bFillSelect($('bStrokes'),[''].concat(B_CODES),v=>v?CODE_NAME[v]:'Sixteenth (default)',st);
     buildEditList();
   }
   /* strokes, staff and status for the exercise being edited */
@@ -4182,6 +4181,12 @@ function wireBuilder(){
     bLine=Math.max(0,bLine+(bLines().length-before));      /* a header line added or removed above shifts the line being edited */
     save();onRoutineChanged();
   });
+  /* Strokes are: writes the opening note code into the pattern, so the text always says what it plays. */
+  $('subdiv').addEventListener('change',e=>{
+    const m=SIG_PRE.exec(S.pattern),pre=m?m[0]:'',rest=S.pattern.slice(pre.length),c=e.target.value;
+    bPut(pre+(LEAD.test(rest)?rest.replace(LEAD,c):c+' '+rest.replace(/^\s+/,'')));
+    renderBuilder();
+  });
   /* One pattern: the time signature is written as a prefix, such as 7/8: RLRLRLR */
   $('bTime1').addEventListener('change',e=>{
     const t=e.target.value,rest=S.pattern.replace(SIG_PRE,'');
@@ -4234,7 +4239,6 @@ function wire(){
   $('bpm').addEventListener('input',e=>setBpm(+e.target.value));
   $('bpmDown').addEventListener('click',()=>setBpm(S.bpm-1));
   $('bpmUp').addEventListener('click',()=>setBpm(S.bpm+1));
-  $('subdiv').addEventListener('change',e=>{S.subdiv=+e.target.value;save();if(S.mode==='routine')buildExerciseList();previewRows();syncInfo();});
   $('repeats').addEventListener('change',e=>{S.repeats=Math.max(0,Math.min(999,Math.round(+e.target.value)||0));e.target.value=S.repeats;save();refreshPreview();});
   $('click').addEventListener('change',e=>{S.click=e.target.value;save();if(S.mode==='routine')buildExerciseList();syncInfo();});
   $('tol').addEventListener('change',e=>{S.tol=+e.target.value;save();renderAll();});
@@ -4405,7 +4409,6 @@ function init(){
   $('pattern').value=S.pattern;
   $('routineText').value=S.routineText;
   $('bpm').value=S.bpm;
-  $('subdiv').value=String(S.subdiv);
   $('click').value=S.click;$('repeats').value=S.repeats;
   $('tol').value=String(S.tol);
   $('gap').value=String(S.gap);
