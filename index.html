@@ -262,8 +262,6 @@ body[data-mode="routine"] .single-only{display:none}
 .bmain,.bpane,.editor{display:grid;gap:12px}
 .editor{gap:14px}
 .bpane .field{display:grid;gap:8px}
-.bsel2{display:flex;gap:8px}
-.bsel2 select{flex:1;min-width:0;height:44px;padding:6px 8px}
 .bmsg{flex:1;min-width:0;min-height:2.9em}
 .bmsg .err:not(:empty)~#bStatus{display:none}
 .bmsg .err{margin:0}
@@ -494,7 +492,16 @@ button.pill.on{color:var(--ok)}
           </div>
           
         </div>
-        <div class="bsel2 b-single"><select id="bTime1" aria-label="Time signature" title="Time signature"></select><select id="bGroup1" aria-label="Grouping" title="Grouping of the beats"></select></div>
+        <div class="row b-single">
+          <div class="field"><label for="bTime1">Time</label><select id="bTime1"></select></div>
+          <div class="field"><label for="bGroup1">Grouping</label><select id="bGroup1"></select></div>
+          <div class="field" id="fSubdiv" title="Used for strokes that have no note code"><label for="subdiv">Strokes are</label><select id="subdiv">
+            <option value="1">Quarter</option>
+            <option value="2">Eighth</option>
+            <option value="3">Triplet</option>
+            <option value="4">Sixteenth</option>
+          </select></div>
+        </div>
         <div class="switch" id="bMode" role="group" aria-label="How to enter the strokes">
           <button type="button" id="bModeType" aria-pressed="true">Type</button>
           <button type="button" id="bModeBuild" aria-pressed="false">Build</button>
@@ -564,16 +571,6 @@ button.pill.on{color:var(--ok)}
       <p class="hint">A library is a text file that lists routine files, one per line: <b>Title | address</b>, or just an address. Addresses can be relative to the list. <button class="btn small" type="button" data-help="help-library">Open the library help</button></p>
     </section>
 
-    <section class="panel cfg" aria-label="Stroke timing">
-      <div class="field"><label for="subdiv">Each stroke is a</label>
-        <select id="subdiv">
-          <option value="1">Quarter note</option>
-          <option value="2">Eighth note</option>
-          <option value="3">Triplet</option>
-          <option value="4">Sixteenth note</option>
-        </select></div>
-      <p class="hint">Used for strokes that have no note code.</p>
-    </section>
   </div>
 
   <!-- ===== Play: strokes scroll past, live gauge, results after Stop ===== -->
@@ -664,7 +661,7 @@ button.pill.on{color:var(--ok)}
 
     <section class="panel" id="help-patterns">
       <h3>Writing a pattern</h3>
-      <p><b>L</b> and <b>R</b> are strokes. A <b>space</b> starts a new group, and groups are joined with a beam. <b>_</b> is a rest. A <b>note code</b> says what the strokes are, and it means the same in any time signature: <b>q</b> quarter notes, <b>8</b> eighths, <b>16</b> sixteenths, <b>32</b> thirty-seconds, <b>8t</b> eighth-note triplets, <b>16t</b> sixteenth-note triplets, <b>5t</b> quintuplets and <b>7t</b> septuplets. A code applies to the strokes after it until the next code, so <b>8 RLRL 16 RLRL</b> is a beat of eighths, then a beat of sixteenths, in 4/4 or in cut time. A code only works where the strokes come out at a sensible speed for the beat. With no code, the "Each stroke is a" setting on the Pattern page is used (sixteenths by default)</p>
+      <p><b>L</b> and <b>R</b> are strokes. A <b>space</b> starts a new group, and groups are joined with a beam. <b>_</b> is a rest. A <b>note code</b> says what the strokes are, and it means the same in any time signature: <b>q</b> quarter notes, <b>8</b> eighths, <b>16</b> sixteenths, <b>32</b> thirty-seconds, <b>8t</b> eighth-note triplets, <b>16t</b> sixteenth-note triplets, <b>5t</b> quintuplets and <b>7t</b> septuplets. A code applies to the strokes after it until the next code, so <b>8 RLRL 16 RLRL</b> is a beat of eighths, then a beat of sixteenths, in 4/4 or in cut time. A code only works where the strokes come out at a sensible speed for the beat. With no code, the "Each stroke is a" setting in Pattern mode is used (sixteenths by default)</p>
       <p>Every example below has a button that loads it for you.</p>
 
       <div class="ex">
@@ -713,7 +710,7 @@ Exercise 4: RRLL RRLL
       <h4>How long each exercise plays</h4>
       <ul>
         <li><b>each:</b> sets the default for every exercise: <b>1m</b> (a minute), <b>90s</b> or <b>x8</b> (eight passes). With no <b>each:</b> line, the "Each exercise plays for" setting is used.</li>
-        <li><b>strokes:</b> sets what the strokes are for every exercise after it, so you do not repeat a marker on each line: <b>strokes: 8</b>, <b>strokes: 16</b> or <b>strokes: 8t</b>. A code inside an exercise still wins, and <b>strokes: off</b> goes back to the "Each stroke is a" setting.</li>
+        <li><b>strokes:</b> sets what the strokes are for every exercise after it, so you do not repeat a marker on each line: <b>strokes: 8</b>, <b>strokes: 16</b> or <b>strokes: 8t</b>. A code inside an exercise still wins, and <b>strokes: off</b> goes back to the default, which is the "Each stroke is a" setting you pick in Pattern mode.</li>
         <li><b>x16</b> at the end of an exercise's line means <b>play this exercise 16 times</b>. One pass is the exercise played once through.</li>
         <li><b>90s</b> or <b>1.5m</b> means play for about that long. Time is rounded to whole passes.</li>
         <li><b>@100</b> plays just that exercise at 100 BPM. Combine them freely: <b>RLRL RLRL x16 @80</b>.</li>
@@ -1824,7 +1821,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.5.77';                           /* shown beside the title */
+const VERSION='0.5.82';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const SAMPLE='# Example routine. Replace these with your own exercises, one per line.\n# To change how long an exercise plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example routine\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
@@ -4077,7 +4074,7 @@ function renderBuilder(){
   if(!routine){
     const m=SIG_PRE.exec(S.pattern);
     const tt=m?m[1]+'/'+m[2]:'';
-    bFillSelect($('bTime1'),B_TIMES,v=>v||'Time: none',tt);
+    bFillSelect($('bTime1'),B_TIMES,v=>v||'No signature',tt);
     fillGroup($('bGroup1'),tt,m&&m[3]);
   }
   if(routine){
@@ -4097,7 +4094,7 @@ function renderBuilder(){
     bFillSelect($('bTime'),B_TIMES,v=>v||'No signature',tb);
     fillGroup($('bGroup'),tb,tm&&tm[2]);
     let st=(getHeader(S.routineText,'strokes')||'').toLowerCase().replace(/^(off|none|-)$/,'');
-    bFillSelect($('bStrokes'),[''].concat(B_CODES),v=>v||'Each stroke setting',st);
+    bFillSelect($('bStrokes'),[''].concat(B_CODES),v=>v||'Default ('+['','Quarter','Eighth','Triplet','Sixteenth'][S.subdiv]+')',st);
     buildEditList();
   }
   /* strokes, staff and status for the exercise being edited */
