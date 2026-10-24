@@ -69,6 +69,9 @@ input[type=range]{width:100%;accent-color:var(--accent);min-height:32px}
 .tempo .btn{padding:0;font-size:22px}
 .err{color:var(--late);font-size:13px;margin:0;min-height:0}
 .hint{font-size:13px;color:var(--muted);margin:0}
+.notice{font-size:14px;margin:8px 0 0;padding:8px 12px;border:1px solid var(--accent);border-left-width:4px;border-radius:8px;background:var(--surface)}
+.linkbtn{font:inherit;font-weight:600;color:var(--accent);background:none;border:0;padding:6px 2px;text-decoration:underline;cursor:pointer;min-height:36px}
+body[data-run="1"] .notice{display:none}
 
 .hand{width:26px;height:26px;display:grid;place-items:center;border-radius:50%;font:800 20px/1 var(--font-display)}
 .hand.L{border:2px solid var(--ink);color:var(--ink)}
@@ -260,6 +263,8 @@ button.pill.on{color:var(--ok)}
     <p class="sub">Play a sticking on your pad. See which strokes lead the beat and which drag.</p>
   </header>
 
+  <p class="notice mic-only" id="calNote" hidden>Latency isn't calibrated yet, so lead and drag readings will be off. <button class="linkbtn" id="calNoteGo" type="button">Calibrate now</button></p>
+
   <nav class="switch tabs" role="tablist" aria-label="Pages">
     <button type="button" role="tab" id="tabPlay" aria-controls="pagePlay" aria-selected="true">Play</button>
     <button type="button" role="tab" id="tabPattern" aria-controls="pagePattern" aria-selected="false">Pattern</button>
@@ -352,10 +357,10 @@ button.pill.on{color:var(--ok)}
       <h3>Latency</h3>
       <div class="row">
         <div class="field"><label for="latency">Compensation (ms)</label><input type="number" id="latency" min="0" max="400" step="1" inputmode="numeric" placeholder="auto"></div>
-        <div class="field"><span class="lbl">Estimate it</span><div class="btns"><button class="btn small" id="calLatency" type="button">Calibrate latency</button><button class="btn small" id="calLoop" type="button">Speaker test</button></div></div>
+        <div class="field"><span class="lbl">Estimate it</span><div class="btns"><button class="btn" id="calLoop" type="button">Auto calibrate</button><button class="btn small" id="calLatency" type="button">Calibrate by playing</button></div></div>
       </div>
-      <p class="hint"><b>Calibrate latency:</b> counts you in, then loops a row of clicks. Hit the pad right on each click and watch the number settle. Stop playing and it finishes by itself. It needs 80 hits and assumes you were on the beat on average.</p>
-      <p class="hint"><b>Speaker test:</b> plays 12 clicks through the speakers and times when the mic hears them. You don't play. It needs speakers, not headphones, and measures the device delay only.</p>
+      <p class="hint"><b>Auto calibrate (recommended):</b> plays 12 clicks through the speakers and times when the mic hears them. You don't play. Use speakers, not headphones, and keep the room quiet. It measures the device delay only.</p>
+      <p class="hint"><b>Calibrate by playing:</b> counts you in, then loops clicks. Hit the pad right on each one and watch the number settle, then stop and it finishes by itself. It needs 80 hits and assumes you were on the beat on average. Use it to fine-tune, or when you only have headphones.</p>
       <p class="hint" id="latMsg">Sound reaches the page late, and the click reaches your ears late. This number removes that delay. The result of a calibration appears here.</p>
     </section>
   </div>
@@ -715,7 +720,7 @@ https://example.com/another-routine.txt</pre>
         <li><b>Trigger line:</b> raise it if room noise counts as hits, and lower it if soft strokes are missed.</li>
         <li><b>Stick calibration:</b> hit the same spot of the pad with one stick only, at normal strength, until the count finishes. Do it for both sticks.</li>
         <li><b>Test left vs right:</b> after calibrating, press it and hit once with whichever hand is shown, 20 times in a shuffled order. It reports how often the app named the right stick, how each hand did, and how many hits would be tagged with the wrong hand in a run. Below 90% is worth recalibrating.</li>
-        <li><b>Latency:</b> sound reaches the page late, and the click reaches your ears late. Press Calibrate latency, then hit right on each click and keep going. The number on screen settles, and it finishes when you stop playing (80 hits or more are needed). It assumes you were on the click on average. Speaker test measures the device delay alone from the speakers, with no playing. You can also type a number.</li>
+        <li><b>Latency:</b> sound reaches the page late, and the click reaches your ears late. Press Auto calibrate once on each device. It plays clicks through the speakers and times when the mic hears them, so you don't play. Calibrate by playing is the second choice: hit right on each click and keep going until the number settles, then stop (80 hits or more). It assumes you were on the click on average. You can also type a number.</li>
         <li><b>Click:</b> "On the beat", "On all strokes" (no click on rests) or "Count-in only". Use headphones, or the click will be picked up as strokes.</li>
       </ul>
     </section>
@@ -1506,7 +1511,7 @@ function loopResult(clicks,hits){
   }
   if(out.delay>400){out.msg='The delay was over 400 ms, which is more than this page can compensate. The latency is unchanged.';return out;}
   out.ok=true;out.lat=Math.max(0,Math.round(out.delay));
-  out.msg='Speaker test: latency set to '+out.lat+' ms (heard '+d.length+' of '+clicks.length+' clicks, ±'+Math.round(out.spread)+' ms). This is the device delay only. Your own lead or drag is not folded in.';
+  out.msg='Auto calibrate: latency set to '+out.lat+' ms (heard '+d.length+' of '+clicks.length+' clicks, ±'+Math.round(out.spread)+' ms). This is the device delay only. Your own lead or drag is not folded in.';
   return out;
 }
 /* ---------- routine library ---------- */
@@ -1560,7 +1565,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.5.3';                           /* shown beside the title */
+const VERSION='0.5.4';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const SAMPLE='# Example routine. Replace these with your own exercises, one per line.\n# To change how long an exercise plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example routine\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
@@ -1570,7 +1575,7 @@ const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const LOOKAHEAD=0.35;                            /* how far ahead clicks are scheduled, in seconds */
 
 const S={mode:'single',pattern:'RLRL RLRL RLRL RLRL',routineText:SAMPLE,eachUnit:'min',eachVal:1,gap:0,pulse:true,startExercise:1,
-  bpm:60,subdiv:4,click:'beat',tol:20,sens:-30,settle:40,library:'',vol:60,latency:null,input:'mic',builderOpen:false};
+  bpm:60,subdiv:4,click:'beat',tol:20,sens:-30,settle:40,library:'',vol:60,latency:null,latCal:false,input:'mic',builderOpen:false};
 let cal={L:[],R:[]},model=null;
 try{
   const o=JSON.parse(localStorage.getItem(KEY)||'null');
@@ -1580,6 +1585,7 @@ try{
   }
 }catch(e){}
 S.mode=S.mode==='routine'?'routine':'single';
+S.latCal=S.latCal===true;                          /* set once a calibration has run or a number was typed */
 S.builderOpen=S.builderOpen===true;                /* the exercise builder starts hidden */
 S.bpm=clamp(Math.round(+S.bpm)||60,40,220);
 S.subdiv=clamp(Math.round(+S.subdiv)||2,1,4);
@@ -1601,6 +1607,9 @@ S.pulse=S.pulse!==false;
 S.startExercise=1;
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({settings:S,cal:cal}));}catch(e){}};
 function setLatency(v){S.latency=v;$('latency').value=v;save();}
+/* A calibration has been done, so the reminder at the top goes away. */
+function markCal(){S.latCal=true;save();syncNote();}
+function syncNote(){const n=$('calNote');if(n)n.hidden=S.latCal||S.input==='kb';}
 /* Scores live under their own key so clearing them never touches your settings or calibration. */
 const RKEY='stick-timing-trainer.records.v1',MAX_RUNS=800;
 function cleanRun(x){
@@ -2028,7 +2037,7 @@ function restartRun(){
 }
 /* Starts a practice run. With a list of exercise numbers it plays only those exercises. */
 async function startPlay(only){
-  if(loop)endLoop('Speaker test cancelled.');
+  if(loop)endLoop('Auto calibrate cancelled.');
   if(calTest)endHandTest('');
   if(calMode){calMode=null;updateCalUI();}
   if(!(only||currentExercises()).length)return;
@@ -2052,7 +2061,7 @@ function endRun(){
   unlockScreen();
   if(r.mode==='lat'){
     const res=latencyResult(r.errs,S.latency==null?40:S.latency);
-    if(res.ok)setLatency(res.lat);
+    if(res.ok){setLatency(res.lat);markCal();}
     $('latMsg').textContent=res.msg;
     setStatus(res.ok?'Latency calibrated: '+S.latency+' ms.':'Latency not changed. See Setup for why.');
   }else{
@@ -2112,7 +2121,7 @@ function flashHeard(h){
   clearTimeout(heardTimer);heardTimer=setTimeout(()=>{el.textContent='';},900);
 }
 
-/* ---------- speaker test ---------- */
+/* ---------- auto calibrate (speaker loopback) ---------- */
 let loop=null;
 /* A sharp noise burst, so the mic hears a clear start. It ignores the click volume setting. */
 function loopClick(T){
@@ -2122,14 +2131,14 @@ function loopClick(T){
   s.buffer=buf;g.gain.value=0.8;s.connect(g);g.connect(ctx.destination);s.start(T);
 }
 async function startLoop(){
-  if(loop){endLoop('Speaker test cancelled.');return;}
+  if(loop){endLoop('Auto calibrate cancelled.');return;}
   if(calMode||calTest||chk||(run&&!run.ended)||S.input!=='mic')return;
   if(!(await ensureAudio(true)))return;
   const t0=ctx.currentTime+1,T=[];
   for(let k=0;k<LOOP.n;k++){T.push(t0+k*LOOP.gap);loopClick(T[k]);}
   loop={T:T,hits:[],timer:setTimeout(finishLoop,(1+LOOP.n*LOOP.gap+0.5)*1000)};
-  $('latMsg').textContent='Speaker test: playing '+LOOP.n+' clicks through the speakers. Keep quiet and do not play.';
-  setStatus('Speaker test running.');
+  $('latMsg').textContent='Auto calibrate: playing '+LOOP.n+' clicks through the speakers. Keep quiet and do not play.';
+  setStatus('Auto calibrate running.');
   updateCalUI();syncMicBtn();
 }
 function endLoop(msg){
@@ -2142,7 +2151,7 @@ function finishLoop(){
   if(!loop)return;
   const res=loopResult(loop.T,loop.hits);
   endLoop('');
-  if(res.ok)setLatency(res.lat);
+  if(res.ok){setLatency(res.lat);markCal();}
   $('latMsg').textContent=res.msg;
   setStatus(res.ok?'Latency set to '+S.latency+' ms.':'Latency not changed.');
 }
@@ -2224,7 +2233,7 @@ function updateCalUI(){
   $('calR').disabled=busy||calMode==='L'||tst||lp;
   $('calReset').disabled=busy||!!calMode||tst||lp;
   $('calLatency').disabled=busy||!!calMode||tst||lp||!!chk;
-  $('calLoop').textContent=lp?'Cancel speaker test':'Speaker test';
+  $('calLoop').textContent=lp?'Cancel auto calibrate':'Auto calibrate';
   $('calLoop').disabled=busy||!!calMode||tst||!!chk;
   $('calTest').disabled=busy||!!calMode||!model||!!chk||lp;
   $('calTest').textContent=tst?'Cancel test ('+calTest.res.length+'/'+TEST_N+')':'Test left vs right';
@@ -3471,6 +3480,7 @@ function buildChips(){
   });
 }
 function setInputMode(){
+  syncNote();
   document.body.dataset.input=S.input;
   $('inputMode').value=S.input;
   syncMicBtn();
@@ -3567,7 +3577,7 @@ function wire(){
   $('calTest').addEventListener('click',startHandTest);
   $('sens').addEventListener('input',e=>{S.sens=+e.target.value;$('sensOut').textContent=S.sens+' dB';$('mThr').style.left=((S.sens+60)/60*100)+'%';pushDet();save();});
   $('vol').addEventListener('input',e=>{S.vol=+e.target.value;$('volOut').textContent=S.vol+'%';save();});
-  $('latency').addEventListener('change',e=>{const v=e.target.value;S.latency=v===''?null:clamp(Math.round(+v)||0,0,400);save();});
+  $('latency').addEventListener('change',e=>{const v=e.target.value;S.latency=v===''?null:clamp(Math.round(+v)||0,0,400);if(v!=='')S.latCal=true;save();syncNote();});
   $('micPill').addEventListener('click',toggleMic);
   $('testMic').addEventListener('click',toggleMic);
   $('calL').addEventListener('click',()=>startCal('L'));
@@ -3579,6 +3589,7 @@ function wire(){
     if(await ensureAudio(true))beginRun('lat');
   });
   $('calLoop').addEventListener('click',startLoop);
+  $('calNoteGo').addEventListener('click',()=>{showTab('setup');$('calLoop').scrollIntoView({block:'center'});$('calLoop').focus();});
   $('startBtn').addEventListener('click',()=>{
     if(run&&!run.ended){
       if(run.mode!=='play'){stopRun();return;}
