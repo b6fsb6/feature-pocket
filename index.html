@@ -39,10 +39,10 @@ body{
 .app>*{min-width:0}
 header .sub{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
 header .ver{font:600 12px var(--font-data);letter-spacing:.04em;text-transform:none;color:var(--muted);white-space:nowrap;vertical-align:baseline}
-h1{font:800 clamp(36px,10vw,56px)/.92 var(--font-display);text-transform:uppercase;letter-spacing:.01em;margin:0}
+h1{font:800 clamp(22px,6vw,36px)/1 var(--font-display);text-transform:uppercase;letter-spacing:.01em;margin:0}
 h3{font:600 11px var(--font-body);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
-.sub{color:var(--muted);font-size:14px;margin:-2px 0 0;line-height:1.2}
-.head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.sub{color:var(--muted);font-size:13px;margin:2px 0 0;line-height:1.2}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 12px}
 .pill{font:600 12px var(--font-data);border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--muted);white-space:nowrap;background:var(--surface)}
 .pill.on{color:var(--ok);border-color:var(--ok)}
 
@@ -186,16 +186,17 @@ details[open]>summary::after{transform:rotate(-135deg);margin-top:10px}
 [hidden]{display:none!important}
 textarea{font:600 16px/1.55 var(--font-data);letter-spacing:.06em;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;width:100%;min-height:150px;resize:vertical}
 textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.switch{display:grid;grid-template-columns:repeat(var(--n,2),1fr);gap:3px;padding:3px;border-radius:11px;background:var(--line)}
-.switch button{font:800 18px var(--font-display);letter-spacing:.07em;text-transform:uppercase;border:0;background:transparent;color:var(--muted);min-height:44px;cursor:pointer;border-radius:8px}
-.switch button[aria-pressed=true],.switch button[aria-selected=true]{background:var(--accent);color:var(--accent-ink)}
+.switch{display:grid;grid-template-columns:repeat(var(--n,2),1fr);border-bottom:1px solid var(--line)}
+.switch button{font:700 16px var(--font-display);letter-spacing:.07em;text-transform:uppercase;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;background:transparent;color:var(--muted);min-height:42px;cursor:pointer;border-radius:0}
+.switch button[aria-pressed=true],.switch button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent)}
 .switch button:disabled{opacity:.5;cursor:not-allowed}
 .switch button:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
 body[data-run="1"] .cfg,body[data-run="1"] .sub{display:none}
 /* Playing: hide the page controls too, so only the strokes and Stop remain. */
 body[data-run="1"][data-rm="play"] header,body[data-run="1"][data-rm="play"] .tabs{display:none}
-.switch.tabs{--n:4}
-.switch.tabs button{font-size:15px;padding:0 2px}
+.switch.tabs{--n:4;gap:3px;padding:3px;border:0;border-radius:11px;background:var(--line)}
+.switch.tabs button{font-size:15px;padding:0 2px;min-height:44px;border:0;margin:0;border-radius:8px}
+.switch.tabs button[aria-selected=true]{background:var(--accent);color:var(--accent-ink)}
 .switch.three button{font-size:14px;padding:0 2px;letter-spacing:.04em}
 .page{display:grid;gap:22px}
 .page>*{min-width:0}
@@ -332,11 +333,12 @@ td{padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
 tr:last-child td{border-bottom:0}
 td.seq{letter-spacing:.08em;font-weight:600}
 td.early{color:var(--early)} td.late{color:var(--late)} td.ok{color:var(--ok)} td.muted{color:var(--muted)}
-.headbtns{display:flex;gap:8px;align-items:center;flex-wrap:nowrap;flex-shrink:0;justify-content:flex-end}
+.headbtns{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto;justify-content:flex-end}
 #themeBtn{font-size:15px;line-height:1;padding:3px 9px}
 button.pill{cursor:pointer;color:var(--ink);font-weight:700}
 button.pill:disabled{opacity:.5;cursor:not-allowed}
 button.pill.on{color:var(--ok)}
+button.pill.warn{color:var(--accent);border-color:var(--accent)}
 .help p,.help li{font-size:14.5px;line-height:1.55;margin:6px 0}
 .help ul,.help ol{padding-left:20px;margin:6px 0}
 .help h4{font:700 14px var(--font-body);margin:14px 0 4px}
@@ -352,12 +354,11 @@ button.pill.on{color:var(--ok)}
   <header>
     <div class="head">
       <h1>Stick Timing Trainer</h1>
-      <span class="headbtns"><button class="pill" id="helpBtn" type="button" data-help="help-how">Help</button><button class="pill" id="themeBtn" type="button"></button><button class="pill" id="micPill" type="button" aria-pressed="false" title="Turn the microphone on or off">Mic off</button></span>
+      <span class="headbtns"><button class="pill" id="helpBtn" type="button" data-help="help-how">Help</button><button class="pill" id="themeBtn" type="button"></button><button class="pill warn" id="calPill" type="button" hidden title="Latency is not calibrated, so lead and drag readings will be off">Calibrate</button><button class="pill" id="micPill" type="button" aria-pressed="false" title="Turn the microphone on or off">Mic off</button></span>
     </div>
     <p class="sub"><span>Go from trailing to nailing the beat</span><small class="ver" id="ver"></small></p>
   </header>
 
-  <p class="notice mic-only" id="calNote" hidden>Latency isn't calibrated yet, so lead and drag readings will be off. <button class="linkbtn" id="calNoteGo" type="button">Calibrate now</button></p>
 
   <nav class="switch tabs" role="tablist" aria-label="Pages">
     <button type="button" role="tab" id="tabPlay" aria-controls="pagePlay" aria-selected="true">Play</button>
@@ -1834,7 +1835,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.6.3';                           /* shown beside the title */
+const VERSION='0.6.5';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const SAMPLE='# Example routine. Replace these with your own exercises, one per line.\n# To change how long an exercise plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example routine\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
@@ -1882,7 +1883,7 @@ const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({settings:S,cal:cal}
 function setLatency(v){S.latency=v;$('latency').value=v;save();}
 /* A calibration has been done, so the reminder at the top goes away. */
 function markCal(){S.latCal=true;save();syncNote();}
-function syncNote(){const n=$('calNote');if(n)n.hidden=S.latCal||S.input==='kb';}
+function syncNote(){const n=$('calPill');if(n)n.hidden=S.latCal||S.input==='kb';}
 /* Scores live under their own key so clearing them never touches your settings or calibration. */
 const RKEY='stick-timing-trainer.records.v2',OLDKEY='stick-timing-trainer.records.v1',MAX_RUNS=300,MAX_SNAP=20000;
 /* A short hash of a text. Each distinct pattern or routine is stored once and runs point to it. */
@@ -4422,7 +4423,7 @@ function wire(){
     if(await ensureAudio(true))beginRun('lat');
   });
   $('calLoop').addEventListener('click',startLoop);
-  $('calNoteGo').addEventListener('click',()=>{showSetup('dev');$('calLoop').scrollIntoView({block:'center'});$('calLoop').focus();});
+  $('calPill').addEventListener('click',()=>{showSetup('dev');$('calLoop').scrollIntoView({block:'center'});$('calLoop').focus();});
   $('startBtn').addEventListener('click',()=>{
     if(run&&!run.ended){
       if(run.mode!=='play'){stopRun();return;}
