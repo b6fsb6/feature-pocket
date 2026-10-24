@@ -71,6 +71,10 @@ input[type=range]{width:100%;accent-color:var(--accent);min-height:32px}
 .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
 .tempo{display:grid;grid-template-columns:44px 1fr 44px;gap:8px;align-items:center}
 .tempo .btn{padding:0;font-size:22px}
+.tc{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.6fr);gap:12px;align-items:end}
+.tc select{font-size:14px;padding-left:8px;padding-right:4px}
+.tc .tempo{grid-template-columns:36px 1fr 36px;gap:4px}
+.tc .tempo .btn{min-width:0;width:36px}
 .err{color:var(--late);font-size:13px;margin:0;min-height:0}
 .hint{font-size:13px;color:var(--muted);margin:0}
 .notice{font-size:14px;margin:8px 0 0;padding:8px 12px;border:1px solid var(--accent);border-left-width:4px;border-radius:8px;background:var(--surface)}
@@ -876,7 +880,15 @@ https://example.com/another-routine.txt</pre>
         <p class="hint">How many times to play it. 0 keeps going until you press Stop, for up to 30 minutes.</p></div>
     </section>
 
-    <section class="panel cfg" aria-label="Tempo and click">
+    <section class="panel cfg tc" aria-label="Click and tempo">
+      <div class="field"><label for="click">Click</label>
+        <select id="click">
+          <option value="strokes">Easy: every stroke</option>
+          <option value="beat">Medium: the beat</option>
+          <option value="half">Hard: 1 and 3</option>
+          <option value="bar">Extreme: 1 only</option>
+          <option value="off">Count-in only: not scored</option>
+        </select></div>
       <div class="field">
         <label for="bpm">Tempo <output id="bpmOut"></output></label>
         <div class="tempo">
@@ -885,14 +897,6 @@ https://example.com/another-routine.txt</pre>
           <button class="btn" id="bpmUp" type="button" aria-label="Faster">+</button>
         </div>
       </div>
-      <div class="field"><label for="click">Click</label>
-        <select id="click">
-          <option value="strokes">Easy: click on every stroke</option>
-          <option value="beat">Medium: click on the beat</option>
-          <option value="half">Hard: click on 1 and 3</option>
-          <option value="bar">Extreme: click on 1 only</option>
-          <option value="off">Count-in only (not scored in your stats)</option>
-        </select></div>
     </section>
 
     <div class="transport">
@@ -1825,7 +1829,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.5.93';                           /* shown beside the title */
+const VERSION='0.5.95';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const SAMPLE='# Example routine. Replace these with your own exercises, one per line.\n# To change how long an exercise plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example routine\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
