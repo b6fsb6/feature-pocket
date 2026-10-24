@@ -47,6 +47,7 @@ h3{font:600 11px var(--font-body);letter-spacing:.09em;text-transform:uppercase;
 
 .transport{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center}
 .status{font:400 13px/1.4 var(--font-data);color:var(--muted);margin:0}
+.status:empty{display:none}
 .btn{font:600 15px var(--font-body);border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 14px;cursor:pointer;min-height:44px}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .btn.small{min-height:36px;padding:6px 12px;font-size:14px}
@@ -184,11 +185,29 @@ body[data-run="1"] .cfg,body[data-run="1"] .sub{display:none}
 body[data-run="1"][data-rm="play"] header,body[data-run="1"][data-rm="play"] .tabs{display:none}
 .switch.tabs{--n:4}
 .switch.tabs button{font-size:15px;padding:0 2px}
+.switch.three button{font-size:14px;padding:0 2px;letter-spacing:.04em}
 .page{display:grid;gap:22px}
 .page>*{min-width:0}
-body:not([data-state="done"]) #after{display:none}
+body:not([data-state="done"]) #after,body:not([data-state="done"]) #advice{display:none}
+/* After a run the page stays in focus mode: the result card first, with Again, Next tempo and Done. */
+body[data-review="1"] header,body[data-review="1"] .tabs,body[data-review="1"] .cfg,body[data-review="1"] .transport,body[data-review="1"] .notice{display:none}
+.advmain{margin-top:10px}
+.advmain .btn{min-height:48px;font-weight:700}
+.advmain .btn.primary{min-width:0;min-height:48px;font-size:18px;padding:0 22px}
 svg.spark{display:block;overflow:visible}
 .badges{display:grid;gap:12px;margin-top:10px}
+.pv{display:grid;gap:22px}
+.pv[hidden]{display:none}
+.hist{display:grid;gap:6px}
+.hist h4{margin:10px 0 0;font-size:13px;color:var(--muted);font-weight:600}
+.hrow{border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.hrow summary{cursor:pointer;padding:10px 32px 10px 12px;display:grid;gap:2px;font:400 16px var(--font-body);letter-spacing:normal;text-transform:none;position:relative}
+.hrow summary::after{position:absolute;right:12px;top:10px}
+.hrow .hn{font:700 17px var(--font-data);letter-spacing:.06em;overflow-wrap:anywhere}
+.hrow .hs{font-size:13px;color:var(--muted)}
+.hrow .hb{padding:0 12px 12px;display:grid;gap:8px}
+.hrow ul{margin:0;padding:0;list-style:none;font-size:13px;display:grid;gap:2px}
+.hrow li{display:flex;gap:8px;justify-content:space-between}
 .cgrid{border-collapse:collapse;margin:8px 0 4px;font-size:13px;width:100%;max-width:360px}
 .cgrid th,.cgrid td{padding:4px 6px;text-align:right;border-bottom:1px solid var(--line)}
 .cgrid th:first-child{text-align:left}
@@ -288,7 +307,7 @@ button.pill.on{color:var(--ok)}
 .help .panel{gap:4px}
 </style>
 </head>
-<body data-input="mic" data-mode="single" data-tab="pattern" data-state="idle" data-run="0">
+<body data-input="mic" data-mode="single" data-tab="pattern" data-state="idle" data-run="0" data-review="0">
 <main class="app">
   <header>
     <div class="head">
@@ -303,14 +322,20 @@ button.pill.on{color:var(--ok)}
   <nav class="switch tabs" role="tablist" aria-label="Pages">
     <button type="button" role="tab" id="tabPlay" aria-controls="pagePlay" aria-selected="true">Play</button>
     <button type="button" role="tab" id="tabPattern" aria-controls="pagePattern" aria-selected="false">Editor</button>
-    <button type="button" role="tab" id="tabSetup" aria-controls="pageSetup" aria-selected="false">Setup</button>
-    <button type="button" role="tab" id="tabProgress" aria-controls="pageProgress" aria-selected="false">Progress</button>
+    <button type="button" role="tab" id="tabSetup" aria-controls="pageSetup" aria-selected="false">Settings</button>
+    <button type="button" role="tab" id="tabProgress" aria-controls="pageProgress" aria-selected="false">Stats</button>
   </nav>
 
-  <p class="status" id="status" role="status" aria-live="polite">Pick a pattern, then open Play and press Start.</p>
+  <p class="status" id="status" role="status" aria-live="polite"></p>
 
   <!-- ===== Setup: on-time window, microphone, calibration ===== -->
   <div class="page" id="pageSetup" role="tabpanel" aria-labelledby="tabSetup" hidden>
+    <div class="switch three" style="--n:3" role="group" aria-label="Settings view">
+      <button type="button" id="svBtnPref" aria-pressed="true">Preferences</button>
+      <button type="button" id="svBtnDev" aria-pressed="false">Device</button>
+      <button type="button" id="svBtnData" aria-pressed="false">Data</button>
+    </div>
+    <div class="pv" id="svPref">
     <section class="panel" aria-label="Timing and click sound">
       <h3>Timing and click sound</h3>
       <div class="row">
@@ -328,6 +353,8 @@ button.pill.on{color:var(--ok)}
       <p class="hint mic-only">Use headphones for the click. A click from the speakers is picked up by the microphone and counted as a stroke.</p>
     </section>
 
+    </div>
+    <div class="pv" id="svDev" hidden>
     <section class="panel" aria-label="Input">
       <h3>Input</h3>
       <div class="field">
@@ -383,6 +410,23 @@ button.pill.on{color:var(--ok)}
       <p class="hint"><b>Auto calibrate (recommended):</b> plays 12 clicks through the speakers and times when the mic hears them. You don't play. Use speakers, not headphones, and keep the room quiet. It measures the device delay only.</p>
       <p class="hint"><b>Calibrate by playing:</b> counts you in, then loops clicks. Hit the pad right on each one and watch the number settle, then stop and it finishes by itself. It needs 80 hits and assumes you were on the beat on average. Use it to fine-tune, or when you only have headphones.</p>
       <p class="hint" id="latMsg">Sound reaches the page late, and the click reaches your ears late. This number removes that delay. The result of a calibration appears here.</p>
+    </section>
+  
+
+    </div>
+    <div class="pv" id="svData" hidden>
+    <section class="panel" aria-label="Data">
+      <h3>Your data</h3>
+      <p class="hint">Scores are saved in this browser only. The last 300 runs are kept in full and can be replayed from History. Older runs are folded into your totals, streaks, achievements and cleared tempos, which are kept for good. Export a copy now and then, or to move to another device.</p>
+      <div class="btns">
+        <button class="btn small" id="recExport" type="button">Export</button>
+        <button class="btn small" id="recImport" type="button">Import</button>
+        <button class="btn small" id="recClear" type="button">Clear all</button>
+        <input type="file" id="recFile" accept=".json,application/json" hidden>
+        </div>
+  </div>
+      <p class="hint" id="recMsg"></p>
+      <p class="hint" id="storeMsg"></p>
     </section>
   </div>
 
@@ -498,6 +542,13 @@ button.pill.on{color:var(--ok)}
   <!-- ===== Play: strokes scroll past, live gauge, results after Stop ===== -->
   <!-- ===== Progress: scores kept per exercise and tempo ===== -->
   <div class="page" id="pageProgress" role="tabpanel" aria-labelledby="tabProgress" hidden>
+    <p class="notice" id="bakNote" hidden><span id="bakText"></span> <button class="linkbtn" id="bakGo" type="button">Export now</button></p>
+    <div class="switch three" style="--n:3" role="group" aria-label="Stats view">
+      <button type="button" id="pvBtnHist" aria-pressed="true">History</button>
+      <button type="button" id="pvBtnStats" aria-pressed="false">Scores</button>
+      <button type="button" id="pvBtnAch" aria-pressed="false">Achievements</button>
+    </div>
+    <div class="pv" id="pvAch" hidden>
     <section aria-label="Practice days">
       <h3>Practice</h3>
       <p class="insight" id="streakLine"></p>
@@ -509,6 +560,8 @@ button.pill.on{color:var(--ok)}
       <p class="hint">Milestones you earn as you practise. A filled badge is earned.</p>
       <div class="badges" id="badges"></div>
     </section>
+    </div>
+    <div class="pv" id="pvStats" hidden>
     <section aria-label="Rudiments">
       <h3>Patterns, weakest first</h3>
       <p class="hint" id="progHint"></p>
@@ -518,17 +571,15 @@ button.pill.on{color:var(--ok)}
       <h3>Routines</h3>
       <div class="tablewrap"><table id="rtTable"></table></div>
     </section>
-    <section aria-label="Your records">
-      <h3>Your records</h3>
-      <p class="hint">Scores are saved in this browser only. Export them to keep a copy or move to another device.</p>
-      <div class="btns">
-        <button class="btn small" id="recExport" type="button">Export</button>
-        <button class="btn small" id="recImport" type="button">Import</button>
-        <button class="btn small" id="recClear" type="button">Clear all</button>
-        <input type="file" id="recFile" accept=".json,application/json" hidden>
-      </div>
-      <p class="hint" id="recMsg"></p>
-    </section>
+    </div>
+    <div class="pv" id="pvHist">
+      <section aria-label="History">
+        <h3>History</h3>
+        <p class="hint" id="histHint"></p>
+        <div class="hist" id="histList"></div>
+        <div class="btns"><button class="btn small" id="histMore" type="button" hidden>Show more</button></div>
+      </section>
+    </div>
   </div>
 
   <!-- ===== Help ===== -->
@@ -544,11 +595,11 @@ button.pill.on{color:var(--ok)}
     <section class="panel" id="help-start">
       <h3>Quick start</h3>
       <ol>
-        <li><b>Setup:</b> pick a tempo, use headphones for the click, press "Turn microphone on" and hit the pad. The level bar should cross the trigger line on every stroke. Calibrating each stick is optional but lets the app tell L from R.</li>
+        <li><b>Settings:</b> pick a tempo, use headphones for the click, press "Turn microphone on" and hit the pad. The level bar should cross the trigger line on every stroke. Calibrating each stick is optional but lets the app tell L from R.</li>
         <li><b>Pattern:</b> choose "Pattern" (a single sticking that repeats) or "Routine" (a list of exercises played one after another). The Play page has the same switch. In Routine, it also holds how long each exercise plays, the gap between them, and where to start.</li>
-        <li><b>Play:</b> set the tempo and click level, then press Start. The page controls hide while you play. After a count-in, play on the moving line. Press Stop when you are done to see your results.</li>
+        <li><b>Play:</b> set the tempo and click level, then press Start. The page controls hide while you play. After a count-in, play on the moving line. Press Stop when you are done. The page stays in focus mode and shows your result first, with <b>Again</b>, <b>Next tempo</b> (when you cleared the target) and <b>Done</b>. The staff below it keeps its colours and numbers so you can see which strokes were off. Press Done to bring the controls back.</li>
       </ol>
-      <p>No microphone? On Setup, change Input to "Keyboard or pads". Press <b>F</b> for left and <b>J</b> for right. This is a test mode, and its timing is rougher than a microphone on a pad.</p>
+      <p>No microphone? In Settings, under Device, change Input to "Keyboard or pads". Press <b>F</b> for left and <b>J</b> for right. This is a test mode, and its timing is rougher than a microphone on a pad.</p>
     </section>
 
     <section class="panel" id="help-pages">
@@ -556,8 +607,8 @@ button.pill.on{color:var(--ok)}
       <ul>
         <li><b>Play:</b> the Pattern or Routine switch, tempo, click level, Start, Pause, Restart and Stop, the notation, the lead/drag gauge and your results. With a routine loaded, scroll or swipe the rows (or press ↑ ↓) to choose which exercise to start at.</li>
         <li><b>Pattern:</b> what you practise: one pattern, or a routine of exercises you type, load from a file or load from a URL.</li>
-        <li><b>Setup:</b> on-time window, click volume, microphone, stick calibration and latency.</li>
-        <li><b>Progress:</b> your practice days for the last four weeks with a streak that forgives one rest day a week, achievements (sessions, days in a row, patterns cleared on each click level and on all four), your scores for each pattern, weakest first, and each routine's best cleared tempo.</li>
+        <li><b>Settings:</b> <b>Preferences</b> has the on-time window, visual pulse and click volume. <b>Device</b> has the input, microphone level, stick calibration and latency. <b>Data</b> has export, import and clear.</li>
+        <li><b>Stats:</b> three views. <b>History</b> lists your last runs with Replay. <b>Scores</b> shows each pattern and routine, weakest first, with its best cleared tempo. <b>Achievements</b> shows your practice days for the last four weeks, a streak that forgives one rest day a week, and your badges.</li>
       </ul>
     </section>
 
@@ -566,7 +617,7 @@ button.pill.on{color:var(--ok)}
       <ul>
         <li><b>Each row is one pass</b> of an exercise, the way it is played. The top row is the one you are playing, and the next passes sit underneath. An exercise with 16 passes shows the same notation 16 times as it comes round. When a pass ends the rows slide up.</li>
         <li><b>The moving line</b> glides across the row at an even pace and reaches a note exactly when it is due. Strike as the line reaches the note.</li>
-        <li><b>Letter colours:</b> green is on time, blue is early (leading), pink is late (dragging), and a faded letter means no hit was heard. The "on-time window" in Setup decides how close counts as green.</li>
+        <li><b>Letter colours:</b> green is on time, blue is early (leading), pink is late (dragging), and a faded letter means no hit was heard. The "on-time window" in Settings decides how close counts as green.</li>
         <li><b>A small arrow tag</b> such as →R beside a letter means that stroke was due on the other hand but the app heard R. This needs both sticks calibrated.</li>
         <li><b>The gauge</b> shows your average lead or drag over the last 32 strokes. Left of the middle is leading and right is dragging.</li>
         <li><b>On narrow screens</b> a busy pass wraps onto two lines at the barline so the notes stay roomy.</li>
@@ -696,7 +747,7 @@ LRLR LRLR LRLR LRLR  x8</pre>
       </div>
       <h4>Between exercises and the visual pulse</h4>
       <p>"Between exercises" can be a 4-beat count-in, or <b>Straight on</b> (the default), where the next exercise starts without a pause. With Straight on, nothing marks the change except the notation: the rows slide up and the new exercise's first pass starts on the next beat.</p>
-      <p><b>Visual pulse</b> (on the Setup page) makes the moving line swell on every click, bigger on the first beat of each pass, so you can see the click as well as hear it. Turn it off for a plain moving line.</p>
+      <p><b>Visual pulse</b> (in Settings, under Preferences) makes the moving line swell on every click, bigger on the first beat of each pass, so you can see the click as well as hear it. Turn it off for a plain moving line.</p>
       <h4>Loading a routine</h4>
       <p>Use <b>Load file</b> for a .txt, .json or .csv, or <b>Load from URL</b>. JSON also works: a list such as <b>["RLRR LRLL", {"sticking":"RLRL RLRL","passes":16}]</b>, or an object with <b>title</b>, <b>each</b> and <b>exercises</b>.</p>
     </section>
@@ -726,17 +777,18 @@ https://example.com/another-routine.txt</pre>
         <li><b>Exercise table:</b> after a routine run, each exercise gets its own accuracy, average error and spread, plus your earlier best at that tempo.</li>
         <li><b>The target is 90%.</b> An exercise is "cleared" at a tempo when it reaches 90% there. After a run the app says whether every exercise cleared, and suggests +4 BPM if so. Otherwise it names the weak exercises and suggests staying at the same tempo. These are only suggestions. Any tempo is always allowed.</li>
         <li><b>Discard this run</b> removes a run from your records, for example after a bad microphone read.</li>
-        <li><b>Progress page:</b> every pattern, weakest first, with accuracy at the tempo you last played, your fastest cleared tempo and your lead/drag bias. "Practise" loads that pattern. A routine counts as cleared at a tempo when one run covered every exercise and all reached 90%.</li>
+        <li><b>Stats page:</b> every pattern, weakest first, with accuracy at the tempo you last played, your fastest cleared tempo and your lead/drag bias. "Practise" loads that pattern. A routine counts as cleared at a tempo when one run covered every exercise and all reached 90%.</li>
         <li><b>Practise weak exercises.</b> After a routine run, a button plays only the exercises that were below the target. Restart repeats the same exercises. A run of only some exercises never counts as clearing the routine.</li>
         <li><b>Tempo guidance.</b> Each exercise in the start list shows the tempo it has cleared, or "new". The summary shows the tempo at which the whole routine has been cleared.</li>
-        <li><b>Records are saved in this browser only.</b> Use Export to keep a copy or move to another device, and Import to bring one back.</li>
+        <li><b>Records are saved in this browser only.</b> Use Export to keep a copy or move to another device, and Import to bring one back. The app asks the browser to keep your records and reminds you to export a copy if you never have, or if the last one is two weeks old. On iPhone and iPad, Safari can clear a site's data after about a week without use, so add the page to your Home Screen.</li>
+        <li><b>History:</b> on the Stats page, switch to History to see your last 300 runs, newest first. Tap a run for its exercises. <b>Replay</b> loads the same pattern or routine, tempo, click level and settings on the Play page, ready to start. <b>Delete</b> removes the run from your records. Runs older than the last 300 are folded into your totals, streaks, achievements and cleared tempos, which are kept for good, but they can no longer be replayed.</li>
       </ul>
     </section>
 
     <section class="panel" id="help-setup">
-      <h3>Setup details</h3>
+      <h3>Settings details</h3>
       <ul>
-        <li><b>Mic check:</b> in Setup, press Mic check, stay quiet for two seconds, then hit the pad ten times. It sets the trigger line and settle time, and tells you if the signal is too quiet, clipping, uneven or double triggering.</li>
+        <li><b>Mic check:</b> in Settings, under Device, press Mic check, stay quiet for two seconds, then hit the pad ten times. It sets the trigger line and settle time, and tells you if the signal is too quiet, clipping, uneven or double triggering.</li>
         <li><b>Trigger line:</b> raise it if room noise counts as hits, and lower it if soft strokes are missed.</li>
         <li><b>Stick calibration:</b> hit the same spot of the pad with one stick only, at normal strength, until the count finishes. Do it for both sticks.</li>
         <li><b>Test left vs right:</b> after calibrating, press it and hit once with whichever hand is shown, 20 times in a shuffled order. It reports how often the app named the right stick, how each hand did, and how many hits would be tagged with the wrong hand in a run. Below 90% is worth recalibrating.</li>
@@ -816,6 +868,21 @@ https://example.com/another-routine.txt</pre>
       <div class="runline"><span id="timeLeft"></span></div>
     </div>
 
+    <section id="advice" hidden aria-label="Score and tempo">
+      <h3>This run</h3>
+      <p class="insight" id="advHead"></p>
+      <p class="hint" id="advBody"></p>
+      <div class="btns advmain">
+        <button class="btn primary" id="advAgain" type="button">Again</button>
+        <button class="btn" id="advUse" type="button" hidden></button>
+        <button class="btn" id="advDone" type="button" hidden>Done</button>
+      </div>
+      <div class="btns" style="margin-top:8px">
+        <button class="btn small" id="advWeak" type="button" hidden></button>
+        <button class="btn small" id="advDiscard" type="button">Discard this run</button>
+      </div>
+    </section>
+
     <section aria-label="Strokes">
       <p class="hint routine-only cfg exnav">Scroll, swipe or tap an exercise to choose where to start.</p>
       <div class="rowswrap">
@@ -848,17 +915,6 @@ https://example.com/another-routine.txt</pre>
     </section>
 
     <div class="page after" id="after">
-      <section id="advice" hidden aria-label="Score and tempo">
-        <h3>This run</h3>
-        <p class="insight" id="advHead"></p>
-        <p class="hint" id="advBody"></p>
-        <div class="btns" style="margin-top:10px">
-          <button class="btn small" id="advUse" type="button" hidden></button>
-          <button class="btn small" id="advWeak" type="button" hidden></button>
-          <button class="btn small" id="advDiscard" type="button">Discard this run</button>
-        </div>
-      </section>
-
       <section aria-label="Session numbers">
         <h3>Session numbers</h3>
         <div class="stats">
@@ -1296,7 +1352,7 @@ function adviceFor(exercises,bpm){
   return {played:played.length,weak:weak,cleared:!weak.length,next:Math.min(220,bpm+4)};
 }
 /* Per pattern: how it is going at the tempo you played it at most recently. */
-function patStats(runs){
+function patStats(runs,sum){
   const m=new Map();
   runs.forEach(run=>run.exercises.forEach(b=>{
     if(!(b.due>0)||run.lv==='off')return;
@@ -1314,11 +1370,19 @@ function patStats(runs){
     out.push({k:e.k,lv:e.lv,bpm:last.bpm,recent:recent.reduce((a,x)=>a+x.pct,0)/recent.length,last:last.pct,cleared:cleared||null,clearedT:clearedT,
       runs:e.recs.length,trend:at.slice(-12).map(x=>x.pct),t:last.t,bias:bias.length?bias.reduce((a,x)=>a+x.avg,0)/bias.length:NaN});
   });
+  if(sum){
+    const idx=new Map(out.map(e=>[e.k+'|'+e.lv,e]));
+    Object.keys(sum.pat).forEach(key=>{
+      const q=sum.pat[key],d=idx.get(key);
+      if(!d){const r=q.tr.slice(-3);out.push({k:q.k,lv:q.lv,bpm:q.bpm,recent:r.reduce((a,x)=>a+x,0)/r.length,last:q.tr[q.tr.length-1],cleared:q.cleared||null,clearedT:q.clearedT,runs:q.runs,trend:q.tr.slice(),t:q.t,bias:q.avg==null?NaN:q.avg});}
+      else{d.runs+=q.runs;if(q.cleared&&(!d.cleared||q.cleared>d.cleared||(q.cleared===d.cleared&&q.clearedT<d.clearedT))){d.cleared=q.cleared;d.clearedT=q.clearedT;}}
+    });
+  }
   out.sort((a,b)=>a.recent-b.recent||a.k.localeCompare(b.k));
   return out;
 }
 /* Routines: a routine is cleared at a tempo when one run played every exercise and all were above the target. */
-function routineStats(runs){
+function routineStats(runs,sum){
   const m=new Map();
   runs.forEach(run=>{
     if(!run.rk||run.lv==='off')return;
@@ -1328,17 +1392,46 @@ function routineStats(runs){
     const ok=run.exercises.length>=run.ne&&run.exercises.every(b=>b.due>0&&b.within/b.due>=TARGET);
     if(ok)e.cleared=Math.max(e.cleared,run.bpm);
   });
+  if(sum)Object.keys(sum.rt).forEach(key=>{
+    const q=sum.rt[key],e=m.get(key);
+    if(!e)m.set(key,{rk:q.rk,lv:q.lv,title:q.title,ne:q.ne,runs:q.runs,t:q.t,cleared:q.cleared});
+    else{e.runs+=q.runs;e.cleared=Math.max(e.cleared,q.cleared);if(!e.title)e.title=q.title;}
+  });
   return [...m.values()].sort((a,b)=>b.t-a.t);
 }
-function clearedBefore(runs,k,lv){
-  let m=0;
+function clearedBefore(runs,k,lv,sum){
+  let m=sum&&sum.pat[k+'|'+lv]?sum.pat[k+'|'+lv].cleared:0;
   runs.forEach(run=>run.exercises.forEach(b=>{if(run.lv===lv&&b.k===k&&b.due>0&&b.within/b.due>=TARGET)m=Math.max(m,b.bpm||run.bpm);}));
   return m;
 }
+/* Runs that age out of the detail list are folded into a small permanent summary, so totals, streaks, badges and cleared tempos never shrink. */
+const newSum=()=>({runs:0,sec:0,days:{},pat:{},rt:{}});
+function foldRun(sum,run){
+  sum.runs++;sum.sec+=run.sec||0;
+  const dk=dayKey(run.t);sum.days[dk]=(sum.days[dk]||0)+(run.sec||0);
+  if(run.lv==='off')return;
+  run.exercises.forEach(b=>{
+    if(!(b.due>0))return;
+    const key=b.k+'|'+run.lv,bpm=b.bpm||run.bpm,pct=b.within/b.due;
+    let e=sum.pat[key];if(!e){e={k:b.k,lv:run.lv,runs:0,t:0,bpm:bpm,tr:[],cleared:0,clearedT:0,avg:null};sum.pat[key]=e;}
+    e.runs++;e.t=run.t;
+    if(bpm!==e.bpm){e.bpm=bpm;e.tr=[];}
+    e.tr.push(Math.round(pct*1000)/1000);if(e.tr.length>12)e.tr.shift();
+    e.avg=typeof b.avg==='number'?b.avg:null;
+    if(pct>=TARGET&&bpm>e.cleared){e.cleared=bpm;e.clearedT=run.t;}
+  });
+  if(run.rk){
+    const key=run.rk+'|'+run.lv;
+    let e=sum.rt[key];if(!e){e={rk:run.rk,lv:run.lv,title:run.rt||'',ne:run.ne,runs:0,t:0,cleared:0};sum.rt[key]=e;}
+    e.runs++;e.t=run.t;if(run.rt)e.title=run.rt;
+    if(run.exercises.length>=run.ne&&run.exercises.every(b=>b.due>0&&b.within/b.due>=TARGET))e.cleared=Math.max(e.cleared,run.bpm);
+  }
+}
 /* Practice days. dayKey is the local date; minutes per day; the streak allows one rest day in any seven. */
 const dayKey=t=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
-function practiceDays(runs){
+function practiceDays(runs,sum){
   const m=new Map();
+  if(sum)Object.keys(sum.days).forEach(k=>m.set(k,sum.days[k]));
   runs.forEach(r=>{const k=dayKey(r.t);m.set(k,(m.get(k)||0)+(r.sec||0));});
   return m;
 }
@@ -1358,9 +1451,9 @@ BADGES.push({id:'all',name:'On all four levels',unit:'patterns cleared on all fo
 const BGROUPS=[{name:'Sessions',d:'Runs where at least one pattern was played through once and scored.',ids:['ses']},
   {name:'Days in a row',d:'Your longest run of practice days. One rest day a week does not break it.',ids:['str']},
   {name:'Patterns cleared',d:'A pattern is cleared on a level when you play it at 90% or more of strokes on time at that click level. Each level is cleared on its own. The table counts patterns by the fastest tempo they were cleared at.',grid:true,ids:['lstrokes','lbeat','lhalf','lbar','all']}];
-function badgeValues(runs){
-  const days=practiceDays(runs),best=Array.from(days.keys()).reduce((m,k)=>{const a=k.split('-');return Math.max(m,streakOf(days,new Date(+a[0],+a[1]-1,+a[2])));},0);
-  const st=patStats(runs).filter(e=>e.cleared),o={ses:runs.length,str:best},per=new Map();
+function badgeValues(runs,sum){
+  const days=practiceDays(runs,sum),best=Array.from(days.keys()).reduce((m,k)=>{const a=k.split('-');return Math.max(m,streakOf(days,new Date(+a[0],+a[1]-1,+a[2])));},0);
+  const st=patStats(runs,sum).filter(e=>e.cleared),o={ses:(sum?sum.runs:0)+runs.length,str:best},per=new Map();
   LEVELS.forEach(l=>{o['l'+l.v]=0;});
   st.forEach(e=>{o['l'+e.lv]++;per.set(e.k,(per.get(e.k)||0)+1);});
   o.all=[...per.values()].filter(n=>n>=LEVELS.length).length;
@@ -1680,7 +1773,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.5.33';                           /* shown beside the title */
+const VERSION='0.5.44';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const SAMPLE='# Example routine. Replace these with your own exercises, one per line.\n# To change how long an exercise plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example routine\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
@@ -1690,7 +1783,7 @@ const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const LOOKAHEAD=0.35;                            /* how far ahead clicks are scheduled, in seconds */
 
 const S={mode:'single',pattern:'RLRL RLRL RLRL RLRL',routineText:SAMPLE,eachUnit:'min',eachVal:1,gap:0,pulse:true,startExercise:1,
-  bpm:60,subdiv:4,click:'beat',tol:20,sens:-30,settle:40,library:'',vol:60,latency:null,latCal:false,input:'mic',editMode:'type'};
+  bpm:60,subdiv:4,click:'beat',lastExport:0,expRuns:0,tol:20,sens:-30,settle:40,library:'',vol:60,latency:null,latCal:false,input:'mic',editMode:'type'};
 let cal={L:[],R:[]},model=null;
 try{
   const o=JSON.parse(localStorage.getItem(KEY)||'null');
@@ -1720,13 +1813,23 @@ S.eachVal=S.eachUnit==='pass'?clamp(Math.round(+S.eachVal)||8,1,200):clamp(+S.ea
 S.gap=+S.gap===0?0:4;
 S.pulse=S.pulse!==false;
 S.startExercise=1;
+if(!isFinite(+S.lastExport))S.lastExport=0;
+if(!isFinite(+S.expRuns))S.expRuns=0;
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({settings:S,cal:cal}));}catch(e){}};
 function setLatency(v){S.latency=v;$('latency').value=v;save();}
 /* A calibration has been done, so the reminder at the top goes away. */
 function markCal(){S.latCal=true;save();syncNote();}
 function syncNote(){const n=$('calNote');if(n)n.hidden=S.latCal||S.input==='kb';}
 /* Scores live under their own key so clearing them never touches your settings or calibration. */
-const RKEY='stick-timing-trainer.records.v1',MAX_RUNS=800;
+const RKEY='stick-timing-trainer.records.v2',OLDKEY='stick-timing-trainer.records.v1',MAX_RUNS=300,MAX_SNAP=20000;
+/* A short hash of a text. Each distinct pattern or routine is stored once and runs point to it. */
+function hashOf(t){
+  let h1=0xdeadbeef,h2=0x41c6ce57;
+  for(let i=0;i<t.length;i++){const c=t.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677);}
+  h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);
+  h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+  return (4294967296*(2097151&h2)+(h1>>>0)).toString(36);
+}
 function cleanRun(x){
   if(!x||typeof x!=='object'||typeof x.id!=='string'||!Array.isArray(x.exercises)||!isFinite(+x.t)||!isFinite(+x.bpm)||!['strokes','beat','half','bar','off'].includes(x.lv))return null;
   const exercises=[];
@@ -1736,17 +1839,63 @@ function cleanRun(x){
       avg:typeof b.avg==='number'&&isFinite(b.avg)?b.avg:null,sd:typeof b.sd==='number'&&isFinite(b.sd)?b.sd:null,miss:+b.miss||0,i:+b.i||0});
   });
   if(!exercises.length)return null;
-  return {id:x.id.slice(0,40),t:+x.t,mode:x.mode==='routine'?'routine':'single',rk:typeof x.rk==='string'?x.rk.slice(0,40):null,rt:typeof x.rt==='string'?x.rt.slice(0,80):'',
+  const o={id:x.id.slice(0,40),t:+x.t,mode:x.mode==='routine'?'routine':'single',rk:typeof x.rk==='string'?x.rk.slice(0,40):null,rt:typeof x.rt==='string'?x.rt.slice(0,80):'',
     lv:x.lv,ne:Math.max(1,+x.ne||exercises.length),bpm:+x.bpm,tol:+x.tol||20,sec:Math.max(0,Math.min(14400,+x.sec||0)),exercises:exercises};
+  const q=x.rp;
+  if(q&&typeof q.x==='string'&&q.x.length<=MAX_SNAP)o.rp={x:q.x,st:Math.max(1,Math.round(+q.st)||1),ev:isFinite(+q.ev)&&+q.ev>0?+q.ev:1,eu:q.eu==='pass'?'pass':'min',gp:+q.gp===4?4:0,
+    o:Array.isArray(q.o)?q.o.map(n=>Math.round(+n)).filter(n=>n>=1&&n<=200):null};
+  return o;
 }
-const recs={runs:[]};
+const recs={runs:[],sum:newSum()};
+const num=v=>isFinite(+v)?+v:0;
+function unpackRecs(o){
+  const items=o.items||{},runs=[],sum=newSum();
+  (o.runs||[]).forEach(x=>{
+    if(!x||!Array.isArray(x.exercises))return;
+    const c=cleanRun(Object.assign({},x,{exercises:x.exercises.map(b=>Object.assign({},b,{k:o.v>=2?items[b.k]:b.k})),rp:x.rp?Object.assign({},x.rp,{x:o.v>=2?items[x.rp.x]:x.rp.x}):null}));
+    if(c)runs.push(c);
+  });
+  const q=o.sum;
+  if(q&&typeof q==='object'){
+    sum.runs=Math.max(0,num(q.runs));sum.sec=Math.max(0,num(q.sec));
+    Object.keys(q.days||{}).forEach(k=>{if(/^\d{4}-\d\d-\d\d$/.test(k))sum.days[k]=Math.max(0,num(q.days[k]));});
+    (q.pat||[]).forEach(e=>{
+      const k=items[e&&e.k];if(typeof k!=='string'||!Array.isArray(e.tr)||!e.tr.length||!LEVELS.some(l=>l.v===e.lv))return;
+      sum.pat[k+'|'+e.lv]={k:k,lv:e.lv,runs:num(e.runs),t:num(e.t),bpm:num(e.bpm),tr:e.tr.slice(-12).map(num),cleared:num(e.cleared),clearedT:num(e.clearedT),avg:e.avg==null?null:num(e.avg)};
+    });
+    Object.keys(q.rt||{}).forEach(key=>{const e=q.rt[key];if(e&&typeof e.rk==='string'&&LEVELS.some(l=>l.v===e.lv))sum.rt[e.rk+'|'+e.lv]={rk:e.rk.slice(0,40),lv:e.lv,title:String(e.title||'').slice(0,80),ne:Math.max(1,num(e.ne)),runs:num(e.runs),t:num(e.t),cleared:num(e.cleared)};});
+  }
+  return {runs:runs,sum:sum};
+}
+function packRecs(){
+  const items={},hk=t=>{const h=hashOf(t);items[h]=t;return h;};
+  const runs=recs.runs.map(r=>{
+    const o=Object.assign({},r,{exercises:r.exercises.map(b=>Object.assign({},b,{k:hk(b.k)}))});
+    if(r.rp)o.rp=Object.assign({},r.rp,{x:hk(r.rp.x)});
+    return o;
+  });
+  const q=recs.sum;
+  return {v:2,items:items,runs:runs,sum:{runs:q.runs,sec:q.sec,days:q.days,rt:q.rt,pat:Object.keys(q.pat).map(k=>Object.assign({},q.pat[k],{k:hk(q.pat[k].k)}))}};
+}
 try{
   const o=JSON.parse(localStorage.getItem(RKEY)||'null');
-  if(o&&Array.isArray(o.runs))o.runs.forEach(x=>{const c=cleanRun(x);if(c)recs.runs.push(c);});
+  if(o&&Array.isArray(o.runs)){const u=unpackRecs(o);recs.runs=u.runs;recs.sum=u.sum;}
+  else{
+    const old=JSON.parse(localStorage.getItem(OLDKEY)||'null');
+    if(old&&Array.isArray(old.runs))old.runs.forEach(x=>{const c=cleanRun(x);if(c)recs.runs.push(c);});
+  }
 }catch(e){}
+/* Keeps the newest MAX_RUNS runs in full. Older ones are folded into the permanent summary. */
+function foldOld(keep){
+  while(recs.runs.length>keep)foldRun(recs.sum,recs.runs.shift());
+}
 function saveRecs(){
-  if(recs.runs.length>MAX_RUNS)recs.runs.splice(0,recs.runs.length-MAX_RUNS);
-  try{localStorage.setItem(RKEY,JSON.stringify({v:1,runs:recs.runs}));return true;}catch(e){return false;}
+  foldOld(MAX_RUNS);
+  for(let i=0;i<4;i++){
+    try{localStorage.setItem(RKEY,JSON.stringify(packRecs()));try{localStorage.removeItem(OLDKEY);}catch(e){}return true;}
+    catch(e){foldOld(Math.floor(recs.runs.length*0.75));}
+  }
+  return false;
 }
 let lastRun=null;
 
@@ -1789,12 +1938,12 @@ function setStatus(t){if(t===lastStatus)return;lastStatus=t;$('status').textCont
 function showMicError(err){
   const n=err&&(err.name||err.message)||'';
   let m;
-  if(n==='insecure')m='The microphone needs a secure page (https:// or localhost). Host this file or run a local server, or switch Input to Keyboard on the Setup page.';
+  if(n==='insecure')m='The microphone needs a secure page (https:// or localhost). Host this file or run a local server, or switch Input to Keyboard in Settings, under Device.';
   else if(n==='NotAllowedError'||n==='SecurityError')m='Microphone blocked. Allow it for this page in your browser settings, then press Start again.';
   else if(n==='NotFoundError')m='No microphone found.';
   else m='Could not start audio: '+(err&&err.message?err.message:n);
   setStatus(m);
-  showTab('setup');$('micMsg').textContent=m;
+  showSetup('dev');$('micMsg').textContent=m;
 }
 async function ensureAudio(needMic){
   try{
@@ -2179,18 +2328,18 @@ function endRun(){
     const res=latencyResult(r.errs,S.latency==null?40:S.latency);
     if(res.ok){setLatency(res.lat);markCal();}
     $('latMsg').textContent=res.msg;
-    setStatus(res.ok?'Latency calibrated: '+S.latency+' ms.':'Latency not changed. See Setup for why.');
+    setStatus(res.ok?'Latency calibrated: '+S.latency+' ms.':'Latency not changed. See Settings, Device for why.');
   }else{
     const done=r.errs.length,segsDone=r.seg.filter(q=>q.slots>0).length;
     const finished=r.nextFin>=r.plan.slots.length;
-    if(!done)setStatus('Stopped. No strokes were heard. Check the microphone level on the Setup page.');
+    if(!done)setStatus('Stopped. No strokes were heard. Check the microphone level in Settings, under Device.');
     else if(S.mode==='routine')setStatus((finished?'Routine finished. ':'Stopped. ')+done+' strokes measured over '+segsDone+(segsDone===1?' exercise':' exercises')+'. Results are below.');
-    else setStatus((finished?'30 minutes reached. ':'Stopped. ')+done+' strokes measured. Press Start to go again.');
+    else setStatus((finished?'30 minutes reached. ':'Stopped. ')+done+' strokes measured.');
   }
   setRunning(false);
   $('runInfo').hidden=true;
   $('bigCount').hidden=true;
-  if(r.mode==='lat'){rowsShown=ROWS;labelsOn=true;labelMode='routine';showTab('setup');refreshPreview();}
+  if(r.mode==='lat'){rowsShown=ROWS;labelsOn=true;labelMode='routine';showSetup('dev');refreshPreview();}
   if(view&&r.mode==='play'){
     document.body.dataset.state='done';
     recordRun(r);
@@ -2199,6 +2348,7 @@ function endRun(){
     if(S.mode==='routine')renderResults(view);
     roleRows();
     paintRows(view,null);
+    if(lastRun&&!lastRun.discarded)setReview(true);
   }
   syncInfo();
 }
@@ -2843,6 +2993,7 @@ function showTab(t){
   document.body.dataset.tab=t;
   if(t==='play')drawTrace();
   if(t==='progress')renderProgress();
+  if(t==='setup')syncData();
   if(t==='pattern')renderBuilder();
 }
 function updateGauge(r){
@@ -2878,7 +3029,7 @@ function insightText(r){
     }
     if(wi>=0&&Math.abs(wv)>=6)parts.push((r.plan.segs.length>1?'In exercise '+sg.idx+', stroke ':'Stroke ')+sg.notes.slice(0,wi+1).filter(n=>n!=='_').length+' ('+sg.notes[wi]+') drifts most, '+Math.abs(wv).toFixed(0)+' ms '+(wv>0?'late':'early')+'.');
   }
-  if(r.slots&&r.miss/r.slots>0.1)parts.push(r.miss+' strokes were not heard. Check the trigger line on the Setup page.');
+  if(r.slots&&r.miss/r.slots>0.1)parts.push(r.miss+' strokes were not heard. Check the trigger line in Settings, under Device.');
   if(r.checked>=8&&r.bad/r.checked>0.15)parts.push('The wrong stick seems to have played on '+r.bad+' of '+r.checked+' strokes.');
   if(!parts.length)parts.push('Timing is even across both hands and all strokes.');
   return parts.join(' ');
@@ -2944,8 +3095,8 @@ function guide(){
   const n=recs.runs.length,sig=n+':'+(n?recs.runs[n-1].id:'');
   if(guideMemo.sig!==sig){
     guideMemo={sig:sig,pat:new Map(),rt:new Map()};
-    patStats(recs.runs).forEach(e=>guideMemo.pat.set(e.k+'|'+e.lv,e));
-    routineStats(recs.runs).forEach(e=>guideMemo.rt.set(e.rk+'|'+e.lv,e));
+    patStats(recs.runs,recs.sum).forEach(e=>guideMemo.pat.set(e.k+'|'+e.lv,e));
+    routineStats(recs.runs,recs.sum).forEach(e=>guideMemo.rt.set(e.rk+'|'+e.lv,e));
   }
   return guideMemo;
 }
@@ -2955,6 +3106,11 @@ function exerciseGuide(sg){
   if(!e)return 'new';
   return e.cleared?'cleared at '+e.cleared:'not cleared yet';
 }
+function replaySnap(r){
+  const x=S.mode==='routine'?S.routineText:S.pattern;
+  if(typeof x!=='string'||!x||x.length>MAX_SNAP)return undefined;
+  return {x:x,st:S.startExercise,ev:S.eachVal,eu:S.eachUnit,gp:S.gap,o:r.only||null};
+}
 function recordRun(r){
   lastRun=null;
   const rows=exerciseRows(r).filter(x=>x.passes>=1);
@@ -2962,18 +3118,19 @@ function recordRun(r){
   if(!rows.length)return;
   const all=S.mode==='routine'?allExercises().map(b=>patKey(b.notes,b.groupStart,b.subs,b.defSub,b.sig)):null;
   const run={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t:Date.now(),mode:S.mode,
-    rk:all?routineKeyOf(all):null,rt:all?(routineParsed.title||''):'',ne:all?all.length:1,bpm:S.bpm,tol:S.tol,lv:S.click,sec:Math.max(0,Math.min(14400,Math.round((Date.now()-(r.w0||Date.now()))/1000))),
+    rk:all?routineKeyOf(all):null,rt:all?(routineParsed.title||''):'',ne:all?all.length:1,bpm:S.bpm,tol:S.tol,lv:S.click,rp:replaySnap(r),sec:Math.max(0,Math.min(14400,Math.round((Date.now()-(r.w0||Date.now()))/1000))),
     exercises:rows.map(x=>({k:x.key,bpm:x.bpm,due:x.due,within:Math.round(x.pct*x.due),heard:x.heard,
       avg:isNaN(x.avg)?null:x.avg,sd:isNaN(x.spread)?null:x.spread,miss:x.miss,i:x.idx}))};
   const prevBest=new Map();
   rows.forEach(x=>{const b=bestBefore(recs.runs,x.key,x.bpm,S.click);if(b!==null)prevBest.set(x.key,b);});
-  const newTempo=rows.filter(x=>x.pct>=TARGET&&x.bpm>clearedBefore(recs.runs,x.key,S.click)&&S.click!=='off');
-  const bv0=badgeValues(recs.runs);
+  const newTempo=rows.filter(x=>x.pct>=TARGET&&x.bpm>clearedBefore(recs.runs,x.key,S.click,recs.sum)&&S.click!=='off');
+  const bv0=badgeValues(recs.runs,recs.sum);
   recs.runs.push(run);
-  const bv1=badgeValues(recs.runs),won=[];
+  const bv1=badgeValues(recs.runs,recs.sum),won=[];
   BADGES.forEach(b=>b.at.forEach(n=>{if(bv0[b.id]<n&&bv1[b.id]>=n)won.push((n+' '+b.unit).replace(/^1 patterns/,'1 pattern'));}));
   const saved=saveRecs();
-  lastRun={run:run,prevBest:prevBest,newTempo:newTempo,won:won,rows:rows,skipped:skipped,saved:saved,discarded:false};
+  askPersist();
+  lastRun={run:run,only:r.only||null,prevBest:prevBest,newTempo:newTempo,won:won,rows:rows,skipped:skipped,saved:saved,discarded:false};
 }
 function renderAdvice(){
   const box=$('advice');
@@ -3010,7 +3167,7 @@ function renderAdvice(){
   L.weakIdx=adv.weak.map(b=>b.idx);
   $('advWeak').hidden=S.mode!=='routine'||!L.weakIdx.length;
   $('advWeak').textContent=L.weakIdx.length===1?'Practise exercise '+L.weakIdx[0]+' only':'Practise the '+L.weakIdx.length+' weak exercises';
-  use.textContent='Use '+adv.next+' BPM';use.dataset.bpm=adv.next;
+  use.textContent='Next tempo: '+adv.next+' BPM';use.dataset.bpm=adv.next;
 }
 function discardRun(){
   if(!lastRun||lastRun.discarded)return;
@@ -3072,7 +3229,7 @@ function sparkline(vals){
 const biasCls=v=>isNaN(v)?'':(v<-2.5?'early':(v>2.5?'late':'ok'));
 const accCls=p=>p>=TARGET?'ok':'late';
 function renderPractice(){
-  const days=practiceDays(recs.runs),now=new Date(),mins=k=>Math.round((days.get(k)||0)/60);
+  const days=practiceDays(recs.runs,recs.sum),now=new Date(),mins=k=>Math.round((days.get(k)||0)/60);
   const mon=(now.getDay()+6)%7,start=new Date(now.getFullYear(),now.getMonth(),now.getDate()-mon-21);
   const box=$('strip');box.textContent='';
   'MTWTFSS'.split('').forEach(c=>{const h=document.createElement('span');h.className='sd';h.textContent=c;box.appendChild(h);});
@@ -3090,8 +3247,8 @@ function renderPractice(){
   $('stripHint').textContent=days.size?'This week: '+weekDays+(weekDays===1?' day':' days')+', '+week+' min. One rest day a week keeps the streak going. Darker means more minutes.':'Play a pattern and your practice days show up here. One rest day a week keeps the streak going.';
 }
 function renderBadges(){
-  const v=badgeValues(recs.runs),box=$('badges');box.textContent='';
-  const st=patStats(recs.runs).filter(e=>e.cleared);
+  const v=badgeValues(recs.runs,recs.sum),box=$('badges');box.textContent='';
+  const st=patStats(recs.runs,recs.sum).filter(e=>e.cleared);
   BGROUPS.forEach(g=>{
     const w=document.createElement('div');w.className='bw';
     const h=document.createElement('h4');h.textContent=g.name;w.appendChild(h);
@@ -3115,9 +3272,13 @@ function renderBadges(){
     box.appendChild(w);
   });
 }
+function syncData(){
+  $('recMsg').textContent=recs.runs.length+(recs.runs.length===1?' run':' runs')+' in history, '+(recs.runs.length+recs.sum.runs)+' in all.';
+  syncBackup();
+}
 function renderProgress(){
   renderPractice();renderBadges();
-  const stats=patStats(recs.runs),routines=routineStats(recs.runs);
+  const stats=patStats(recs.runs,recs.sum),routines=routineStats(recs.runs,recs.sum);
   const tgt=Math.round(TARGET*100);
   $('progHint').textContent=stats.length
     ?'Accuracy is the share of strokes inside your timing window over your last three runs at the tempo you played most recently. Trend plots each run at that tempo (up to 12), with the dotted line at the target. Cleared means '+tgt+'% or better at that tempo.'
@@ -3134,7 +3295,86 @@ function renderProgress(){
   fillTable($('rtTable'),routines.length?['Routine','Level','Exercises','Runs','Cleared at','Last']:[],
     routines.length?routines.map(x=>[x.title||'Untitled routine',levelName(x.lv),String(x.ne),String(x.runs),x.cleared?x.cleared+' BPM':'—',fmtDate(x.t)])
       :[[['No routine runs yet.','muted']]]);
-  $('recMsg').textContent=recs.runs.length+(recs.runs.length===1?' run':' runs')+' stored.';
+  renderHistory();syncData();
+}
+let sview='pref';
+function setSview(v){
+  sview=v;
+  [['pref','svPref','svBtnPref'],['dev','svDev','svBtnDev'],['data','svData','svBtnData']].forEach(x=>{
+    $(x[1]).hidden=v!==x[0];$(x[2]).setAttribute('aria-pressed',String(v===x[0]));
+  });
+}
+function showSetup(v){setSview(v);showTab('setup');}
+let pview='hist',histShown=30;
+function setPview(v){
+  pview=v;
+  [['stats','pvStats','pvBtnStats'],['hist','pvHist','pvBtnHist'],['ach','pvAch','pvBtnAch']].forEach(x=>{
+    $(x[1]).hidden=v!==x[0];$(x[2]).setAttribute('aria-pressed',String(v===x[0]));
+  });
+}
+const runPct=r=>{let w=0,d=0;r.exercises.forEach(b=>{w+=b.within;d+=b.due;});return d?w/d:0;};
+let delArm=null;
+function renderHistory(){
+  const box=$('histList');box.textContent='';
+  const runs=recs.runs.slice().reverse();
+  $('histHint').textContent=runs.length?'Your last '+recs.runs.length+' runs, newest first. Tap a run for its exercises. Replay loads the same pattern or routine, tempo, click level and settings on the Play page.':'No runs yet. Each run you play is listed here.';
+  let day='';
+  runs.slice(0,histShown).forEach(r=>{
+    const dk=dayKey(r.t);
+    if(dk!==day){day=dk;const h=document.createElement('h4');h.textContent=new Date(r.t).toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'short'});box.appendChild(h);}
+    const det=document.createElement('details');det.className='hrow';
+    const sm=document.createElement('summary');
+    const name=r.mode==='routine'?(r.rt||'Routine')+' · '+r.ne+(r.ne===1?' exercise':' exercises'):showKey(r.exercises[0].k);
+    const n=document.createElement('span');n.className='hn';n.textContent=name;
+    const st=document.createElement('span');st.className='hs';
+    st.textContent=new Date(r.t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})+' · '+(r.lv==='off'?'Count-in only':levelName(r.lv))+' · '+r.bpm+' BPM · '+(r.lv==='off'?'':Math.round(runPct(r)*100)+'% on time · ')+fmtTime(r.sec||0);
+    sm.appendChild(n);sm.appendChild(st);det.appendChild(sm);
+    const body=document.createElement('div');body.className='hb';
+    const ul=document.createElement('ul');
+    r.exercises.forEach(b=>{const li=document.createElement('li');
+      const a=document.createElement('span');a.textContent=(r.mode==='routine'?(b.i||'')+' ':'')+showKey(b.k);a.className='seq';
+      const c=document.createElement('span');c.textContent=Math.round(b.within/b.due*100)+'%'+(b.bpm!==r.bpm?' · '+b.bpm+' BPM':'');
+      li.appendChild(a);li.appendChild(c);ul.appendChild(li);});
+    body.appendChild(ul);
+    const btns=document.createElement('div');btns.className='btns';
+    const rp=document.createElement('button');rp.type='button';rp.className='btn small';rp.textContent='Replay';rp.disabled=!r.rp;
+    if(!r.rp)rp.title='This run was saved without its text.';
+    rp.addEventListener('click',()=>replayRun(r));
+    const dl=document.createElement('button');dl.type='button';dl.className='btn small';dl.textContent='Delete';
+    dl.addEventListener('click',()=>{
+      if(delArm!==r.id){delArm=r.id;dl.textContent='Click again to delete';setTimeout(()=>{if(delArm===r.id){delArm=null;dl.textContent='Delete';}},4000);return;}
+      delArm=null;deleteRun(r.id);
+    });
+    btns.appendChild(rp);btns.appendChild(dl);body.appendChild(btns);det.appendChild(body);box.appendChild(det);
+  });
+  $('histMore').hidden=runs.length<=histShown;
+}
+function deleteRun(id){
+  const i=recs.runs.findIndex(x=>x.id===id);if(i<0)return;
+  recs.runs.splice(i,1);saveRecs();
+  if(lastRun&&lastRun.run.id===id){lastRun=null;renderAdvice();}
+  renderProgress();
+}
+/* Loads a past run's pattern or routine, tempo, click level and settings, then opens Play. It does not start. */
+function replayRun(r){
+  if(run&&!run.ended)return;
+  const q=r.rp;if(!q)return;
+  S.click=r.lv;$('click').value=r.lv;
+  S.tol=r.tol;$('tol').value=String(r.tol);
+  S.bpm=clamp(Math.round(r.bpm),40,220);$('bpm').value=S.bpm;
+  if(r.mode==='routine'){
+    S.eachVal=q.ev;S.eachUnit=q.eu;S.gap=q.gp;
+    $('eachVal').value=q.ev;$('eachUnit').value=q.eu;$('gap').value=String(q.gp);
+    setRoutineText(q.x);
+    S.startExercise=q.o&&q.o.length?Math.min.apply(null,q.o):q.st;
+    setMode('routine');
+  }else{
+    S.pattern=q.x;$('pattern').value=q.x;
+    setMode('single');
+  }
+  save();syncInfo();
+  setStatus('Loaded from history. Press Start to play it again.');
+  showTab('play');
 }
 function practisePattern(k,lv){
   if(run&&!run.ended)return;
@@ -3155,8 +3395,40 @@ function stamp(withTime){
   const d=new Date(),p=n=>String(n).padStart(2,'0');
   return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+(withTime?'-'+p(d.getHours())+p(d.getMinutes()):'');
 }
+const DAY=864e5;
+const totalRuns=()=>recs.runs.length+recs.sum.runs;
+const isApple=()=>/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const isHomeScreen=()=>!!navigator.standalone||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
+let persisted=null;
+/* Asks the browser not to clear this site's data. Safe to call more than once. */
+function askPersist(){
+  try{
+    if(!(navigator.storage&&navigator.storage.persist))return;
+    navigator.storage.persisted().then(p=>p?p:navigator.storage.persist()).then(p=>{persisted=!!p;syncBackup();}).catch(()=>{});
+  }catch(e){}
+}
+/* A reminder to save a copy: none yet, or two weeks old with new runs since. */
+function backupDue(){
+  const n=totalRuns();
+  if(n<5)return '';
+  if(!S.lastExport)return "You haven't saved a copy of your records yet. If the browser clears this site's data, they are gone.";
+  if(Date.now()-S.lastExport>14*DAY&&n>S.expRuns)return 'Your last saved copy is '+Math.floor((Date.now()-S.lastExport)/DAY)+' days old. '+(n-S.expRuns)+(n-S.expRuns===1?' run is':' runs are')+' not in it.';
+  return '';
+}
+function syncBackup(){
+  const m=backupDue();
+  $('bakNote').hidden=!m;$('bakText').textContent=m;
+  let t='';
+  if(persisted===true)t='This browser has agreed to keep your records. ';
+  else if(persisted===false)t="This browser has not promised to keep your records, so keep a saved copy. ";
+  if(isApple()&&!isHomeScreen())t+="On iPhone and iPad, Safari can clear a site's saved data after about a week without use. Add this page to your Home Screen (Share, then Add to Home Screen) and open it from there to protect your records.";
+  else if(isApple())t+="Safari can still clear data in rare cases, so keep a saved copy.";
+  if(S.lastExport)t+=(t?' ':'')+'Last copy saved '+new Date(S.lastExport).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})+'.';
+  $('storeMsg').textContent=t;
+}
 function exportRecs(){
-  saveFile('stick-timing-records-'+stamp()+'.json','application/json',JSON.stringify({v:1,runs:recs.runs}));
+  S.lastExport=Date.now();S.expRuns=totalRuns();save();syncBackup();
+  saveFile('stick-timing-records-'+stamp()+'.json','application/json',JSON.stringify(packRecs()));
 }
 async function importRecs(file){
   if(!file)return;
@@ -3164,8 +3436,10 @@ async function importRecs(file){
   try{
     const o=JSON.parse(await file.text());
     if(!o||!Array.isArray(o.runs))throw 0;
+    const u=unpackRecs(o),fresh=!recs.runs.length&&!recs.sum.runs;
+    if(fresh&&u.sum.runs)recs.sum=u.sum;
     const have=new Set(recs.runs.map(x=>x.id));let add=0;
-    o.runs.forEach(x=>{const c=cleanRun(x);if(c&&!have.has(c.id)){recs.runs.push(c);have.add(c.id);add++;}});
+    u.runs.forEach(c=>{if(!have.has(c.id)){recs.runs.push(c);have.add(c.id);add++;}});
     recs.runs.sort((a,b)=>a.t-b.t);
     saveRecs();renderProgress();
     $('recMsg').textContent='Added '+add+(add===1?' run':' runs')+'. '+recs.runs.length+' stored.';
@@ -3176,7 +3450,7 @@ function clearRecs(){
   const b=$('recClear');
   if(!clearArm){clearArm=setTimeout(()=>{clearArm=0;b.textContent='Clear all';},4000);b.textContent='Click again to clear';return;}
   clearTimeout(clearArm);clearArm=0;b.textContent='Clear all';
-  recs.runs.length=0;saveRecs();lastRun=null;renderProgress();
+  recs.runs.length=0;recs.sum=newSum();saveRecs();lastRun=null;renderProgress();
 }
 
 /* ---------- results by exercise ---------- */
@@ -3453,7 +3727,13 @@ function syncRunUI(){
   $('runBtns').hidden=!play;
   pushDet();
 }
+function setReview(on){
+  document.body.dataset.review=on?'1':'0';
+  $('advDone').hidden=!on;
+  if(on){window.scrollTo(0,0);const h=$('advHead');h.tabIndex=-1;h.focus({preventScroll:true});}
+}
 function setRunning(on){
+  if(on)setReview(false);
   syncRunUI();
   /* While a pattern or routine is playing, hide the settings so the strokes sit under the transport. */
   document.body.dataset.run=on?'1':'0';
@@ -3850,9 +4130,19 @@ function wire(){
     else{setRoutineText(b.dataset.text);setMode('routine');}
     showTab('play');window.scrollTo(0,0);
   }));
-  $('advUse').addEventListener('click',e=>{setBpm(+e.currentTarget.dataset.bpm);e.currentTarget.hidden=true;});
+  $('advUse').addEventListener('click',e=>{setBpm(+e.currentTarget.dataset.bpm);e.currentTarget.hidden=true;startPlay(lastRun&&lastRun.only||undefined);});
+  $('advAgain').addEventListener('click',()=>startPlay(lastRun&&lastRun.only||undefined));
+  $('advDone').addEventListener('click',()=>{setReview(false);window.scrollTo(0,0);});
   $('advDiscard').addEventListener('click',discardRun);
+  $('svBtnPref').addEventListener('click',()=>setSview('pref'));
+  $('svBtnDev').addEventListener('click',()=>setSview('dev'));
+  $('svBtnData').addEventListener('click',()=>setSview('data'));
+  $('pvBtnStats').addEventListener('click',()=>setPview('stats'));
+  $('pvBtnHist').addEventListener('click',()=>setPview('hist'));
+  $('pvBtnAch').addEventListener('click',()=>setPview('ach'));
+  $('histMore').addEventListener('click',()=>{histShown+=30;renderHistory();});
   $('recExport').addEventListener('click',exportRecs);
+  $('bakGo').addEventListener('click',exportRecs);
   $('recImport').addEventListener('click',()=>$('recFile').click());
   $('recFile').addEventListener('change',async e=>{await importRecs(e.target.files&&e.target.files[0]);e.target.value='';});
   $('recClear').addEventListener('click',clearRecs);
@@ -3895,7 +4185,7 @@ function wire(){
     if(await ensureAudio(true))beginRun('lat');
   });
   $('calLoop').addEventListener('click',startLoop);
-  $('calNoteGo').addEventListener('click',()=>{showTab('setup');$('calLoop').scrollIntoView({block:'center'});$('calLoop').focus();});
+  $('calNoteGo').addEventListener('click',()=>{showSetup('dev');$('calLoop').scrollIntoView({block:'center'});$('calLoop').focus();});
   $('startBtn').addEventListener('click',()=>{
     if(run&&!run.ended){
       if(run.mode!=='play'){stopRun();return;}
