@@ -189,6 +189,10 @@ body[data-run="1"][data-rm="play"] header,body[data-run="1"][data-rm="play"] .ta
 body:not([data-state="done"]) #after{display:none}
 svg.spark{display:block;overflow:visible}
 .badges{display:grid;gap:12px;margin-top:10px}
+.cgrid{border-collapse:collapse;margin:8px 0 4px;font-size:13px;width:100%;max-width:360px}
+.cgrid th,.cgrid td{padding:4px 6px;text-align:right;border-bottom:1px solid var(--line)}
+.cgrid th:first-child{text-align:left}
+.cgrid tr:first-child th{font-weight:600;color:var(--muted)}
 .bw h4{margin:0 0 2px;font-size:14px}
 .bw .bd{margin-top:6px}
 .bd{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -503,7 +507,6 @@ button.pill.on{color:var(--ok)}
     <section aria-label="Achievements">
       <h3>Achievements</h3>
       <p class="hint">Milestones you earn as you practise. A filled badge is earned.</p>
-      <div class="field"><label for="badgeLv">Patterns cleared at level</label><select id="badgeLv"></select></div>
       <div class="badges" id="badges"></div>
     </section>
     <section aria-label="Rudiments">
@@ -554,7 +557,7 @@ button.pill.on{color:var(--ok)}
         <li><b>Play:</b> the Pattern or Routine switch, tempo, click level, Start, Pause, Restart and Stop, the notation, the lead/drag gauge and your results. With a routine loaded, scroll or swipe the rows (or press ↑ ↓) to choose which exercise to start at.</li>
         <li><b>Pattern:</b> what you practise: one pattern, or a routine of exercises you type, load from a file or load from a URL.</li>
         <li><b>Setup:</b> on-time window, click volume, microphone, stick calibration and latency.</li>
-        <li><b>Progress:</b> your practice days for the last four weeks with a streak that forgives one rest day a week, achievements (sessions, days in a row, patterns cleared at 60, 80, 100 and 120 BPM), your scores for each pattern, weakest first, and each routine's best cleared tempo.</li>
+        <li><b>Progress:</b> your practice days for the last four weeks with a streak that forgives one rest day a week, achievements (sessions, days in a row, patterns cleared on each click level and on all four), your scores for each pattern, weakest first, and each routine's best cleared tempo.</li>
       </ul>
     </section>
 
@@ -1350,14 +1353,17 @@ function streakOf(days,now){
 }
 /* Achievements: three tracks, each with levels. Worked out from the saved runs, so discarding a run takes its credit back. */
 const BADGES=[{id:'ses',name:'Sessions',unit:'sessions',at:[5,10,25,50,100,250,500]},{id:'str',name:'Days in a row',unit:'days in a row',at:[5,10,20,30,60,100,180,365]}];
-LEVELS.forEach(l=>[60,80,100,120].forEach(b=>BADGES.push({id:'c'+b+l.v,bpm:b,lv:l.v,name:b+'+ BPM',unit:'patterns cleared at '+b+'+ BPM, '+l.n,at:[1,5,10,20,30,50]})));
+LEVELS.forEach(l=>BADGES.push({id:'l'+l.v,lv:l.v,name:l.n,unit:'patterns cleared on '+l.n,at:[1,5,10,20,30,50]}));
+BADGES.push({id:'all',name:'On all four levels',unit:'patterns cleared on all four levels',at:[1]});
 const BGROUPS=[{name:'Sessions',d:'Runs where at least one pattern was played through once and scored.',ids:['ses']},
   {name:'Days in a row',d:'Your longest run of practice days. One rest day a week does not break it.',ids:['str']},
-  {name:'Patterns cleared',d:'Different patterns you have played at 90% or more of strokes on time. Pick a click level. Each level is cleared on its own, and each row counts patterns cleared at that tempo or faster.',ids:[60,80,100,120]}];
+  {name:'Patterns cleared',d:'A pattern is cleared on a level when you play it at 90% or more of strokes on time at that click level. Each level is cleared on its own. The table counts patterns by the fastest tempo they were cleared at.',grid:true,ids:['lstrokes','lbeat','lhalf','lbar','all']}];
 function badgeValues(runs){
   const days=practiceDays(runs),best=Array.from(days.keys()).reduce((m,k)=>{const a=k.split('-');return Math.max(m,streakOf(days,new Date(+a[0],+a[1]-1,+a[2])));},0);
-  const st=patStats(runs),o={ses:runs.length,str:best};
-  BADGES.forEach(b=>{if(b.bpm)o[b.id]=st.filter(e=>e.lv===b.lv&&e.cleared>=b.bpm).length;});
+  const st=patStats(runs).filter(e=>e.cleared),o={ses:runs.length,str:best},per=new Map();
+  LEVELS.forEach(l=>{o['l'+l.v]=0;});
+  st.forEach(e=>{o['l'+e.lv]++;per.set(e.k,(per.get(e.k)||0)+1);});
+  o.all=[...per.values()].filter(n=>n>=LEVELS.length).length;
   return o;
 }
 function bestBefore(runs,k,bpm,lv){
@@ -1674,7 +1680,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.5.32';                           /* shown beside the title */
+const VERSION='0.5.33';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const SAMPLE='# Example routine. Replace these with your own exercises, one per line.\n# To change how long an exercise plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example routine\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
@@ -1684,7 +1690,7 @@ const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const LOOKAHEAD=0.35;                            /* how far ahead clicks are scheduled, in seconds */
 
 const S={mode:'single',pattern:'RLRL RLRL RLRL RLRL',routineText:SAMPLE,eachUnit:'min',eachVal:1,gap:0,pulse:true,startExercise:1,
-  bpm:60,subdiv:4,click:'beat',badgeLv:'strokes',tol:20,sens:-30,settle:40,library:'',vol:60,latency:null,latCal:false,input:'mic',editMode:'type'};
+  bpm:60,subdiv:4,click:'beat',tol:20,sens:-30,settle:40,library:'',vol:60,latency:null,latCal:false,input:'mic',editMode:'type'};
 let cal={L:[],R:[]},model=null;
 try{
   const o=JSON.parse(localStorage.getItem(KEY)||'null');
@@ -1707,7 +1713,6 @@ S.latency=(S.latency==null||isNaN(+S.latency))?null:clamp(Math.round(+S.latency)
 if(S.input!=='kb')S.input='mic';
 if(S.click==='note')S.click='strokes';
 if(!['beat','strokes','half','bar','off'].includes(S.click))S.click='beat';
-if(!LEVELS.some(l=>l.v===S.badgeLv))S.badgeLv='strokes';
 if(typeof S.pattern!=='string')S.pattern='RLRL RLRL RLRL RLRL';
 if(typeof S.routineText!=='string'||S.routineText.length>MAX_TEXT)S.routineText=SAMPLE;
 S.eachUnit=S.eachUnit==='pass'?'pass':'min';
@@ -2966,7 +2971,7 @@ function recordRun(r){
   const bv0=badgeValues(recs.runs);
   recs.runs.push(run);
   const bv1=badgeValues(recs.runs),won=[];
-  BADGES.forEach(b=>b.at.forEach(n=>{if(bv0[b.id]<n&&bv1[b.id]>=n)won.push(n+' '+b.unit);}));
+  BADGES.forEach(b=>b.at.forEach(n=>{if(bv0[b.id]<n&&bv1[b.id]>=n)won.push((n+' '+b.unit).replace(/^1 patterns/,'1 pattern'));}));
   const saved=saveRecs();
   lastRun={run:run,prevBest:prevBest,newTempo:newTempo,won:won,rows:rows,skipped:skipped,saved:saved,discarded:false};
 }
@@ -3085,17 +3090,23 @@ function renderPractice(){
   $('stripHint').textContent=days.size?'This week: '+weekDays+(weekDays===1?' day':' days')+', '+week+' min. One rest day a week keeps the streak going. Darker means more minutes.':'Play a pattern and your practice days show up here. One rest day a week keeps the streak going.';
 }
 function renderBadges(){
-  const sel=$('badgeLv');
-  if(!sel.options.length)LEVELS.forEach(l=>{const o=document.createElement('option');o.value=l.v;o.textContent=l.n;sel.appendChild(o);});
-  sel.value=S.badgeLv;
-
   const v=badgeValues(recs.runs),box=$('badges');box.textContent='';
+  const st=patStats(recs.runs).filter(e=>e.cleared);
   BGROUPS.forEach(g=>{
     const w=document.createElement('div');w.className='bw';
     const h=document.createElement('h4');h.textContent=g.name;w.appendChild(h);
     const d=document.createElement('p');d.className='hint';d.textContent=g.d;w.appendChild(d);
+    if(g.grid){
+      const tb=document.createElement('table');tb.className='cgrid';
+      const hd=document.createElement('tr');['Level','Any tempo','60+','80+','100+','120+'].forEach(x=>{const c=document.createElement('th');c.textContent=x;hd.appendChild(c);});tb.appendChild(hd);
+      LEVELS.forEach(l=>{
+        const r=document.createElement('tr'),at=st.filter(e=>e.lv===l.v);
+        [l.n,at.length,...[60,80,100,120].map(t=>at.filter(e=>e.cleared>=t).length)].forEach((x,i)=>{const c=document.createElement(i?'td':'th');c.textContent=x;r.appendChild(c);});
+        tb.appendChild(r);
+      });
+      w.appendChild(tb);
+    }
     g.ids.forEach(id=>{
-      if(typeof id==='number')id='c'+id+S.badgeLv;
       const b=BADGES.find(x=>x.id===id),row=document.createElement('div');row.className='bd';
       const t=document.createElement('span');t.className='bt';t.textContent=(g.ids.length>1?b.name:'You have')+' · '+v[id];row.appendChild(t);
       b.at.forEach(n=>{const c=document.createElement('span');c.className='bc'+(v[id]>=n?' on':'');c.textContent=n;c.title=v[id]>=n?'Earned':'Reach '+n;row.appendChild(c);});
@@ -3794,7 +3805,6 @@ function wire(){
   $('bpmUp').addEventListener('click',()=>setBpm(S.bpm+1));
   $('subdiv').addEventListener('change',e=>{S.subdiv=+e.target.value;save();if(S.mode==='routine')buildExerciseList();previewRows();syncInfo();});
   $('click').addEventListener('change',e=>{S.click=e.target.value;save();if(S.mode==='routine')buildExerciseList();syncInfo();});
-  $('badgeLv').addEventListener('change',e=>{S.badgeLv=e.target.value;save();renderBadges();});
   $('tol').addEventListener('change',e=>{S.tol=+e.target.value;save();renderAll();});
   $('inputMode').addEventListener('change',e=>{S.input=e.target.value;save();setInputMode();});
   $('modeSingle').addEventListener('click',()=>setMode('single'));
