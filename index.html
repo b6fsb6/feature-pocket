@@ -221,6 +221,14 @@ svg.spark{display:block;overflow:visible}
 .ib.del.arm{color:var(--late);border:1px solid var(--late);padding:0 8px}
 .hrow .hb{padding:0 12px 12px;display:grid;gap:8px}
 .hgrp>.hg{padding:0 8px 8px}
+.hgrp .tablewrap td,.hgrp .tablewrap th{padding-left:6px;padding-right:6px}
+.hgrp .tablewrap .ib{min-width:30px;height:30px;padding:0}
+.hgrp .tablewrap .ib svg{width:17px;height:17px}
+.hgrp tr.dt td{padding:6px;background:var(--bg)}
+.hgrp tr.dt .tablewrap{background:var(--surface)}
+.hgrp tbody tr:has(.cv){cursor:pointer}
+.ib.cv span{width:8px;height:8px;border:solid var(--muted);border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-2px,-2px);transition:transform .15s}
+.ib.cv.open span{transform:rotate(-135deg) translate(-2px,-2px)}
 .hgrp .hrow{background:var(--bg)}
 .hrow ul{margin:0;padding:0;list-style:none;font-size:13px;display:grid;gap:2px}
 .hrow li{display:flex;gap:8px;justify-content:space-between}
@@ -465,7 +473,7 @@ button.pill.on{color:var(--ok)}
       <p class="hint" id="bNote" hidden></p>
       <div class="bmain" id="bMain">
         <div class="b-routine bhdr">
-          <div class="field"><label for="bTitle">Title</label><input type="text" id="bTitle" maxlength="80" autocomplete="off" placeholder="Name this routine"></div>
+          <div class="field"><label for="bTitle">Title</label><input type="text" id="bTitle" maxlength="80" autocomplete="off" autocorrect="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" placeholder="Name this routine"></div>
           <div class="row">
             <div class="field"><label for="bTime">Time</label><select id="bTime"></select></div>
             <div class="field"><label for="bGroup">Grouping</label><select id="bGroup"></select></div>
@@ -503,9 +511,9 @@ button.pill.on{color:var(--ok)}
         </div>
         <div class="bnote">
           <div class="bfields">
-            <div class="single-only" id="fPat"><input type="text" id="pattern" aria-label="Sticking" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="patInfo"></div>
-            <div class="routine-only" id="fRt"><textarea id="routineText" aria-label="Exercises, one per line" rows="7" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="routineInfo"></textarea></div>
-            <div id="rPat"><input type="text" id="bReadP" readonly inputmode="none" aria-label="Notation you are building" autocomplete="off" spellcheck="false"></div>
+            <div class="single-only" id="fPat"><input type="text" id="pattern" aria-label="Sticking" autocomplete="off" autocorrect="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" autocapitalize="characters" spellcheck="false" aria-describedby="patInfo"></div>
+            <div class="routine-only" id="fRt"><textarea id="routineText" aria-label="Exercises, one per line" rows="7" autocomplete="off" autocorrect="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" autocapitalize="characters" spellcheck="false" aria-describedby="routineInfo"></textarea></div>
+            <div id="rPat"><input type="text" id="bReadP" readonly inputmode="none" aria-label="Notation you are building" autocomplete="off" autocorrect="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" spellcheck="false"></div>
           </div>
           <button class="btn small iconbtn" id="bListen" type="button" aria-label="Listen to this exercise as clicks" title="Listen"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18 6.5a7.5 7.5 0 0 1 0 11"/></svg></button>
         </div>
@@ -524,7 +532,7 @@ button.pill.on{color:var(--ok)}
             <input type="file" id="routineFile" accept=".txt,.json,.csv,text/plain,application/json" hidden>
           </div>
           <div class="urlrow" id="urlRow" hidden>
-            <input type="text" id="routineUrl" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://example.com/my-routine.txt" aria-label="Routine URL">
+            <input type="text" id="routineUrl" inputmode="url" autocomplete="off" autocorrect="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" spellcheck="false" placeholder="https://example.com/my-routine.txt" aria-label="Routine URL">
             <button class="btn" id="urlGo" type="button">Load</button>
           </div>
         </div>
@@ -554,7 +562,7 @@ button.pill.on{color:var(--ok)}
       <h3>Routine library</h3>
       <div class="field">
         <label for="libraryUrl">Library address</label>
-        <input type="text" id="libraryUrl" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://example.com/routines.list">
+        <input type="text" id="libraryUrl" inputmode="url" autocomplete="off" autocorrect="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" spellcheck="false" placeholder="https://example.com/routines.list">
         <div class="btns">
           <button class="btn small" id="libGo" type="button">Load list</button>
           <button class="btn small" id="libClear" type="button">Remove</button>
@@ -1816,7 +1824,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.5.84';                           /* shown beside the title */
+const VERSION='0.5.91';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const SAMPLE='# Example routine. Replace these with your own exercises, one per line.\n# To change how long an exercise plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example routine\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
@@ -3376,6 +3384,16 @@ function deleteBtn(r){
   });
 }
 /* One run: Replay and Delete sit on the row. A routine run also expands to show each exercise's result. */
+/* Today and yesterday by name, otherwise the date. */
+const dayWord=t=>{const n=Date.now(),k=dayKey(t);return k===dayKey(n)?'today':k===dayKey(n-864e5)?'yesterday':new Date(t).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'});};
+const fmtDay=t=>new Date(t).toLocaleDateString(undefined,{day:'numeric',month:'short'})+' '+new Date(t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+/* One routine run, exercise by exercise, laid out like the Scores list. */
+function exTable(r){
+  const wrap=document.createElement('div');wrap.className='tablewrap';const tb=document.createElement('table');
+  fillTable(tb,['#','Exercise','BPM','Accuracy','Bias ms'],r.exercises.map(b=>{const pc=b.due?b.within/b.due:0;
+    return [[String(b.i||''),'muted'],[showKey(b.k),'seq'],String(b.bpm),[Math.round(pc*100)+'%',accCls(pc)],[b.heard?fmtMs(b.avg,1):'—',b.heard?biasCls(b.avg):'muted']];}));
+  wrap.appendChild(tb);return wrap;
+}
 function histRun(r,named){
   const routine=r.mode==='routine';
   const det=document.createElement(routine?'details':'div');det.className='hrow'+(routine?'':' flat');
@@ -3388,12 +3406,7 @@ function histRun(r,named){
   sm.appendChild(n);sm.appendChild(st);sm.appendChild(ac);det.appendChild(sm);
   if(routine){
     const body=document.createElement('div');body.className='hb';
-    const ul=document.createElement('ul');
-    r.exercises.forEach(b=>{const li=document.createElement('li');
-      const a=document.createElement('span');a.textContent=(b.i||'')+' '+showKey(b.k);a.className='seq';
-      const c=document.createElement('span');c.textContent=Math.round(b.within/b.due*100)+'%'+(b.bpm!==r.bpm?' · '+b.bpm+' BPM':'');
-      li.appendChild(a);li.appendChild(c);ul.appendChild(li);});
-    body.appendChild(ul);det.appendChild(body);
+    body.appendChild(exTable(r));det.appendChild(body);
   }
   return det;
 }
@@ -3401,23 +3414,39 @@ function histRun(r,named){
 function renderHistory(){
   const box=$('histList');box.textContent='';
   const groups=new Map();
-  recs.runs.slice().reverse().forEach(r=>{const k=runKey(r);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r);});
+  recs.runs.slice().reverse().forEach(r=>{const k=runKey(r)+'|'+r.lv;if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r);});
   const list=[...groups.values()];
   $('histHint').textContent=list.length?'Your last '+recs.runs.length+' runs, grouped by exercise or routine, most recent first. Tap one for its runs. Replay loads the same pattern or routine, tempo, click level and settings on the Play page.':'No runs yet. Each run you finish is listed here.';
   list.slice(0,histShown).forEach(g=>{
     if(g.length===1){box.appendChild(histRun(g[0],true));return;}
     const det=document.createElement('details');det.className='hrow hgrp';
     const sm=document.createElement('summary');
-    const f=g[0],ranked=g.filter(r=>r.lv!=='off');
+    const f=g[0],routine=f.mode==='routine',ranked=g.filter(r=>r.lv!=='off');
     const best=ranked.reduce((m,r)=>!m||runPct(r)>runPct(m)||(runPct(r)===runPct(m)&&r.bpm>m.bpm)?r:m,null);
     const n=document.createElement('span');n.className='hn';n.textContent=f.mode==='routine'?(f.rt||'Routine')+' · '+f.ne+(f.ne===1?' exercise':' exercises'):showKey(f.exercises[0].k);
     const st=document.createElement('span');st.className='hs';
-    st.textContent=g.length+' runs · last '+new Date(f.t).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'})+(best?' · best '+Math.round(runPct(best)*100)+'% at '+best.bpm+' BPM':'');
+    st.textContent=(f.lv==='off'?'Count-in only':levelName(f.lv))+' · '+g.length+' runs · latest '+dayWord(f.t)+(best?' · best '+Math.round(runPct(best)*100)+'% at '+best.bpm+' BPM':'');
     const ac=document.createElement('span');ac.className='ha';ac.appendChild(replayBtn(f));
     sm.appendChild(n);sm.appendChild(st);sm.appendChild(ac);det.appendChild(sm);
     const body=document.createElement('div');body.className='hb hg';
-    g.forEach(r=>body.appendChild(histRun(r,false)));
-    det.appendChild(body);box.appendChild(det);
+    const wrap=document.createElement('div');wrap.className='tablewrap';const tb=document.createElement('table');
+    fillTable(tb,['Date','BPM','Accuracy','Bias',''],g.map(r=>{
+      const off=r.lv==='off',pc=runPct(r);let hs=0,sw=0;r.exercises.forEach(b=>{hs+=b.heard||0;sw+=(b.avg||0)*(b.heard||0);});const bias=hs?sw/hs:NaN;
+      const row=[fmtDay(r.t),String(r.bpm),off?['—','muted']:[Math.round(pc*100)+'%',accCls(pc)],off||!hs?['—','muted']:[fmtMs(bias,1),biasCls(bias)],deleteBtn(r)];
+      if(routine){const cv=document.createElement('button');cv.type='button';cv.className='ib cv';cv.setAttribute('aria-label','Show the exercises');cv.setAttribute('aria-expanded','false');cv.innerHTML='<span></span>';row.push(cv);}
+      return row;}));
+    if(routine){   /* each run opens to its own exercise table, in a row of its own under it */
+      tb.querySelector('thead tr').appendChild(document.createElement('th'));
+      [...tb.querySelectorAll('tbody tr')].forEach((tr,i)=>{
+        const dt=document.createElement('tr');dt.className='dt';dt.hidden=true;
+        const td=document.createElement('td');td.colSpan=6;td.appendChild(exTable(g[i]));dt.appendChild(td);tr.after(dt);
+        const cv=tr.querySelector('.cv');
+        const flip=()=>{dt.hidden=!dt.hidden;cv.setAttribute('aria-expanded',String(!dt.hidden));cv.classList.toggle('open',!dt.hidden);};
+        cv.addEventListener('click',flip);
+        tr.addEventListener('click',e=>{if(!e.target.closest('button'))flip();});
+      });
+    }
+    wrap.appendChild(tb);body.appendChild(wrap);det.appendChild(body);box.appendChild(det);
   });
   $('histMore').hidden=list.length<=histShown;
 }
@@ -4414,7 +4443,7 @@ function init(){
   $('gap').value=String(S.gap);
   $('pulse').value=S.pulse?'on':'off';
   syncEach();
-  $('ver').textContent='(v'+VERSION+')';
+  $('ver').textContent='v'+VERSION;
   /* Line the version up with the right end of the title's longest line, however the title wraps. */
   const placeVer=()=>{const t=document.querySelector('header .sub'),r=document.createRange();r.selectNodeContents(document.querySelector('header h1'));
     let m=0;for(const q of r.getClientRects())m=Math.max(m,q.right);
