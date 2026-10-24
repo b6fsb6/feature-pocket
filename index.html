@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <title>Stick Timing Trainer</title>
 <script>(function(){var t='';try{t=JSON.parse(localStorage.getItem('stick-timing-trainer.v1')).settings.theme}catch(e){}
@@ -28,7 +28,7 @@ if(t!=='light'&&t!=='dark')t=window.matchMedia&&matchMedia('(prefers-color-schem
     color-scheme:dark;
   }
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;touch-action:manipulation}   /* no double-tap zoom */
 body{
   margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--font-body);
   padding-block:max(20px,env(safe-area-inset-top,0px)) max(48px,env(safe-area-inset-bottom,0px));
@@ -176,7 +176,7 @@ details[open]>summary::after{transform:rotate(-135deg);margin-top:10px}
 .heard{font:600 13px var(--font-data);color:var(--accent)}
 
 [hidden]{display:none!important}
-textarea{font:600 15px/1.55 var(--font-data);letter-spacing:.06em;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;width:100%;min-height:150px;resize:vertical}
+textarea{font:600 16px/1.55 var(--font-data);letter-spacing:.06em;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;width:100%;min-height:150px;resize:vertical}
 textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .switch{display:grid;grid-template-columns:repeat(var(--n,2),1fr);gap:3px;padding:3px;border-radius:11px;background:var(--line)}
 .switch button{font:800 18px var(--font-display);letter-spacing:.07em;text-transform:uppercase;border:0;background:transparent;color:var(--muted);min-height:44px;cursor:pointer;border-radius:8px}
@@ -1824,7 +1824,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.5.76';                           /* shown beside the title */
+const VERSION='0.5.77';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const SAMPLE='# Example routine. Replace these with your own exercises, one per line.\n# To change how long an exercise plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example routine\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
@@ -4402,6 +4402,8 @@ function syncEach(){
   el.value=S.eachVal;
 }
 
+/* iOS ignores user-scalable, so stop the pinch gesture too. */
+['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault()));
 function init(){
   $('pattern').value=S.pattern;
   $('routineText').value=S.routineText;
