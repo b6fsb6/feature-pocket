@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <title>Stick Timing Trainer</title>
 <script>(function(){var t='';try{t=JSON.parse(localStorage.getItem('stick-timing-trainer.v1')).settings.theme}catch(e){}
@@ -14,7 +14,7 @@ if(t!=='light'&&t!=='dark')t=window.matchMedia&&matchMedia('(prefers-color-schem
 /* Layout: one column, three pages (Setup, Pattern, Play). Transport and tabs stay on top. */
 :root{
   --bg:#F4F5F4; --surface:#FFFFFF; --ink:#141816; --muted:#5A6560; --line:#D5DAD7;
-  --accent:#B26A00; --accent-ink:#FFFFFF;           /* brass */
+  --accent:#A35D00; --accent-ink:#FFFFFF;           /* brass */
   --early:#2D6CB8; --late:#C2385A; --ok:#2A8A55;     /* timing states, separate from the accent */
   --font-display:'Big Shoulders Display','Arial Narrow',Impact,sans-serif;
   --font-body:'Barlow',system-ui,-apple-system,'Segoe UI',sans-serif;
@@ -40,7 +40,7 @@ body{
 header .sub{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
 header .ver{font:600 12px var(--font-data);letter-spacing:.04em;text-transform:none;color:var(--muted);white-space:nowrap;vertical-align:baseline}
 h1{font:800 clamp(22px,6vw,36px)/1 var(--font-display);text-transform:uppercase;letter-spacing:.01em;margin:0}
-h3{font:600 11px var(--font-body);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+h3{font:600 12px var(--font-body);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
 .sub{color:var(--muted);font-size:13px;margin:2px 0 0;line-height:1.2}
 .head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 12px}
 .pill{font:600 12px var(--font-data);border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--muted);white-space:nowrap;background:var(--surface)}
@@ -51,7 +51,7 @@ h3{font:600 11px var(--font-body);letter-spacing:.09em;text-transform:uppercase;
 .status:empty{display:none}
 .btn{font:600 15px var(--font-body);border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 14px;cursor:pointer;min-height:44px}
 .btn:disabled{opacity:.45;cursor:not-allowed}
-.btn.small{min-height:36px;padding:6px 12px;font-size:14px}
+.btn.small{min-height:40px;padding:6px 12px;font-size:14px}
 .bacts .btn,.bmoves .btn{background:transparent;color:var(--accent);border-color:var(--accent)}
 .bacts #bDel{color:var(--late);border-color:var(--late)}
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent;min-width:140px;min-height:58px;font:800 24px var(--font-display);letter-spacing:.07em;text-transform:uppercase}
@@ -128,6 +128,8 @@ body[data-run="1"] .notice{display:none}
 .cd.ok .lt,.cd.ok .ft{fill:var(--ok)}
 .cd.early .lt,.cd.early .ft{fill:var(--early)}
 .cd.late .lt,.cd.late .ft{fill:var(--late)}
+.cd.early .lt{font-style:italic}      /* a second cue beside colour: early leans, late is underlined */
+.cd.late .lt{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
 .cd.miss .lt{fill:var(--muted);opacity:.4}
 .staff .ph{stroke:var(--accent);stroke-width:3;stroke-linecap:round;pointer-events:none}
 @keyframes phpulse{from{stroke-width:var(--pw,10);opacity:.55}to{stroke-width:3;opacity:1}}
@@ -225,14 +227,14 @@ svg.spark{display:block;overflow:visible}
 .hgrp>summary{padding-right:84px}
 .hrow .ha{position:absolute;right:38px;top:50%;transform:translateY(-50%);display:flex;gap:2px}
 .hrow.flat .ha{right:8px}
-.ib{border:0;background:transparent;color:var(--muted);min-width:38px;height:38px;border-radius:8px;display:grid;place-items:center;cursor:pointer;font:700 12px var(--font-body);padding:0 6px}
+.ib{border:0;background:transparent;color:var(--muted);min-width:40px;height:40px;border-radius:8px;display:grid;place-items:center;cursor:pointer;font:700 12px var(--font-body);padding:0 6px}
 .ib.replay{color:var(--accent)}
 .ib:disabled{opacity:.35;cursor:not-allowed}
 .ib.del.arm{color:var(--late);border:1px solid var(--late);padding:0 8px}
 .hrow .hb{padding:0 12px 12px;display:grid;gap:8px}
 .hgrp>.hg{padding:0 8px 8px}
 .hgrp .tablewrap td,.hgrp .tablewrap th{padding-left:6px;padding-right:6px}
-.hgrp .tablewrap .ib{min-width:30px;height:30px;padding:0}
+.hgrp .tablewrap .ib{min-width:40px;height:40px;padding:0;margin:-8px -6px}
 .hgrp .tablewrap .ib svg{width:17px;height:17px}
 .hgrp tr.dt td{padding:6px;background:var(--bg)}
 .hgrp tr.dt .tablewrap{background:var(--surface)}
@@ -272,7 +274,10 @@ body[data-mode="routine"] .single-only{display:none}
 .exercises{max-height:288px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
 .erow{cursor:pointer;display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:8px;padding:7px 10px;border-bottom:1px solid var(--line);font:13px var(--font-data);align-items:baseline}
 .erow:last-child{border-bottom:0}
-#editList{height:168px;max-height:none}
+#editList{height:184px;max-height:none}
+.patrow{display:flex;gap:12px;align-items:center;justify-content:space-between}
+.patrow .btn{flex:none}
+.patrow .hint{margin:0}
 .patline{margin:0;font:600 18px var(--font-data);letter-spacing:.1em;overflow-wrap:anywhere}
 .patline:empty{display:none}
 .erow .seq{letter-spacing:.1em;font-weight:600;overflow-wrap:anywhere}
@@ -290,7 +295,7 @@ body[data-mode="routine"] .single-only{display:none}
 .lrow{display:flex;gap:8px;align-items:flex-start}
 .lrow .exercises{flex:1;min-width:0}
 .bmoves{display:flex;flex-direction:column;gap:8px}
-.bmoves .btn{padding:0;width:44px;height:36px}
+.bmoves .btn{padding:0;width:44px;height:40px}
 .bnote{display:flex;align-items:flex-start;gap:10px}
 .bnote .btn{flex:none}
 .bfields{flex:1;min-width:0}
@@ -328,7 +333,7 @@ body[data-mode="routine"] .single-only{display:none}
 .runline{display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px 14px;font:13px var(--font-data);color:var(--muted)}
 .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
 table{border-collapse:collapse;width:100%;font:13px var(--font-data);font-variant-numeric:tabular-nums}
-th{text-align:left;font:600 10px var(--font-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{text-align:left;font:600 11px var(--font-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
 td{padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
 tr:last-child td{border-bottom:0}
 td.seq{letter-spacing:.08em;font-weight:600}
@@ -665,7 +670,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <ul>
         <li><b>Each row is one pass</b> of an exercise, the way it is played. The top row is the one you are playing, and the next passes sit underneath. An exercise with 16 passes shows the same notation 16 times as it comes round. When a pass ends the rows slide up.</li>
         <li><b>The moving line</b> glides across the row at an even pace and reaches a note exactly when it is due. Strike as the line reaches the note.</li>
-        <li><b>Letter colours:</b> green is on time, blue is early (leading), pink is late (dragging), and a faded letter means no hit was heard. The "on-time window" in Settings decides how close counts as green.</li>
+        <li><b>Letter colours:</b> green is on time, blue and slanted is early (leading), pink and underlined is late (dragging), and a faded letter means no hit was heard. The "on-time window" in Settings decides how close counts as green.</li>
         <li><b>A small arrow tag</b> such as →R beside a letter means that stroke was due on the other hand but the app heard R. This needs both sticks calibrated.</li>
         <li><b>The gauge</b> shows your average lead or drag over the last 32 strokes. Left of the middle is leading and right is dragging.</li>
         <li><b>On narrow screens</b> a busy pass wraps onto two lines at the barline so the notes stay roomy.</li>
@@ -875,12 +880,12 @@ https://example.com/another-routine.txt</pre>
           <input type="number" id="startExercise" min="1" max="1" step="1" inputmode="numeric"></div>
       </div>
       <p class="hint" id="eachNote" hidden></p>
-      <p class="hint">Tap an exercise to start there.</p>
+      <div class="patrow"><p class="hint">Tap an exercise to start there.</p><button class="btn small" id="editRt" type="button">Edit</button></div>
       <div class="exercises" id="exerciseList" role="listbox" aria-label="Exercises in this routine. Choose the exercise to start at."></div>
     </section>
 
     <section class="panel single-only cfg" aria-label="Pattern">
-      <p class="patline" id="playPat"></p>
+      <div class="patrow"><p class="patline" id="playPat"></p><button class="btn small" id="editPat" type="button">Edit</button></div>
       <div class="field"><label for="repeats">Repeats</label>
         <input type="number" id="repeats" min="0" max="999" step="1" inputmode="numeric">
         <p class="hint">How many times to play it. 0 keeps going until you press Stop, for up to 30 minutes.</p></div>
@@ -941,7 +946,7 @@ https://example.com/another-routine.txt</pre>
       <div class="rows" id="rows" tabindex="0"><div class="rows-track" id="rowsTrack"></div></div>
       <p class="hint" id="rowEnd" hidden></p>
       </div>
-      <p class="cap">The moving line marks the stroke to play now. Letter colour: green on time, blue early, pink late, faded no hit heard. An arrow such as →R under a letter means the other stick was heard. Numbers appear after you stop.</p>
+      <p class="cap">The moving line marks the stroke to play now. Letter colour: green on time, blue slanted early, pink underlined late, faded no hit heard. An arrow such as →R under a letter means the other stick was heard. Numbers appear after you stop.</p>
       <div class="pads kb-only">
         <button class="pad" type="button" data-hand="L" aria-label="Left stick pad">L</button>
         <button class="pad" type="button" data-hand="R" aria-label="Right stick pad">R</button>
@@ -1835,7 +1840,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.6.5';                           /* shown beside the title */
+const VERSION='0.6.8';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const SAMPLE='# Example routine. Replace these with your own exercises, one per line.\n# To change how long an exercise plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example routine\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
@@ -3081,6 +3086,13 @@ function goExercise(i,animate){
 const TABS=['play','pattern','setup','progress'];
 const tabEl=n=>$('tab'+n[0].toUpperCase()+n.slice(1));
 let helpFrom='play';
+/* Edit on the Play page opens the Editor on what is loaded. */
+function editFromPlayPage(){
+  if(run&&!run.ended)return;
+  showTab('pattern');
+  if(S.mode==='routine')editExercise(Math.max(1,S.startExercise||1));
+  window.scrollTo(0,0);
+}
 function showTab(t){
   if(t==='help'&&curTab!=='help')helpFrom=curTab;
   curTab=t;
@@ -4437,6 +4449,8 @@ function wire(){
     if(!run||run.ended||run.mode!=='play')return;
     if(run.paused)resumeRun();else pauseRun();
   });
+  $('editPat').addEventListener('click',editFromPlayPage);
+  $('editRt').addEventListener('click',editFromPlayPage);
   $('advWeak').addEventListener('click',()=>{if(lastRun)startPlay(lastRun.weakIdx);});
   TABS.forEach(n=>{
     const b=tabEl(n);
@@ -4489,8 +4503,6 @@ function syncEach(){
   el.value=S.eachVal;
 }
 
-/* iOS ignores user-scalable, so stop the pinch gesture too. */
-['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault()));
 function init(){
   $('pattern').value=S.pattern;
   $('routineText').value=S.routineText;
