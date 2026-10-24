@@ -94,6 +94,9 @@ body[data-run="1"] .notice{display:none}
 .rows{border-radius:10px;--rowh:124px;--nrows:3}
 .staffs{display:grid;gap:2px}
 .rows.sliding{overflow:hidden;transition:height .24s ease}
+.rows.win{height:var(--winh);overflow:hidden}
+.rows.win .rows-track{min-height:0;transition:transform .22s ease}
+.rows.win .prow{min-height:0}
 .rows-track{position:relative;display:grid;gap:4px;align-content:start;min-height:calc(var(--nrows,3)*var(--rowh) + (var(--nrows,3) - 1)*4px);transition:transform .24s ease}
 #rowEnd{margin-top:8px}
 .prow{display:grid;gap:4px;align-content:start;min-height:var(--rowh);box-shadow:inset 0 0 0 transparent;transition:opacity .24s ease,background-color 1.1s ease,box-shadow 1.1s ease}
@@ -1829,7 +1832,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.5.95';                           /* shown beside the title */
+const VERSION='0.5.98';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const SAMPLE='# Example routine. Replace these with your own exercises, one per line.\n# To change how long an exercise plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example routine\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
@@ -2898,6 +2901,34 @@ function finishSlide(){
   g.classList.remove('sliding');g.style.height='';
   void tr.offsetWidth;tr.style.transition='';
 }
+/* While playing, a passage that wraps to two or more lines shows four lines at a time, and they scroll with the cursor:
+   it starts on the first line, moves to the second, and from then on the lines slide up so the cursor stays on the second. */
+const WIN_LINES=4;
+let winKey='';
+const winWanted=()=>!!run&&!run.ended&&run.mode==='play'&&(+$('rows').dataset.lines||1)>=2;
+function syncWindow(cursor){
+  const box=$('rows'),tr=$('rowsTrack');
+  if(!winWanted()){
+    if(box.classList.contains('win')){box.classList.remove('win');box.style.removeProperty('--winh');tr.style.transform='';winKey='';}
+    return;
+  }
+  const lines=[];
+  [...rowMap.keys()].sort((x,y)=>x-y).forEach(k=>{const o=rowMap.get(k);o.el.querySelectorAll('svg.staff').forEach((sv,i)=>lines.push({sv:sv,o:o,i:i}));});
+  if(!lines.length)return;
+  const co=cursor&&rowMap.get(cursor.g),card=co&&co.cards[cursor.i];
+  let ci=card?lines.findIndex(x=>x.sv===card.ownerSVGElement):-1;
+  if(ci<0)ci=Math.max(0,lines.findIndex(x=>x.o===rowMap.get(rowTop)));
+  const ti=Math.max(0,ci-1),T=lines[ti];
+  const key=[rowTop,ti,staffAvail(),T.o.lab.hidden].join('|');
+  if(key===winKey&&box.classList.contains('win'))return;
+  winKey=key;
+  const lh=lines[0].sv.getBoundingClientRect().height,labH=T.o.lab.hidden?0:T.o.lab.offsetHeight+4;
+  const t0=tr.getBoundingClientRect().top,anchor=T.i===0?T.o.el:T.sv;
+  const top=Math.max(0,Math.round(anchor.getBoundingClientRect().top-t0));
+  box.classList.add('win');
+  box.style.setProperty('--winh',Math.ceil(WIN_LINES*lh+(WIN_LINES-1)*2+labH*2)+'px');
+  tr.style.transform='translateY(-'+top+'px)';
+}
 /* Shows pass g on top with the next passes underneath. When g is the pass that was second, the rows slide
    up one place and a fresh row comes in from below. */
 function setRows(plan,g,animate){
@@ -2909,7 +2940,7 @@ function setRows(plan,g,animate){
   end.hidden=!(labelsOn&&labelMode==='routine'&&isRoutine&&plan&&g+1>=total);
   end.textContent=end.hidden?'':'Last pass. The routine ends after this one.';
   const oldTop=rowTop;
-  if(animate&&!reduce&&plan&&g!==oldTop&&Math.abs(g-oldTop)<rowsShown&&rowMap.has(oldTop)){
+  if(animate&&!reduce&&!winWanted()&&plan&&g!==oldTop&&Math.abs(g-oldTop)<rowsShown&&rowMap.has(oldTop)){
     const back=g<oldTop,h0=gEl.offsetHeight;
     const oldEl=rowMap.get(oldTop).el;
     rowTop=g;
@@ -2936,9 +2967,12 @@ function setRows(plan,g,animate){
     prebuildNext(plan,g+rowsShown);
     return;
   }
-  tr.textContent='';rowMap.clear();rowTop=g;
-  if(plan)for(let k=g;k<Math.min(total,g+rowsShown);k++)makeRow(plan,k);
+  /* Playing in a window keeps the pass before as well, so the lines can scroll on smoothly. */
+  const lo=winWanted()&&g>0?g-1:g;
+  tr.textContent='';rowMap.clear();rowTop=g;winKey='';
+  if(plan)for(let k=lo;k<Math.min(total,g+rowsShown);k++)makeRow(plan,k);
   roleRows();
+  tr.style.transition='none';syncWindow(null);void tr.offsetWidth;tr.style.transition='';
   if(plan)prebuildNext(plan,g+rowsShown);
 }
 /* Colours come from the result of each row's own pass; the cursor is the card being played now. */
@@ -3005,6 +3039,7 @@ function paintRows(r,cursor,heard){
     });
   });
   movePlayhead(r,cursor,heard);
+  syncWindow(r&&!r.ended?cursor:null);
 }
 function previewRows(animate){
   if(S.mode==='routine'){
