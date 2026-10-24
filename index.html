@@ -69,8 +69,6 @@ input[type=range]{width:100%;accent-color:var(--accent);min-height:32px}
 .tempo .btn{padding:0;font-size:22px}
 .err{color:var(--late);font-size:13px;margin:0;min-height:0}
 .hint{font-size:13px;color:var(--muted);margin:0}
-.msgs{display:grid;gap:6px;padding:0 4px}
-.msgs:empty,.msgs:not(:has(:not(:empty))){display:none}
 .notice{font-size:14px;margin:8px 0 0;padding:8px 12px;border:1px solid var(--accent);border-left-width:4px;border-radius:8px;background:var(--surface)}
 .linkbtn{font:inherit;font-weight:600;color:var(--accent);background:none;border:0;padding:6px 2px;text-decoration:underline;cursor:pointer;min-height:36px}
 body[data-run="1"] .notice{display:none}
@@ -101,7 +99,6 @@ body[data-run="1"] .notice{display:none}
 .staff .bar{stroke:var(--ink);stroke-width:2}
 .staff .bt{stroke:var(--line);stroke-width:1.2;stroke-dasharray:2 3}
 .staff .bg{fill:transparent;stroke:transparent;stroke-width:1.5}
-.staff .cd.now .bg{fill:color-mix(in srgb,var(--accent) 26%,transparent);stroke:var(--accent)}
 .staff .nh{fill:var(--ink)}
 .staff .clef{fill:var(--ink)}
 .staff .stem{stroke:var(--ink);stroke-width:1.6}
@@ -202,10 +199,14 @@ body[data-mode="routine"] .single-only{display:none}
 .erow:last-child{border-bottom:0}
 .erow .seq{letter-spacing:.1em;font-weight:600;overflow-wrap:anywhere}
 .erow .meta{color:var(--muted);white-space:nowrap}
-.bhead{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.bhead h3{margin:0}
-.bbody,.bmain{display:grid;gap:12px}
-.bbody[hidden],.bmain[hidden],.b-routine[hidden],.b-single[hidden]{display:none}
+.bmain,.bpane,.editor{display:grid;gap:12px}
+.editor{gap:14px}
+.bpane .field{display:grid;gap:8px}
+.bsel2{display:flex;gap:8px}
+.bsel2 select{flex:1;min-width:0;height:44px;padding:6px 8px}
+.bmsg{flex:1;min-width:0;min-height:2.9em}
+.bmsg .err:not(:empty)~#bStatus{display:none}
+.bmsg .err{margin:0}
 .bhdr{display:grid;gap:12px}
 .bnav{display:grid;grid-template-columns:48px 1fr 48px;align-items:center;gap:6px}
 .bpos{text-align:center;font:600 13px var(--font-data);color:var(--muted)}
@@ -217,17 +218,9 @@ body[data-mode="routine"] .single-only{display:none}
 @media (prefers-reduced-motion:no-preference){.staff .bcur{animation:bblink 1.1s ease-in-out infinite}}
 @keyframes bblink{50%{opacity:.2}}
 .bstaff .none{color:var(--muted);font:14px var(--font-body);padding:14px 8px;text-align:center}
-.bseq{font:600 14px var(--font-data);letter-spacing:.06em;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;height:58px;overflow-y:auto;overflow-wrap:anywhere;white-space:pre-wrap}
-#bStatus{min-height:2.9em;flex:1}
-.bseqrow{display:flex;gap:8px;align-items:flex-start}
-.bseqrow .bseq{flex:1;min-width:0}
-.bsel{flex:none;width:150px;display:grid;gap:6px}
-.bsel select{height:44px;padding:6px 8px}
-.bseqrow .bseq{height:94px}
-body[data-mode="routine"] .bseqrow .bseq{height:58px}
 .bstat{display:flex;align-items:flex-start;gap:10px}
 .bstat .btn{flex:none}
-.bseq:empty::before{content:"Tap R or L to start";color:var(--muted);letter-spacing:0;font-weight:400}
+.iconbtn{min-width:48px;padding:6px 12px;display:grid;place-items:center}
 .bcodes{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
 .bcode{font:700 14px var(--font-data);border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;min-height:44px;padding:0;cursor:pointer}
 .bcode[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:transparent}
@@ -285,7 +278,7 @@ button.pill.on{color:var(--ok)}
 
   <nav class="switch tabs" role="tablist" aria-label="Pages">
     <button type="button" role="tab" id="tabPlay" aria-controls="pagePlay" aria-selected="true">Play</button>
-    <button type="button" role="tab" id="tabPattern" aria-controls="pagePattern" aria-selected="false">Pattern</button>
+    <button type="button" role="tab" id="tabPattern" aria-controls="pagePattern" aria-selected="false">Editor</button>
     <button type="button" role="tab" id="tabSetup" aria-controls="pageSetup" aria-selected="false">Setup</button>
     <button type="button" role="tab" id="tabProgress" aria-controls="pageProgress" aria-selected="false">Progress</button>
   </nav>
@@ -390,93 +383,79 @@ button.pill.on{color:var(--ok)}
       <button type="button" id="modeRoutine" aria-pressed="false">Routine</button>
     </div>
 
-    <section class="panel single-only cfg" aria-label="Pattern">
-      <div class="field">
-        <label for="pattern">Sticking</label>
-        <input type="text" id="pattern" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="patInfo">
-        <div class="chips" id="chips"></div>
+    <!-- One editor for both modes: the staff on top, then Type or Build. Messages share one fixed-height slot, so nothing moves while you tap. -->
+    <section class="panel cfg editor" id="builder" aria-label="Editor">
+      <p class="hint" id="bNote" hidden></p>
+      <div class="bmain" id="bMain">
+        <div class="b-routine bhdr">
+          <div class="field"><label for="bTitle">Title</label><input type="text" id="bTitle" maxlength="80" autocomplete="off" placeholder="Name this routine"></div>
+          <div class="row">
+            <div class="field"><label for="bTime">Time</label><select id="bTime"></select></div>
+            <div class="field"><label for="bGroup">Grouping</label><select id="bGroup"></select></div>
+            <div class="field"><label for="bStrokes">Strokes are</label><select id="bStrokes"></select></div>
+          </div>
+          <div class="bnav">
+            <button class="btn small" id="bPrev" type="button" aria-label="Previous exercise">&lsaquo;</button>
+            <span class="bpos" id="bPos" aria-live="polite"></span>
+            <button class="btn small" id="bNext" type="button" aria-label="Next exercise">&rsaquo;</button>
+          </div>
+          <div class="bacts">
+            <button class="btn small" id="bAdd" type="button">Add exercise</button>
+            <button class="btn small" id="bDup" type="button">Copy</button>
+            <button class="btn small" id="bDel" type="button">Delete</button>
+          </div>
+        </div>
+        <div class="staffs bstaff" id="bStaff" aria-hidden="true"></div>
+        <div class="bstat">
+          <div class="bmsg"><p class="err" id="patErr" role="alert"></p><p class="err" id="routineErr" role="alert"></p><p class="hint" id="bStatus" aria-live="polite"></p></div>
+          <button class="btn small iconbtn" id="bListen" type="button" aria-label="Listen to this exercise as clicks" title="Listen"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18 6.5a7.5 7.5 0 0 1 0 11"/></svg></button>
+        </div>
+        <div class="bsel2 b-single"><select id="bTime1" aria-label="Time signature" title="Time signature"></select><select id="bGroup1" aria-label="Grouping" title="Grouping of the beats"></select></div>
+        <div class="switch" id="bMode" role="group" aria-label="How to enter the strokes">
+          <button type="button" id="bModeType" aria-pressed="true">Type</button>
+          <button type="button" id="bModeBuild" aria-pressed="false">Build</button>
+        </div>
+      </div>
+
+      <div class="bpane" id="typePane">
+        <div class="field single-only">
+          <input type="text" id="pattern" aria-label="Sticking" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="patInfo">
+          <div class="chips" id="chips"></div>
+        </div>
+        <div class="field routine-only">
+          <textarea id="routineText" aria-label="Exercises, one per line" rows="7" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="routineInfo"></textarea>
+          <div class="btns">
+            <button class="btn small" id="fileBtn" type="button">Load file</button>
+            <button class="btn small" id="urlBtn" type="button">Load from URL</button>
+            <button class="btn small" id="clearRoutine" type="button">Clear</button>
+            <input type="file" id="routineFile" accept=".txt,.json,.csv,text/plain,application/json" hidden>
+          </div>
+          <div class="urlrow" id="urlRow" hidden>
+            <input type="text" id="routineUrl" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://example.com/my-routine.txt" aria-label="Routine URL">
+            <button class="btn" id="urlGo" type="button">Load</button>
+          </div>
+        </div>
+        <p class="hint" id="patInfo" hidden></p>
+      </div>
+
+      <div class="bpane" id="buildPane">
+        <div class="field"><label>Note for the next strokes</label>
+          <div class="bcodes" id="bCodes" role="group" aria-label="Note for the next strokes"></div></div>
+        <div class="bkeys" role="group" aria-label="Strokes">
+          <button class="bkey R" type="button" data-k="R" aria-label="Right">R</button>
+          <button class="bkey L" type="button" data-k="L" aria-label="Left">L</button>
+          <button class="bkey sm" type="button" data-k="_" aria-label="Rest">rest _</button>
+          <button class="bkey sm" type="button" data-k="group" aria-label="New group">space</button>
+          <button class="bkey sm" type="button" data-k="back" aria-label="Delete the last stroke">&#9003;</button>
+          <button class="bkey sm" type="button" data-k="swap" aria-label="Swap left and right">L&#8644;R</button>
+          <button class="bkey sm wide" type="button" data-k="clear" aria-label="Clear the strokes of this exercise">clear</button>
+        </div>
       </div>
     </section>
 
-    <section class="panel routine-only cfg" aria-label="Routine">
-      <div class="field">
-        <label for="routineText">Exercises, one per line</label>
-        <textarea id="routineText" rows="7" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="routineInfo"></textarea>
-        <div class="btns">
-          <button class="btn small" id="fileBtn" type="button">Load file</button>
-          <button class="btn small" id="urlBtn" type="button">Load from URL</button>
-          <button class="btn small" id="clearRoutine" type="button">Clear</button>
-          <input type="file" id="routineFile" accept=".txt,.json,.csv,text/plain,application/json" hidden>
-        </div>
-        <div class="urlrow" id="urlRow" hidden>
-          <input type="text" id="routineUrl" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://example.com/my-routine.txt" aria-label="Routine URL">
-          <button class="btn" id="urlGo" type="button">Load</button>
-        </div>
-      </div>
-      <div class="row">
-        <div class="field"><label for="eachVal">Each exercise plays for</label>
-          <input type="number" id="eachVal" min="1" max="200" step="1" inputmode="decimal"></div>
-        <div class="field"><label for="eachUnit">Measured in</label>
-          <select id="eachUnit"><option value="min">Minutes</option><option value="pass">Passes of the exercise</option></select></div>
-        <div class="field"><label for="gap">Between exercises</label>
-          <select id="gap"><option value="4">4-beat count-in</option><option value="0">Straight on</option></select></div>
-        <div class="field"><label for="startExercise">Start at exercise</label>
-          <input type="number" id="startExercise" min="1" max="1" step="1" inputmode="numeric"></div>
-      </div>
-      <p class="hint" id="eachNote" hidden></p>
-      <p class="hint">Tap an exercise to start there.</p>
-      <div class="exercises" id="exerciseList" role="listbox" aria-label="Exercises in this routine. Choose the exercise to start at."></div>
+    <section class="panel routine-only cfg" aria-label="Routine format">
       <p class="hint">Need the routine format, <b>x16</b> passes or <b>8t</b> triplets? <button class="btn small" type="button" data-help="help-format">Open the format help</button></p>
     </section>
-
-    <section class="panel cfg builder" id="builder" aria-label="Exercise builder">
-      <div class="bhead">
-        <h3>Exercise builder</h3>
-        <button class="btn small" id="bToggle" type="button" aria-expanded="false" aria-controls="bBody">Show</button>
-      </div>
-      <div class="bbody" id="bBody">
-        <p class="hint" id="bNote" hidden></p>
-        <div class="bmain" id="bMain">
-          <div class="b-routine bhdr">
-            <div class="field"><label for="bTitle">Title</label><input type="text" id="bTitle" maxlength="80" autocomplete="off" placeholder="Name this routine"></div>
-            <div class="row">
-              <div class="field"><label for="bTime">Time</label><select id="bTime"></select></div>
-              <div class="field"><label for="bGroup">Grouping</label><select id="bGroup"></select></div>
-              <div class="field"><label for="bStrokes">Strokes are</label><select id="bStrokes"></select></div>
-            </div>
-            <div class="bnav">
-              <button class="btn small" id="bPrev" type="button" aria-label="Previous exercise">&lsaquo;</button>
-              <span class="bpos" id="bPos" aria-live="polite"></span>
-              <button class="btn small" id="bNext" type="button" aria-label="Next exercise">&rsaquo;</button>
-            </div>
-            <div class="bacts">
-              <button class="btn small" id="bAdd" type="button">Add exercise</button>
-              <button class="btn small" id="bDup" type="button">Copy</button>
-              <button class="btn small" id="bDel" type="button">Delete</button>
-            </div>
-          </div>
-          <div class="staffs bstaff" id="bStaff" aria-hidden="true"></div>
-          <div class="bseqrow"><div class="bsel b-single"><select id="bTime1" aria-label="Time signature" title="Time signature"></select><select id="bGroup1" aria-label="Grouping" title="Grouping of the beats"></select></div><div class="bseq" id="bSeq"></div></div>
-          <div class="bstat"><p class="hint" id="bStatus" aria-live="polite"></p><button class="btn small" id="bListen" type="button" aria-label="Listen to this exercise as clicks">&#9654; Listen</button></div>
-          <div class="field"><label>Note for the next strokes</label>
-            <div class="bcodes" id="bCodes" role="group" aria-label="Note for the next strokes"></div></div>
-          <div class="bkeys" role="group" aria-label="Strokes">
-            <button class="bkey R" type="button" data-k="R" aria-label="Right">R</button>
-            <button class="bkey L" type="button" data-k="L" aria-label="Left">L</button>
-            <button class="bkey sm" type="button" data-k="_" aria-label="Rest">rest _</button>
-            <button class="bkey sm" type="button" data-k="group" aria-label="New group">space</button>
-            <button class="bkey sm" type="button" data-k="back" aria-label="Delete the last stroke">&#9003;</button>
-            <button class="bkey sm" type="button" data-k="swap" aria-label="Swap left and right">L&#8644;R</button>
-            <button class="bkey sm wide" type="button" data-k="clear" aria-label="Clear the strokes of this exercise">clear</button>
-          </div>
-          <p class="hint">Tapping writes the same text you can type above. Type in the box any time.<span class="b-routine"> Use the arrows, or click a line in the box, to pick which exercise the builder edits.</span></p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Messages sit under the builder, so a change in their length never moves the builder keys. -->
-    <div class="msgs single-only"><p class="err" id="patErr" role="alert"></p><p class="hint" id="patInfo"></p></div>
-    <div class="msgs routine-only"><p class="err" id="routineErr" role="alert"></p><p class="hint" id="routineInfo"></p></div>
 
     <section class="panel routine-only cfg" aria-label="Routine library">
       <h3>Routine library</h3>
@@ -545,7 +524,7 @@ button.pill.on{color:var(--ok)}
       <h3>Quick start</h3>
       <ol>
         <li><b>Setup:</b> pick a tempo, use headphones for the click, press "Turn microphone on" and hit the pad. The level bar should cross the trigger line on every stroke. Calibrating each stick is optional but lets the app tell L from R.</li>
-        <li><b>Pattern:</b> choose "One pattern" (a single sticking that repeats) or "Routine" (a list of exercises played one after another).</li>
+        <li><b>Pattern:</b> choose "One pattern" (a single sticking that repeats) or "Routine" (a list of exercises played one after another). The Play page has the same switch. In Routine, it also holds how long each exercise plays, the gap between them, and where to start.</li>
         <li><b>Play:</b> press Start. After a count-in, play on the moving line. Press Stop when you are done to see your results.</li>
       </ol>
       <p>No microphone? On Setup, change Input to "Keyboard or pads". Press <b>F</b> for left and <b>J</b> for right. This is a test mode, and its timing is rougher than a microphone on a pad.</p>
@@ -613,7 +592,7 @@ button.pill.on{color:var(--ok)}
 
     <section class="panel" id="help-format">
       <h3>The routine format</h3>
-      <p>You do not have to type any of this. The <b>Exercise builder</b> under the text box writes it for you: pick a time signature and note code, tap R, L, rest and space to build an exercise, and the staff and bar count update as you go. <b>Add exercise</b>, <b>Copy</b> and <b>Delete</b> manage the list, and the arrows pick which exercise you are editing. Clicking in the text box also picks the exercise under your cursor. Typing and tapping can be mixed freely, and The builder starts hidden: press <b>Show</b> to open it, and <b>Hide</b> puts it away again.</p>
+      <p>You do not have to type any of this. The staff at the top of the Editor page always shows what you have written, with a cursor where the next stroke goes. Under it, <b>Type</b> shows the text box and <b>Build</b> shows the keys: pick a note code, then tap R, L, rest and space. Time and Grouping sit above the toggle and work in both. The page opens on Type, and remembers your last choice on each device. In a routine, <b>Title</b>, <b>Time</b>, <b>Grouping</b> and <b>Strokes are</b> are shared by every exercise. <b>Add exercise</b>, <b>Copy</b> and <b>Delete</b> manage the list, and the arrows pick which exercise you are editing. Typing and tapping can be mixed freely, and the speaker button plays the exercise as clicks.</p>
       <p>A routine is plain text with one exercise per line. Lines starting with <b>#</b> are notes to yourself, and a name before a colon (<b>Exercise 4:</b>) is just a label. This app does not come with any book content. You supply the exercises.</p>
       <pre>title: My warm-up routine
 each: 1m
@@ -757,6 +736,11 @@ https://example.com/another-routine.txt</pre>
   </div>
 
   <div class="page" id="pagePlay" role="tabpanel" aria-labelledby="tabPlay" hidden>
+    <div class="switch cfg" role="group" aria-label="What to play">
+      <button type="button" id="playSingle" aria-pressed="true">Pattern</button>
+      <button type="button" id="playRoutine" aria-pressed="false">Routine</button>
+    </div>
+
     <div class="transport">
       <button class="btn primary" id="startBtn" type="button">Start</button>
       <p class="hint cfg" id="playSummary"></p>
@@ -765,6 +749,24 @@ https://example.com/another-routine.txt</pre>
         <button class="btn small" id="stopBtn" type="button">Stop</button>
       </div>
     </div>
+
+    <section class="panel routine-only cfg" aria-label="Routine settings">
+      <p class="hint" id="routineInfo"></p>
+      <div class="row">
+        <div class="field"><label for="eachVal">Each exercise plays for</label>
+          <input type="number" id="eachVal" min="1" max="200" step="1" inputmode="decimal"></div>
+        <div class="field"><label for="eachUnit">Measured in</label>
+          <select id="eachUnit"><option value="min">Minutes</option><option value="pass">Passes of the exercise</option></select></div>
+        <div class="field"><label for="gap">Between exercises</label>
+          <select id="gap"><option value="4">4-beat count-in</option><option value="0">Straight on</option></select></div>
+        <div class="field"><label for="startExercise">Start at exercise</label>
+          <input type="number" id="startExercise" min="1" max="1" step="1" inputmode="numeric"></div>
+      </div>
+      <p class="hint" id="eachNote" hidden></p>
+      <p class="hint">Tap an exercise to start there.</p>
+      <div class="exercises" id="exerciseList" role="listbox" aria-label="Exercises in this routine. Choose the exercise to start at."></div>
+    </section>
+
 
     <div id="runInfo" class="runinfo" hidden>
       <div class="progress" aria-hidden="true"><div id="progFill"></div></div>
@@ -1227,7 +1229,8 @@ function nameMarkers(str,d){
   const dd=d||4,NAME={4:'q',8:'8',16:'16',32:'32',12:'8t',24:'16t',20:'5t',28:'7t'};
   return String(str).replace(/\/(\d+) /g,(m,n)=>(NAME[+n*dd]||'')+(NAME[+n*dd]?' ':''));
 }
-const showPattern=(notes,gs,subs,def,sig,src)=>sigPrefix(sig)+(src||nameMarkers(fmtPattern(notes,gs,subs,def),sig?sig.d:4));
+const showSig=sig=>sig?sig.n+'/'+sig.d+(sig.groups.join('+')===defGroups(sig.n,sig.d).join('+')?'':' ('+sig.groups.join('+')+')')+': ':'';
+const showPattern=(notes,gs,subs,def,sig,src)=>showSig(sig)+(src||nameMarkers(fmtPattern(notes,gs,subs,def),sig?sig.d:4));
 /* ---------- records: scores kept per exercise and tempo ---------- */
 const TARGET=0.9;                                /* accuracy that counts as cleared at a tempo */
 function hash32(str){let h=5381;for(let i=0;i<str.length;i++)h=((h<<5)+h+str.charCodeAt(i))>>>0;return h.toString(36);}
@@ -1587,7 +1590,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.5.16';                           /* shown beside the title */
+const VERSION='0.5.21';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const SAMPLE='# Example routine. Replace these with your own exercises, one per line.\n# To change how long an exercise plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example routine\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
@@ -1597,7 +1600,7 @@ const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const LOOKAHEAD=0.35;                            /* how far ahead clicks are scheduled, in seconds */
 
 const S={mode:'single',pattern:'RLRL RLRL RLRL RLRL',routineText:SAMPLE,eachUnit:'min',eachVal:1,gap:0,pulse:true,startExercise:1,
-  bpm:60,subdiv:4,click:'beat',tol:20,sens:-30,settle:40,library:'',vol:60,latency:null,latCal:false,input:'mic',builderOpen:false};
+  bpm:60,subdiv:4,click:'beat',tol:20,sens:-30,settle:40,library:'',vol:60,latency:null,latCal:false,input:'mic',editMode:'type'};
 let cal={L:[],R:[]},model=null;
 try{
   const o=JSON.parse(localStorage.getItem(KEY)||'null');
@@ -1608,7 +1611,7 @@ try{
 }catch(e){}
 S.mode=S.mode==='routine'?'routine':'single';
 S.latCal=S.latCal===true;                          /* set once a calibration has run or a number was typed */
-S.builderOpen=S.builderOpen===true;                /* the exercise builder starts hidden */
+S.editMode=S.editMode==='build'?'build':'type';       /* Type or Build, remembered on each device. Type is first. */
 S.bpm=clamp(Math.round(+S.bpm)||60,40,220);
 S.subdiv=clamp(Math.round(+S.subdiv)||2,1,4);
 S.tol=[10,15,20,30].includes(+S.tol)?+S.tol:20;
@@ -3297,7 +3300,7 @@ function clearLibrary(){
 }
 
 /* ---------- controls ---------- */
-const LOCKED=['pulse','pattern','bpm','bpmDown','bpmUp','subdiv','click','inputMode','modeSingle','modeRoutine','routineText','fileBtn','urlBtn','urlGo','routineUrl','clearRoutine','libraryUrl','libGo','libClear','eachVal','eachUnit','gap','startExercise'];
+const LOCKED=['pulse','pattern','bpm','bpmDown','bpmUp','subdiv','click','inputMode','modeSingle','modeRoutine','playSingle','playRoutine','routineText','fileBtn','urlBtn','urlGo','routineUrl','clearRoutine','libraryUrl','libGo','libClear','eachVal','eachUnit','gap','startExercise'];
 function syncRunUI(){
   const on=!!(run&&!run.ended),play=on&&run.mode==='play',paused=on&&!!run.paused;
   const b=$('startBtn');
@@ -3324,7 +3327,7 @@ function syncInfo(){
   const exercises=currentExercises();
   if(S.mode==='single'){
     const res=parseExerciseLine(S.pattern),ok=!!(res&&res.exercise);
-    $('patErr').textContent=ok?'':(res&&res.err?'Check the sticking: '+res.err+'.':'Type at least two strokes using L and R. A space starts a new group.');
+    $('patErr').textContent=ok?'':(res&&res.err?'Check the sticking: '+res.err+'.':'');     /* a plain "too short" shows in the status line instead */
     $('startBtn').disabled=!ok&&!(run&&!run.ended);
     if(ok){
       const b=exercises[0],uniform=b.subs.every(s=>s===b.subs[0]);
@@ -3354,7 +3357,7 @@ function syncInfo(){
     $('eachUnit').disabled=!!routineParsed.each||(run&&!run.ended);
   }
   const sum=$('playSummary');
-  if(!exercises.length)sum.textContent=S.mode==='single'?'Type a sticking on the Pattern page, then press Start.':'Add some exercises on the Pattern page, then press Start.';
+  if(!exercises.length)sum.textContent=S.mode==='single'?'Type a sticking on the Editor page, then press Start.':'Add some exercises on the Editor page, then press Start.';
   else if(S.mode==='single'){const b=exercises[0];sum.textContent=showPattern(b.notes,b.groupStart,b.subs,b.defSub,b.sig,b.src)+' · '+S.bpm+' BPM'+pulseNote(exercises)+' · runs until you press Stop';}
   else{let tt=0;exercises.forEach(b=>{tt+=b.secs;});sum.textContent=(routineParsed.title||'Routine')+' · '+exercises.length+(exercises.length===1?' exercise':' exercises')+(S.startExercise>1?' from exercise '+S.startExercise:'')+' · about '+fmtTime(tt)+' · '+S.bpm+' BPM'+pulseNote(exercises)+routineGuide();}
   $('bpmOut').textContent=S.bpm+' BPM';
@@ -3450,30 +3453,35 @@ function stopListen(){
   if(!listen)return;
   clearTimeout(listen.timer);cancelAnimationFrame(listen.raf);listen=null;silenceTones();
   const box=$('bStaff');
-  if(box){box.classList.remove('listening');box.querySelectorAll('.cd.now').forEach(c=>c.classList.remove('now'));box.scrollTop=box.scrollHeight;}
+  if(box){box.classList.remove('listening');box.querySelectorAll('.ph').forEach(e=>e.setAttribute('visibility','hidden'));box.scrollTop=box.scrollHeight;}
   syncListen();
 }
-/* While it plays, the stroke being heard is lit on the staff and its row is kept in view. */
+/* While it plays, the same sliding bar as the Play page moves across the staff, and its row is kept in view. */
+let bCards=[];
 function listenFrame(){
   const L=listen;if(!L)return;
   L.raf=requestAnimationFrame(listenFrame);
   const cells=L.cells,h=heardNow()-L.t0;
   let k=L.k;while(k+1<cells.length&&cells[k+1].t<=h)k++;
-  const c=k>=0?cells[k]:null,on=c&&h<c.t+c.d?c.pos:-1;
-  if(k===L.k&&on===L.on)return;
-  L.k=k;L.on=on;
-  const box=$('bStaff'),cd=box.querySelectorAll('.cd');
-  cd.forEach((el,i)=>el.classList.toggle('now',i===on));
-  const el=cd[on];
-  if(el){
-    const row=el.ownerSVGElement,rb=row.getBoundingClientRect(),bb=box.getBoundingClientRect();
+  L.k=k;
+  const c=k>=0?cells[k]:null,el=c&&h<c.t+c.d?bCards[c.pos]:null;
+  if(L.el&&L.el!==el)L.el._ph.setAttribute('visibility','hidden');
+  L.el=el;
+  if(!el)return;
+  const f=clamp((h-c.t)/(c.d||1),0,1),nx=el._nx,x1=nx?nx._cx:el._cx+el._w,cx=(el._cx+(x1-el._cx)*f).toFixed(2);
+  el._ph.setAttribute('x1',cx);el._ph.setAttribute('x2',cx);el._ph.setAttribute('visibility','visible');
+  if(c.pos!==L.on){
+    L.on=c.pos;
+    const box=$('bStaff'),row=el._ph.ownerSVGElement,rb=row.getBoundingClientRect(),bb=box.getBoundingClientRect();
     if(rb.top<bb.top+2||rb.bottom>bb.bottom-2)box.scrollTop+=rb.top-bb.top-8;
   }
 }
+const ICON_SPK='<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>',ICON_STOP='<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></svg>';
 function syncListen(){
   const b=$('bListen');if(!b)return;
   const busy=!!(run&&!run.ended)||!!loop||!!calMode||!!calTest||!!chk;
-  b.innerHTML=listen?'&#9632; Stop':'&#9654; Listen';
+  b.innerHTML=listen?ICON_STOP:ICON_SPK;
+  b.setAttribute('aria-label',listen?'Stop listening':'Listen to this exercise as clicks');b.title=listen?'Stop':'Listen';
   b.disabled=!listen&&(busy||!bPreview().b);
 }
 async function toggleListen(){
@@ -3485,21 +3493,20 @@ async function toggleListen(){
   /* no count-in: the first stroke sounds straight away */
   const lead=plan.cells[0].t,t0=ctx.currentTime+0.15-lead;
   plan.clicks.forEach(c=>{if(c.t>=lead-1e-6)click(t0+c.t,c.a);});
-  listen={timer:setTimeout(stopListen,(0.15+plan.end-lead+0.3)*1000),raf:0,t0:t0,cells:plan.cells,k:-1,on:-2,text:bGet()};
+  listen={timer:setTimeout(stopListen,(0.15+plan.end-lead+0.3)*1000),raf:0,t0:t0,cells:plan.cells,k:-1,on:-2,el:null,text:bGet()};
   $('bStaff').classList.add('listening');
   listen.raf=requestAnimationFrame(listenFrame);
   syncListen();
 }
 function renderBuilder(){
-  const open=S.builderOpen;
-  $('bBody').hidden=!open;
-  $('bToggle').textContent=open?'Hide':'Show';
-  $('bToggle').setAttribute('aria-expanded',String(open));
-  if(!open)return;
   const routine=S.mode==='routine',json=bIsJson();
   $('bMain').hidden=json;
   $('bNote').hidden=!json;
-  if(json){$('bNote').textContent='This routine is written as JSON, which the builder cannot edit. Edit the text above, or clear it to build one here.';return;}
+  const build=S.editMode==='build'&&!json;
+  $('typePane').hidden=build;$('buildPane').hidden=!build;
+  $('bModeType').setAttribute('aria-pressed',String(!build));
+  $('bModeBuild').setAttribute('aria-pressed',String(build));
+  if(json){$('bNote').textContent='This routine is written as JSON, which the editor cannot change with taps. Edit the text below, or clear it to build one here.';return;}
   document.querySelectorAll('.b-routine').forEach(e=>{e.hidden=!routine;});
   document.querySelectorAll('.b-single').forEach(e=>{e.hidden=routine;});
   if(!routine){
@@ -3533,33 +3540,27 @@ function renderBuilder(){
   if(listen&&listen.text!==bGet())stopListen();         /* editing while it plays ends the playback */
   const pv=bPreview(),p=lineParts(bGet());
   syncListen();
-  $('bSeq').textContent=p.body;$('bSeq').scrollTop=$('bSeq').scrollHeight;
   const box=$('bStaff');box.textContent='';
   if(pv.b){
     const b=pv.b,sg={N:b.notes.length,notes:b.notes,groupStart:b.groupStart,subs:b.subs,defSub:b.defSub,sig:b.sig};
     const av=Math.max(220,box.clientWidth-10||staffAvail()-40),nr=nextStartsRow(sg,av),st=buildStaff(sg,av,!nr,true);
-    box.appendChild(st.svg);
+    box.appendChild(st.svg);bCards=st.cards;
     if(nr)st.svg.appendChild(emptyStaffRow(sg,av,st.plan));      /* the next stroke opens a new row */
     box.scrollTop=box.scrollHeight;                /* a long exercise shows its newest rows */
     const rests=b.notes.filter(n=>n==='_').length,strokes=b.notes.length-rests,beats=b.passBeats;
-    let msg=strokes+(strokes===1?' stroke':' strokes')+(rests?' and '+rests+(rests===1?' rest':' rests'):'')+' = '+(+beats.toFixed(2))+(b.sig&&b.sig.d===8?' eighth-note pulses':(b.sig&&b.sig.d===2?' half-note pulses':' beats'));
+    let msg=strokes+(strokes===1?' stroke':' strokes')+(rests?' and '+rests+(rests===1?' rest':' rests'):'')+' = '+(+beats.toFixed(2))+(b.sig&&b.sig.d===8?' eighth-note pulses':(b.sig&&b.sig.d===2?' half-note pulses':(+beats.toFixed(2)===1?' beat':' beats')));
     if(b.sig){
       const bars=beats/b.sig.n;
       msg+=isInt(bars)&&bars>=1?' · '+bars+(bars===1?' bar':' bars')+' of '+sigText(b.sig):' · '+sigText(b.sig)+' needs '+b.sig.n+' per bar, so add or remove strokes';
     }
     if(st.lines>1)msg+=' · '+st.lines+' rows';
+    if(!routine&&strokes<2)msg+=' · add one more stroke to start';
     $('bStatus').textContent=msg;
   }else{
-    if(pv.err&&bGet().trim()){
-      const none=document.createElement('div');none.className='none';
-      none.textContent='Check the text: '+pv.err+'.';
-      box.appendChild(none);
-    }else{
-      const wrap=document.createElement('div');wrap.className='staffs';
-      wrap.appendChild(emptyStaffRow(null,Math.max(220,box.clientWidth-10||staffAvail()-40),null));
-      box.appendChild(wrap);
-    }
-    $('bStatus').textContent='';
+    const wrap=document.createElement('div');wrap.className='staffs';
+    wrap.appendChild(emptyStaffRow(null,Math.max(220,box.clientWidth-10||staffAvail()-40),null));
+    box.appendChild(wrap);
+    $('bStatus').textContent=pv.err&&bGet().trim()?'Check the text: '+pv.err+'.':'';
   }
   /* note codes: the one in force is lit, and codes too fast or slow for the beat are greyed out */
   const d=(pv.b&&pv.b.sig?pv.b.sig.d:(pv.ctx.sig?pv.ctx.sig.d:4)),cur=pv.b?pv.b.subs[pv.b.subs.length-1]:null;
@@ -3584,7 +3585,9 @@ function bFromCaret(){
   if(bValid(bLines(),i)&&i!==bLine){bLine=i;renderBuilder();}
 }
 function wireBuilder(){
-  $('bToggle').addEventListener('click',()=>{S.builderOpen=!S.builderOpen;if(!S.builderOpen)stopListen();save();renderBuilder();});
+  const setMode=m=>{S.editMode=m;save();renderBuilder();};
+  $('bModeType').addEventListener('click',()=>setMode('type'));
+  $('bModeBuild').addEventListener('click',()=>setMode('build'));
   $('bListen').addEventListener('click',toggleListen);
   document.querySelectorAll('.bkey').forEach(k=>k.addEventListener('click',()=>bEdit(k.dataset.k)));
   $('bPrev').addEventListener('click',()=>bMove(-1));
@@ -3644,6 +3647,8 @@ function setMode(m){
   document.body.dataset.mode=m;
   $('modeSingle').setAttribute('aria-pressed',String(m==='single'));
   $('modeRoutine').setAttribute('aria-pressed',String(m==='routine'));
+  $('playSingle').setAttribute('aria-pressed',String(m==='single'));
+  $('playRoutine').setAttribute('aria-pressed',String(m==='routine'));
   $('runInfo').hidden=true;
   if(m==='routine'){onRoutineChanged();ensureLibrary();}else refreshPreview();
 }
@@ -3659,6 +3664,8 @@ function wire(){
   $('inputMode').addEventListener('change',e=>{S.input=e.target.value;save();setInputMode();});
   $('modeSingle').addEventListener('click',()=>setMode('single'));
   $('modeRoutine').addEventListener('click',()=>setMode('routine'));
+  $('playSingle').addEventListener('click',()=>setMode('single'));
+  $('playRoutine').addEventListener('click',()=>setMode('routine'));
   $('routineText').addEventListener('input',e=>{S.routineText=e.target.value.slice(0,MAX_TEXT);S.startExercise=1;save();onRoutineChanged();});
   $('fileBtn').addEventListener('click',()=>$('routineFile').click());
   $('routineFile').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];await loadFile(f);e.target.value='';});
