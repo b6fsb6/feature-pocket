@@ -180,6 +180,8 @@ textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .switch button:disabled{opacity:.5;cursor:not-allowed}
 .switch button:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
 body[data-run="1"] .cfg,body[data-run="1"] .sub{display:none}
+/* Playing: hide the page controls too, so only the strokes and Stop remain. */
+body[data-run="1"][data-rm="play"] header,body[data-run="1"][data-rm="play"] .tabs{display:none}
 .switch.tabs{--n:4}
 .switch.tabs button{font-size:15px;padding:0 2px}
 .page{display:grid;gap:22px}
@@ -301,25 +303,11 @@ button.pill.on{color:var(--ok)}
 
   <p class="status" id="status" role="status" aria-live="polite">Pick a pattern, then open Play and press Start.</p>
 
-  <!-- ===== Setup: tempo, click, microphone, calibration ===== -->
+  <!-- ===== Setup: on-time window, microphone, calibration ===== -->
   <div class="page" id="pageSetup" role="tabpanel" aria-labelledby="tabSetup" hidden>
-    <section class="panel" aria-label="Tempo and click">
-      <h3>Tempo and click</h3>
-      <div class="field">
-        <label for="bpm">Tempo <output id="bpmOut"></output></label>
-        <div class="tempo">
-          <button class="btn" id="bpmDown" type="button" aria-label="Slower">−</button>
-          <input type="range" id="bpm" min="40" max="220" step="1">
-          <button class="btn" id="bpmUp" type="button" aria-label="Faster">+</button>
-        </div>
-      </div>
+    <section class="panel" aria-label="Timing and click sound">
+      <h3>Timing and click sound</h3>
       <div class="row">
-        <div class="field"><label for="click">Click</label>
-          <select id="click">
-            <option value="beat">On the beat</option>
-            <option value="strokes">On all strokes</option>
-            <option value="off">Count-in only</option>
-          </select></div>
         <div class="field"><label for="tol">On-time window</label>
           <select id="tol">
             <option value="10">± 10 ms</option>
@@ -513,6 +501,7 @@ button.pill.on{color:var(--ok)}
     <section aria-label="Achievements">
       <h3>Achievements</h3>
       <p class="hint">Milestones you earn as you practise. A filled badge is earned.</p>
+      <div class="field"><label for="badgeLv">Patterns cleared at level</label><select id="badgeLv"></select></div>
       <div class="badges" id="badges"></div>
     </section>
     <section aria-label="Rudiments">
@@ -552,7 +541,7 @@ button.pill.on{color:var(--ok)}
       <ol>
         <li><b>Setup:</b> pick a tempo, use headphones for the click, press "Turn microphone on" and hit the pad. The level bar should cross the trigger line on every stroke. Calibrating each stick is optional but lets the app tell L from R.</li>
         <li><b>Pattern:</b> choose "One pattern" (a single sticking that repeats) or "Routine" (a list of exercises played one after another). The Play page has the same switch. In Routine, it also holds how long each exercise plays, the gap between them, and where to start.</li>
-        <li><b>Play:</b> press Start. After a count-in, play on the moving line. Press Stop when you are done to see your results.</li>
+        <li><b>Play:</b> set the tempo and click level, then press Start. The page controls hide while you play. After a count-in, play on the moving line. Press Stop when you are done to see your results.</li>
       </ol>
       <p>No microphone? On Setup, change Input to "Keyboard or pads". Press <b>F</b> for left and <b>J</b> for right. This is a test mode, and its timing is rougher than a microphone on a pad.</p>
     </section>
@@ -560,9 +549,9 @@ button.pill.on{color:var(--ok)}
     <section class="panel" id="help-pages">
       <h3>The four pages</h3>
       <ul>
-        <li><b>Play:</b> Start, Pause, Restart and Stop, the notation, the lead/drag gauge and your results. With a routine loaded, scroll or swipe the rows (or press ↑ ↓) to choose which exercise to start at.</li>
+        <li><b>Play:</b> the Pattern or Routine switch, tempo, click level, Start, Pause, Restart and Stop, the notation, the lead/drag gauge and your results. With a routine loaded, scroll or swipe the rows (or press ↑ ↓) to choose which exercise to start at.</li>
         <li><b>Pattern:</b> what you practise: one pattern, or a routine of exercises you type, load from a file or load from a URL.</li>
-        <li><b>Setup:</b> tempo, click, on-time window, microphone, stick calibration and latency.</li>
+        <li><b>Setup:</b> on-time window, click volume, microphone, stick calibration and latency.</li>
         <li><b>Progress:</b> your practice days for the last four weeks with a streak that forgives one rest day a week, achievements (sessions, days in a row, patterns cleared at 60, 80, 100 and 120 BPM), your scores for each pattern, weakest first, and each routine's best cleared tempo.</li>
       </ul>
     </section>
@@ -594,7 +583,7 @@ button.pill.on{color:var(--ok)}
       <div class="ex">
         <h4>Accent patterns</h4>
         <pre>RLRR LRLL RLRR LRLL</pre>
-        <p>Set the click to "On all strokes" in Setup to hear each note, or leave it "On the beat".</p>
+        <p>Choose the click level on the Play page: Easy clicks every stroke, Medium every beat, Hard on 1 and 3, Extreme on 1 only.</p>
         <button class="btn small" type="button" data-try="single" data-text="RLRR LRLL RLRR LRLL">Try it</button>
       </div>
       <div class="ex">
@@ -747,7 +736,7 @@ https://example.com/another-routine.txt</pre>
         <li><b>Stick calibration:</b> hit the same spot of the pad with one stick only, at normal strength, until the count finishes. Do it for both sticks.</li>
         <li><b>Test left vs right:</b> after calibrating, press it and hit once with whichever hand is shown, 20 times in a shuffled order. It reports how often the app named the right stick, how each hand did, and how many hits would be tagged with the wrong hand in a run. Below 90% is worth recalibrating.</li>
         <li><b>Latency:</b> sound reaches the page late, and the click reaches your ears late. Press Auto calibrate once on each device. It plays clicks through the speakers and times when the mic hears them, so you don't play. Calibrate by playing is the second choice: hit right on each click and keep going until the number settles, then stop (80 hits or more). It assumes you were on the click on average. You can also type a number.</li>
-        <li><b>Click:</b> "On the beat", "On all strokes" (no click on rests) or "Count-in only". Use headphones, or the click will be picked up as strokes.</li>
+        <li><b>Click level:</b> Easy clicks on every stroke (none on rests). Medium clicks on every beat. Hard clicks on beats 1 and 3, or every second beat from the start of the bar. Extreme clicks only on the first beat of each bar. Count-in only clicks just the count-in and is not scored in your stats. Every level is scored against the same grid, and each level is cleared on its own. Use headphones, or the click will be picked up as strokes.</li>
       </ul>
     </section>
 
@@ -768,15 +757,6 @@ https://example.com/another-routine.txt</pre>
       <button type="button" id="playRoutine" aria-pressed="false">Routine</button>
     </div>
 
-    <div class="transport">
-      <button class="btn primary" id="startBtn" type="button">Start</button>
-      <p class="hint cfg" id="playSummary"></p>
-      <div class="btns" id="runBtns" hidden>
-        <button class="btn small" id="restartBtn" type="button">Restart</button>
-        <button class="btn small" id="stopBtn" type="button">Stop</button>
-      </div>
-    </div>
-
     <section class="panel routine-only cfg" aria-label="Routine settings">
       <p class="hint" id="routineInfo"></p>
       <div class="row">
@@ -794,6 +774,33 @@ https://example.com/another-routine.txt</pre>
       <div class="exercises" id="exerciseList" role="listbox" aria-label="Exercises in this routine. Choose the exercise to start at."></div>
     </section>
 
+    <section class="panel cfg" aria-label="Tempo and click">
+      <div class="field">
+        <label for="bpm">Tempo <output id="bpmOut"></output></label>
+        <div class="tempo">
+          <button class="btn" id="bpmDown" type="button" aria-label="Slower">&#8722;</button>
+          <input type="range" id="bpm" min="40" max="220" step="1">
+          <button class="btn" id="bpmUp" type="button" aria-label="Faster">+</button>
+        </div>
+      </div>
+      <div class="field"><label for="click">Click</label>
+        <select id="click">
+          <option value="strokes">Easy: click on every stroke</option>
+          <option value="beat">Medium: click on the beat</option>
+          <option value="half">Hard: click on 1 and 3</option>
+          <option value="bar">Extreme: click on 1 only</option>
+          <option value="off">Count-in only (not scored in your stats)</option>
+        </select></div>
+    </section>
+
+    <div class="transport">
+      <button class="btn primary" id="startBtn" type="button">Start</button>
+      <p class="hint cfg" id="playSummary"></p>
+      <div class="btns" id="runBtns" hidden>
+        <button class="btn small" id="restartBtn" type="button">Restart</button>
+        <button class="btn small" id="stopBtn" type="button">Stop</button>
+      </div>
+    </div>
 
     <div id="runInfo" class="runinfo" hidden>
       <div class="progress" aria-hidden="true"><div id="progFill"></div></div>
@@ -1210,6 +1217,11 @@ function buildPlan(exercises,o){
         clicks.push({t:t0+j*beat,a:q<1-1e-9?2:(isInt(q)&&gst.indexOf(Math.round(q))>=0?1:0)});
       }
     }
+    if(o.clickMode==='half'||o.clickMode==='bar'){
+      /* Hard: every second beat from the start of the bar (1 and 3 in 4/4). Extreme: the first beat of the bar only. */
+      const B=sig?sig.n:4,step=o.clickMode==='half'?2:B,nb=Math.ceil(totalBeats-1e-9);
+      for(let j=0;j<nb;j++){const q=j%B;if(q%step===0)clicks.push({t:t0+j*beat,a:q===0?2:1});}
+    }
     /* cells are every position, rests included. slots are the strokes that are expected to sound. */
     for(let p=0;p<b.passes;p++)for(let i=0;i<N;i++){
       const st=t0+(p*passBeats+off[i])*beat,rest=b.notes[i]==='_';
@@ -1259,6 +1271,9 @@ function nameMarkers(str,d){
 const showSig=sig=>sig?sig.n+'/'+sig.d+(sig.groups.join('+')===defGroups(sig.n,sig.d).join('+')?'':' ('+sig.groups.join('+')+')')+': ':'';
 const showPattern=(notes,gs,subs,def,sig,src)=>showSig(sig)+(src||nameMarkers(fmtPattern(notes,gs,subs,def),sig?sig.d:4));
 /* ---------- records: scores kept per exercise and tempo ---------- */
+/* Click levels. Each one is scored on its own: easy is a click on every stroke, extreme only the first beat of each bar. */
+const LEVELS=[{v:'strokes',n:'Easy'},{v:'beat',n:'Medium'},{v:'half',n:'Hard'},{v:'bar',n:'Extreme'}];
+const levelName=v=>(LEVELS.find(l=>l.v===v)||{n:''}).n;
 const TARGET=0.9;                                /* accuracy that counts as cleared at a tempo */
 function hash32(str){let h=5381;for(let i=0;i<str.length;i++)h=((h<<5)+h+str.charCodeAt(i))>>>0;return h.toString(36);}
 /* One canonical text per rhythm, whatever the default subdivision or spacing was. */
@@ -1275,8 +1290,9 @@ function adviceFor(exercises,bpm){
 function patStats(runs){
   const m=new Map();
   runs.forEach(run=>run.exercises.forEach(b=>{
-    if(!(b.due>0))return;
-    let e=m.get(b.k);if(!e){e={k:b.k,recs:[]};m.set(b.k,e);}
+    if(!(b.due>0)||run.lv==='off')return;
+    const mk=b.k+'|'+run.lv;
+    let e=m.get(mk);if(!e){e={k:b.k,lv:run.lv,recs:[]};m.set(mk,e);}
     e.recs.push({t:run.t,bpm:b.bpm||run.bpm,pct:b.within/b.due,avg:b.avg});
   }));
   const out=[];
@@ -1286,7 +1302,7 @@ function patStats(runs){
     const cleared=e.recs.filter(x=>x.pct>=TARGET).reduce((a,x)=>Math.max(a,x.bpm),0);
     const clearedT=cleared?e.recs.find(x=>x.pct>=TARGET&&x.bpm===cleared).t:0;
     const bias=recent.filter(x=>typeof x.avg==='number'&&!isNaN(x.avg));
-    out.push({k:e.k,bpm:last.bpm,recent:recent.reduce((a,x)=>a+x.pct,0)/recent.length,last:last.pct,cleared:cleared||null,clearedT:clearedT,
+    out.push({k:e.k,lv:e.lv,bpm:last.bpm,recent:recent.reduce((a,x)=>a+x.pct,0)/recent.length,last:last.pct,cleared:cleared||null,clearedT:clearedT,
       runs:e.recs.length,trend:at.slice(-12).map(x=>x.pct),t:last.t,bias:bias.length?bias.reduce((a,x)=>a+x.avg,0)/bias.length:NaN});
   });
   out.sort((a,b)=>a.recent-b.recent||a.k.localeCompare(b.k));
@@ -1296,17 +1312,18 @@ function patStats(runs){
 function routineStats(runs){
   const m=new Map();
   runs.forEach(run=>{
-    if(!run.rk)return;
-    let e=m.get(run.rk);if(!e){e={rk:run.rk,title:run.rt||'',ne:run.ne,runs:0,t:0,cleared:0};m.set(run.rk,e);}
+    if(!run.rk||run.lv==='off')return;
+    const mk=run.rk+'|'+run.lv;
+    let e=m.get(mk);if(!e){e={rk:run.rk,lv:run.lv,title:run.rt||'',ne:run.ne,runs:0,t:0,cleared:0};m.set(mk,e);}
     e.runs++;if(run.t>=e.t){e.t=run.t;if(run.rt)e.title=run.rt;}
     const ok=run.exercises.length>=run.ne&&run.exercises.every(b=>b.due>0&&b.within/b.due>=TARGET);
     if(ok)e.cleared=Math.max(e.cleared,run.bpm);
   });
   return [...m.values()].sort((a,b)=>b.t-a.t);
 }
-function clearedBefore(runs,k){
+function clearedBefore(runs,k,lv){
   let m=0;
-  runs.forEach(run=>run.exercises.forEach(b=>{if(b.k===k&&b.due>0&&b.within/b.due>=TARGET)m=Math.max(m,b.bpm||run.bpm);}));
+  runs.forEach(run=>run.exercises.forEach(b=>{if(run.lv===lv&&b.k===k&&b.due>0&&b.within/b.due>=TARGET)m=Math.max(m,b.bpm||run.bpm);}));
   return m;
 }
 /* Practice days. dayKey is the local date; minutes per day; the streak allows one rest day in any seven. */
@@ -1326,19 +1343,20 @@ function streakOf(days,now){
   return n;
 }
 /* Achievements: three tracks, each with levels. Worked out from the saved runs, so discarding a run takes its credit back. */
-const BADGES=[{id:'ses',name:'Sessions',unit:'sessions',at:[5,10,25,50,100,250,500]},{id:'str',name:'Days in a row',unit:'days in a row',at:[5,10,20,30,60,100,180,365]}].concat([60,80,100,120].map(b=>({id:'c'+b,bpm:b,name:b+'+ BPM',unit:'patterns cleared at '+b+'+ BPM',at:[1,5,10,20,30,50]})));
+const BADGES=[{id:'ses',name:'Sessions',unit:'sessions',at:[5,10,25,50,100,250,500]},{id:'str',name:'Days in a row',unit:'days in a row',at:[5,10,20,30,60,100,180,365]}];
+LEVELS.forEach(l=>[60,80,100,120].forEach(b=>BADGES.push({id:'c'+b+l.v,bpm:b,lv:l.v,name:b+'+ BPM',unit:'patterns cleared at '+b+'+ BPM, '+l.n,at:[1,5,10,20,30,50]})));
 const BGROUPS=[{name:'Sessions',d:'Runs where at least one pattern was played through once and scored.',ids:['ses']},
   {name:'Days in a row',d:'Your longest run of practice days. One rest day a week does not break it.',ids:['str']},
-  {name:'Patterns cleared',d:'Different patterns you have played at 90% or more of strokes on time. Each row counts patterns cleared at that tempo or faster.',ids:['c60','c80','c100','c120']}];
+  {name:'Patterns cleared',d:'Different patterns you have played at 90% or more of strokes on time. Pick a click level. Each level is cleared on its own, and each row counts patterns cleared at that tempo or faster.',ids:[60,80,100,120]}];
 function badgeValues(runs){
   const days=practiceDays(runs),best=Array.from(days.keys()).reduce((m,k)=>{const a=k.split('-');return Math.max(m,streakOf(days,new Date(+a[0],+a[1]-1,+a[2])));},0);
   const st=patStats(runs),o={ses:runs.length,str:best};
-  BADGES.forEach(b=>{if(b.bpm)o[b.id]=st.filter(e=>e.cleared>=b.bpm).length;});
+  BADGES.forEach(b=>{if(b.bpm)o[b.id]=st.filter(e=>e.lv===b.lv&&e.cleared>=b.bpm).length;});
   return o;
 }
-function bestBefore(runs,k,bpm){
+function bestBefore(runs,k,bpm,lv){
   let best=null;
-  runs.forEach(run=>{run.exercises.forEach(b=>{if(b.k===k&&b.due>0&&(b.bpm||run.bpm)===bpm){const p=b.within/b.due;if(best===null||p>best)best=p;}});});
+  runs.forEach(run=>{run.exercises.forEach(b=>{if(run.lv===lv&&b.k===k&&b.due>0&&(b.bpm||run.bpm)===bpm){const p=b.within/b.due;if(best===null||p>best)best=p;}});});
   return best;
 }
 function fft(re,im){
@@ -1650,7 +1668,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.5.28';                           /* shown beside the title */
+const VERSION='0.5.30';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const SAMPLE='# Example routine. Replace these with your own exercises, one per line.\n# To change how long an exercise plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example routine\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
@@ -1660,7 +1678,7 @@ const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const LOOKAHEAD=0.35;                            /* how far ahead clicks are scheduled, in seconds */
 
 const S={mode:'single',pattern:'RLRL RLRL RLRL RLRL',routineText:SAMPLE,eachUnit:'min',eachVal:1,gap:0,pulse:true,startExercise:1,
-  bpm:60,subdiv:4,click:'beat',tol:20,sens:-30,settle:40,library:'',vol:60,latency:null,latCal:false,input:'mic',editMode:'type'};
+  bpm:60,subdiv:4,click:'beat',badgeLv:'strokes',tol:20,sens:-30,settle:40,library:'',vol:60,latency:null,latCal:false,input:'mic',editMode:'type'};
 let cal={L:[],R:[]},model=null;
 try{
   const o=JSON.parse(localStorage.getItem(KEY)||'null');
@@ -1682,7 +1700,8 @@ S.vol=clamp(Math.round(+S.vol),0,100);if(isNaN(S.vol))S.vol=60;
 S.latency=(S.latency==null||isNaN(+S.latency))?null:clamp(Math.round(+S.latency),0,400);
 if(S.input!=='kb')S.input='mic';
 if(S.click==='note')S.click='strokes';
-if(!['beat','strokes','off'].includes(S.click))S.click='beat';
+if(!['beat','strokes','half','bar','off'].includes(S.click))S.click='beat';
+if(!LEVELS.some(l=>l.v===S.badgeLv))S.badgeLv='strokes';
 if(typeof S.pattern!=='string')S.pattern='RLRL RLRL RLRL RLRL';
 if(typeof S.routineText!=='string'||S.routineText.length>MAX_TEXT)S.routineText=SAMPLE;
 S.eachUnit=S.eachUnit==='pass'?'pass':'min';
@@ -1698,7 +1717,7 @@ function syncNote(){const n=$('calNote');if(n)n.hidden=S.latCal||S.input==='kb';
 /* Scores live under their own key so clearing them never touches your settings or calibration. */
 const RKEY='stick-timing-trainer.records.v1',MAX_RUNS=800;
 function cleanRun(x){
-  if(!x||typeof x!=='object'||typeof x.id!=='string'||!Array.isArray(x.exercises)||!isFinite(+x.t)||!isFinite(+x.bpm))return null;
+  if(!x||typeof x!=='object'||typeof x.id!=='string'||!Array.isArray(x.exercises)||!isFinite(+x.t)||!isFinite(+x.bpm)||!['strokes','beat','half','bar','off'].includes(x.lv))return null;
   const exercises=[];
   x.exercises.forEach(b=>{
     if(!b||typeof b.k!=='string'||b.k.length>400||!(+b.due>0)||!isFinite(+b.within))return;
@@ -1707,7 +1726,7 @@ function cleanRun(x){
   });
   if(!exercises.length)return null;
   return {id:x.id.slice(0,40),t:+x.t,mode:x.mode==='routine'?'routine':'single',rk:typeof x.rk==='string'?x.rk.slice(0,40):null,rt:typeof x.rt==='string'?x.rt.slice(0,80):'',
-    ne:Math.max(1,+x.ne||exercises.length),bpm:+x.bpm,tol:+x.tol||20,sec:Math.max(0,Math.min(14400,+x.sec||0)),exercises:exercises};
+    lv:x.lv,ne:Math.max(1,+x.ne||exercises.length),bpm:+x.bpm,tol:+x.tol||20,sec:Math.max(0,Math.min(14400,+x.sec||0)),exercises:exercises};
 }
 const recs={runs:[]};
 try{
@@ -2914,13 +2933,14 @@ function guide(){
   const n=recs.runs.length,sig=n+':'+(n?recs.runs[n-1].id:'');
   if(guideMemo.sig!==sig){
     guideMemo={sig:sig,pat:new Map(),rt:new Map()};
-    patStats(recs.runs).forEach(e=>guideMemo.pat.set(e.k,e));
-    routineStats(recs.runs).forEach(e=>guideMemo.rt.set(e.rk,e));
+    patStats(recs.runs).forEach(e=>guideMemo.pat.set(e.k+'|'+e.lv,e));
+    routineStats(recs.runs).forEach(e=>guideMemo.rt.set(e.rk+'|'+e.lv,e));
   }
   return guideMemo;
 }
 function exerciseGuide(sg){
-  const e=guide().pat.get(patKey(sg.notes,sg.groupStart,sg.subs,sg.defSub,sg.sig));
+  if(S.click==='off')return 'not scored';
+  const e=guide().pat.get(patKey(sg.notes,sg.groupStart,sg.subs,sg.defSub,sg.sig)+'|'+S.click);
   if(!e)return 'new';
   return e.cleared?'cleared at '+e.cleared:'not cleared yet';
 }
@@ -2931,12 +2951,12 @@ function recordRun(r){
   if(!rows.length)return;
   const all=S.mode==='routine'?allExercises().map(b=>patKey(b.notes,b.groupStart,b.subs,b.defSub,b.sig)):null;
   const run={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t:Date.now(),mode:S.mode,
-    rk:all?routineKeyOf(all):null,rt:all?(routineParsed.title||''):'',ne:all?all.length:1,bpm:S.bpm,tol:S.tol,sec:Math.max(0,Math.min(14400,Math.round((Date.now()-(r.w0||Date.now()))/1000))),
+    rk:all?routineKeyOf(all):null,rt:all?(routineParsed.title||''):'',ne:all?all.length:1,bpm:S.bpm,tol:S.tol,lv:S.click,sec:Math.max(0,Math.min(14400,Math.round((Date.now()-(r.w0||Date.now()))/1000))),
     exercises:rows.map(x=>({k:x.key,bpm:x.bpm,due:x.due,within:Math.round(x.pct*x.due),heard:x.heard,
       avg:isNaN(x.avg)?null:x.avg,sd:isNaN(x.spread)?null:x.spread,miss:x.miss,i:x.idx}))};
   const prevBest=new Map();
-  rows.forEach(x=>{const b=bestBefore(recs.runs,x.key,x.bpm);if(b!==null)prevBest.set(x.key,b);});
-  const newTempo=rows.filter(x=>x.pct>=TARGET&&x.bpm>clearedBefore(recs.runs,x.key));
+  rows.forEach(x=>{const b=bestBefore(recs.runs,x.key,x.bpm,S.click);if(b!==null)prevBest.set(x.key,b);});
+  const newTempo=rows.filter(x=>x.pct>=TARGET&&x.bpm>clearedBefore(recs.runs,x.key,S.click)&&S.click!=='off');
   const bv0=badgeValues(recs.runs);
   recs.runs.push(run);
   const bv1=badgeValues(recs.runs),won=[];
@@ -3059,12 +3079,17 @@ function renderPractice(){
   $('stripHint').textContent=days.size?'This week: '+weekDays+(weekDays===1?' day':' days')+', '+week+' min. One rest day a week keeps the streak going. Darker means more minutes.':'Play a pattern and your practice days show up here. One rest day a week keeps the streak going.';
 }
 function renderBadges(){
+  const sel=$('badgeLv');
+  if(!sel.options.length)LEVELS.forEach(l=>{const o=document.createElement('option');o.value=l.v;o.textContent=l.n;sel.appendChild(o);});
+  sel.value=S.badgeLv;
+
   const v=badgeValues(recs.runs),box=$('badges');box.textContent='';
   BGROUPS.forEach(g=>{
     const w=document.createElement('div');w.className='bw';
     const h=document.createElement('h4');h.textContent=g.name;w.appendChild(h);
     const d=document.createElement('p');d.className='hint';d.textContent=g.d;w.appendChild(d);
     g.ids.forEach(id=>{
+      if(typeof id==='number')id='c'+id+S.badgeLv;
       const b=BADGES.find(x=>x.id===id),row=document.createElement('div');row.className='bd';
       const t=document.createElement('span');t.className='bt';t.textContent=(g.ids.length>1?b.name:'You have')+' · '+v[id];row.appendChild(t);
       b.at.forEach(n=>{const c=document.createElement('span');c.className='bc'+(v[id]>=n?' on':'');c.textContent=n;c.title=v[id]>=n?'Earned':'Reach '+n;row.appendChild(c);});
@@ -3080,22 +3105,23 @@ function renderProgress(){
   $('progHint').textContent=stats.length
     ?'Accuracy is the share of strokes inside your timing window over your last three runs at the tempo you played most recently. Trend plots each run at that tempo (up to 12), with the dotted line at the target. Cleared means '+tgt+'% or better at that tempo.'
     :'Nothing yet. Play a pattern or a routine and each exercise\'s score shows up here, so you can see which rudiments need work.';
-  const practise=k=>{
+  const practise=(k,lv)=>{
     const b=document.createElement('button');
     b.type='button';b.className='btn small';b.textContent='Practise';
-    b.addEventListener('click',()=>practisePattern(k));
+    b.addEventListener('click',()=>practisePattern(k,lv));
     return b;
   };
-  fillTable($('patTable'),stats.length?['Pattern','BPM','Accuracy','Trend','Cleared','Bias ms','']:[],
-    stats.map(x=>[[showKey(x.k),'seq'],String(x.bpm),[Math.round(x.recent*100)+'%',accCls(x.recent)],sparkline(x.trend),x.cleared?(Date.now()-x.clearedT<6048e5?'★ ':'')+x.cleared:'—',
-      [isNaN(x.bias)?'—':fmtMs(x.bias,1),biasCls(x.bias)],practise(x.k)]));
-  fillTable($('rtTable'),routines.length?['Routine','Exercises','Runs','Cleared at','Last']:[],
-    routines.length?routines.map(x=>[x.title||'Untitled routine',String(x.ne),String(x.runs),x.cleared?x.cleared+' BPM':'—',fmtDate(x.t)])
+  fillTable($('patTable'),stats.length?['Pattern','Level','BPM','Accuracy','Trend','Cleared','Bias ms','']:[],
+    stats.map(x=>[[showKey(x.k),'seq'],levelName(x.lv),String(x.bpm),[Math.round(x.recent*100)+'%',accCls(x.recent)],sparkline(x.trend),x.cleared?(Date.now()-x.clearedT<6048e5?'★ ':'')+x.cleared:'—',
+      [isNaN(x.bias)?'—':fmtMs(x.bias,1),biasCls(x.bias)],practise(x.k,x.lv)]));
+  fillTable($('rtTable'),routines.length?['Routine','Level','Exercises','Runs','Cleared at','Last']:[],
+    routines.length?routines.map(x=>[x.title||'Untitled routine',levelName(x.lv),String(x.ne),String(x.runs),x.cleared?x.cleared+' BPM':'—',fmtDate(x.t)])
       :[[['No routine runs yet.','muted']]]);
   $('recMsg').textContent=recs.runs.length+(recs.runs.length===1?' run':' runs')+' stored.';
 }
-function practisePattern(k){
+function practisePattern(k,lv){
   if(run&&!run.ended)return;
+  if(lv){S.click=lv;$('click').value=lv;}
   const txt=keyToText(k);
   S.pattern=txt;$('pattern').value=txt;save();
   setMode('single');
@@ -3414,6 +3440,7 @@ function setRunning(on){
   syncRunUI();
   /* While a pattern or routine is playing, hide the settings so the strokes sit under the transport. */
   document.body.dataset.run=on?'1':'0';
+  document.body.dataset.rm=on&&run?run.mode:'';
   LOCKED.forEach(id=>{$(id).disabled=on;});
   document.querySelectorAll('.chip').forEach(c=>{c.disabled=on;});
   renderLibrary();
@@ -3467,7 +3494,7 @@ function pulseNote(exercises){
   return exercises.some(b=>b.sig&&b.sig.d===8)?' (per eighth note)':(exercises.some(b=>b.sig&&b.sig.d===2)?' (per half note)':'');
 }
 function routineGuide(){
-  const e=guide().rt.get(routineKeyOf(allExercises().map(b=>patKey(b.notes,b.groupStart,b.subs,b.defSub,b.sig))));
+  const e=guide().rt.get(routineKeyOf(allExercises().map(b=>patKey(b.notes,b.groupStart,b.subs,b.defSub,b.sig)))+'|'+S.click);
   return e&&e.cleared?' · routine cleared at '+e.cleared+' BPM':'';
 }
 function refreshPreview(){
@@ -3759,7 +3786,8 @@ function wire(){
   $('bpmDown').addEventListener('click',()=>setBpm(S.bpm-1));
   $('bpmUp').addEventListener('click',()=>setBpm(S.bpm+1));
   $('subdiv').addEventListener('change',e=>{S.subdiv=+e.target.value;save();if(S.mode==='routine')buildExerciseList();previewRows();syncInfo();});
-  $('click').addEventListener('change',e=>{S.click=e.target.value;save();});
+  $('click').addEventListener('change',e=>{S.click=e.target.value;save();if(S.mode==='routine')buildExerciseList();syncInfo();});
+  $('badgeLv').addEventListener('change',e=>{S.badgeLv=e.target.value;save();renderBadges();});
   $('tol').addEventListener('change',e=>{S.tol=+e.target.value;save();renderAll();});
   $('inputMode').addEventListener('change',e=>{S.input=e.target.value;save();setInputMode();});
   $('modeSingle').addEventListener('click',()=>setMode('single'));
