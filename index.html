@@ -527,6 +527,7 @@ button.pill.on{color:var(--ok)}
         <div class="field routine-only">
           <div class="btns">
             <button class="btn small" id="fileBtn" type="button">Load file</button>
+            <button class="btn small" id="saveBtn" type="button">Save file</button>
             <button class="btn small" id="urlBtn" type="button">Load from URL</button>
             <button class="btn small" id="clearRoutine" type="button">Clear</button>
             <input type="file" id="routineFile" accept=".txt,.json,.csv,text/plain,application/json" hidden>
@@ -786,7 +787,7 @@ LRLR LRLR LRLR LRLR  x8</pre>
       <p>"Between exercises" can be a 4-beat count-in, or <b>Straight on</b> (the default), where the next exercise starts without a pause. With Straight on, nothing marks the change except the notation: the rows slide up and the new exercise's first pass starts on the next beat.</p>
       <p><b>Visual pulse</b> (in Settings, under Preferences) makes the moving line swell on every click, bigger on the first beat of each pass, so you can see the click as well as hear it. Turn it off for a plain moving line.</p>
       <h4>Loading a routine</h4>
-      <p>Use <b>Load file</b> for a .txt, .json or .csv, or <b>Load from URL</b>. JSON also works: a list such as <b>["RLRR LRLL", {"sticking":"RLRL RLRL","passes":16}]</b>, or an object with <b>title</b>, <b>each</b> and <b>exercises</b>.</p>
+      <p>Use <b>Save file</b> to keep the routine as a .txt you can load again later. Use <b>Load file</b> for a .txt, .json or .csv, or <b>Load from URL</b>. JSON also works: a list such as <b>["RLRR LRLL", {"sticking":"RLRL RLRL","passes":16}]</b>, or an object with <b>title</b>, <b>each</b> and <b>exercises</b>.</p>
     </section>
 
     <section class="panel" id="help-library">
@@ -1824,7 +1825,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.5.91';                           /* shown beside the title */
+const VERSION='0.5.93';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const SAMPLE='# Example routine. Replace these with your own exercises, one per line.\n# To change how long an exercise plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example routine\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
@@ -3337,17 +3338,15 @@ function renderProgress(){
   $('progHint').textContent=stats.length
     ?'Accuracy is the share of strokes inside your timing window over your last three runs at the tempo you played most recently. Trend plots each run at that tempo (up to 12), with the dotted line at the target. Cleared means '+tgt+'% or better at that tempo.'
     :'Nothing yet. Play a pattern or a routine and each exercise\'s score shows up here, so you can see which rudiments need work.';
-  const practise=(k,lv)=>{
-    const b=document.createElement('button');
-    b.type='button';b.className='btn small';b.textContent='Practise';
-    b.addEventListener('click',()=>practisePattern(k,lv));
-    return b;
-  };
+  const practise=(k,lv)=>iconBtn('replay','Practise this pattern',()=>practisePattern(k,lv));
+  /* A routine is replayed from its newest run at that level, while that run's text is still kept. */
+  const replayRoutine=x=>{const r=recs.runs.slice().reverse().find(q=>q.rk===x.rk&&q.lv===x.lv);
+    if(r)return replayBtn(r);const b=iconBtn('replay','Replay',()=>{});b.disabled=true;b.title='This routine was saved without its text.';return b;};
   fillTable($('patTable'),stats.length?['Pattern','Level','BPM','Accuracy','Trend','Cleared','Bias ms','']:[],
     stats.map(x=>[[showKey(x.k),'seq'],levelName(x.lv),String(x.bpm),[Math.round(x.recent*100)+'%',accCls(x.recent)],sparkline(x.trend),x.cleared?(Date.now()-x.clearedT<6048e5?'★ ':'')+x.cleared:'—',
       [isNaN(x.bias)?'—':fmtMs(x.bias,1),biasCls(x.bias)],practise(x.k,x.lv)]));
-  fillTable($('rtTable'),routines.length?['Routine','Level','Exercises','Runs','Cleared at','Last']:[],
-    routines.length?routines.map(x=>[x.title||'Untitled routine',levelName(x.lv),String(x.ne),String(x.runs),x.cleared?x.cleared+' BPM':'—',fmtDate(x.t)])
+  fillTable($('rtTable'),routines.length?['Routine','Level','Exercises','Runs','Cleared at','Last','']:[],
+    routines.length?routines.map(x=>[x.title||'Untitled routine',levelName(x.lv),String(x.ne),String(x.runs),x.cleared?x.cleared+' BPM':'—',fmtDate(x.t),replayRoutine(x)])
       :[[['No routine runs yet.','muted']]]);
   renderHistory();syncData();
 }
@@ -4278,6 +4277,12 @@ function wire(){
   $('playRoutine').addEventListener('click',()=>setMode('routine'));
   $('routineText').addEventListener('input',e=>{S.routineText=e.target.value.slice(0,MAX_TEXT);S.startExercise=1;save();onRoutineChanged();});
   $('fileBtn').addEventListener('click',()=>$('routineFile').click());
+  /* Saves the routine text as it stands, so Load file can bring it back on any device. */
+  $('saveBtn').addEventListener('click',()=>{
+    const t=$('routineText').value;if(!t.trim())return;
+    const name=(getHeader(t,'title')||'routine').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'routine';
+    saveFile(name+'.txt','text/plain',t.endsWith('\n')?t:t+'\n');
+  });
   $('routineFile').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];await loadFile(f);e.target.value='';});
   $('urlBtn').addEventListener('click',()=>{const row=$('urlRow');row.hidden=!row.hidden;if(!row.hidden)$('routineUrl').focus();});
   $('urlGo').addEventListener('click',loadUrl);
