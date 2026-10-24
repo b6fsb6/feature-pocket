@@ -207,6 +207,7 @@ body[data-review="1"] header,body[data-review="1"] .tabs,body[data-review="1"] .
 svg.spark{display:block;overflow:visible}
 .badges{display:grid;gap:12px;margin-top:10px}
 .pv{display:grid;gap:22px}
+.pv>*{min-width:0}
 .pv[hidden]{display:none}
 .hist{display:grid;gap:6px}
 .hist h4{margin:10px 0 0;font-size:13px;color:var(--muted);font-weight:600}
@@ -666,7 +667,7 @@ button.pill.on{color:var(--ok)}
         <li><b>A small arrow tag</b> such as →R beside a letter means that stroke was due on the other hand but the app heard R. This needs both sticks calibrated.</li>
         <li><b>The gauge</b> shows your average lead or drag over the last 32 strokes. Left of the middle is leading and right is dragging.</li>
         <li><b>On narrow screens</b> a busy pass wraps onto two lines at the barline so the notes stay roomy.</li>
-        <li><b>Pause</b> stops the click. Resume counts you in again from the start of that pass. <b>Restart</b> goes back to your chosen start exercise.</li>
+        <li><b>Pause</b> stops the click. Resume counts you in again from the start of that pass. Tapping the notation while playing also pauses, and tapping it again resumes. <b>Restart</b> goes back to your chosen start exercise.</li>
       </ul>
     </section>
 
@@ -1832,7 +1833,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.5.98';                           /* shown beside the title */
+const VERSION='0.6.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const SAMPLE='# Example routine. Replace these with your own exercises, one per line.\n# To change how long an exercise plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example routine\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
@@ -4423,6 +4424,11 @@ function wire(){
       return;
     }
     startPlay();
+  });
+  /* Tapping the staff while playing pauses, and tapping it while paused resumes. */
+  document.querySelector('.rowswrap').addEventListener('click',()=>{
+    if(!run||run.ended||run.mode!=='play')return;
+    if(run.paused)resumeRun();else pauseRun();
   });
   $('advWeak').addEventListener('click',()=>{if(lastRun)startPlay(lastRun.weakIdx);});
   TABS.forEach(n=>{
