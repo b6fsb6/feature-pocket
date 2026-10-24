@@ -215,6 +215,8 @@ body[data-mode="routine"] .single-only{display:none}
 .exercises{max-height:288px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
 .erow{cursor:pointer;display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:8px;padding:7px 10px;border-bottom:1px solid var(--line);font:13px var(--font-data);align-items:baseline}
 .erow:last-child{border-bottom:0}
+.patline{margin:0;font:600 18px var(--font-data);letter-spacing:.1em;overflow-wrap:anywhere}
+.patline:empty{display:none}
 .erow .seq{letter-spacing:.1em;font-weight:600;overflow-wrap:anywhere}
 .erow .meta{color:var(--muted);white-space:nowrap}
 .bmain,.bpane,.editor{display:grid;gap:12px}
@@ -383,7 +385,7 @@ button.pill.on{color:var(--ok)}
   <!-- ===== Pattern: one pattern or a routine ===== -->
   <div class="page" id="pagePattern" role="tabpanel" aria-labelledby="tabPattern">
     <div class="switch cfg" role="group" aria-label="What to practise">
-      <button type="button" id="modeSingle" aria-pressed="true">One pattern</button>
+      <button type="button" id="modeSingle" aria-pressed="true">Pattern</button>
       <button type="button" id="modeRoutine" aria-pressed="false">Routine</button>
     </div>
 
@@ -540,7 +542,7 @@ button.pill.on{color:var(--ok)}
       <h3>Quick start</h3>
       <ol>
         <li><b>Setup:</b> pick a tempo, use headphones for the click, press "Turn microphone on" and hit the pad. The level bar should cross the trigger line on every stroke. Calibrating each stick is optional but lets the app tell L from R.</li>
-        <li><b>Pattern:</b> choose "One pattern" (a single sticking that repeats) or "Routine" (a list of exercises played one after another). The Play page has the same switch. In Routine, it also holds how long each exercise plays, the gap between them, and where to start.</li>
+        <li><b>Pattern:</b> choose "Pattern" (a single sticking that repeats) or "Routine" (a list of exercises played one after another). The Play page has the same switch. In Routine, it also holds how long each exercise plays, the gap between them, and where to start.</li>
         <li><b>Play:</b> set the tempo and click level, then press Start. The page controls hide while you play. After a count-in, play on the moving line. Press Stop when you are done to see your results.</li>
       </ol>
       <p>No microphone? On Setup, change Input to "Keyboard or pads". Press <b>F</b> for left and <b>J</b> for right. This is a test mode, and its timing is rougher than a microphone on a pad.</p>
@@ -772,6 +774,10 @@ https://example.com/another-routine.txt</pre>
       <p class="hint" id="eachNote" hidden></p>
       <p class="hint">Tap an exercise to start there.</p>
       <div class="exercises" id="exerciseList" role="listbox" aria-label="Exercises in this routine. Choose the exercise to start at."></div>
+    </section>
+
+    <section class="panel single-only cfg" aria-label="Pattern">
+      <p class="patline" id="playPat"></p>
     </section>
 
     <section class="panel cfg" aria-label="Tempo and click">
@@ -1668,7 +1674,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.5.30';                           /* shown beside the title */
+const VERSION='0.5.32';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const SAMPLE='# Example routine. Replace these with your own exercises, one per line.\n# To change how long an exercise plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example routine\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
@@ -3485,8 +3491,9 @@ function syncInfo(){
   }
   const sum=$('playSummary');
   if(!exercises.length)sum.textContent=S.mode==='single'?'Type a sticking on the Editor page, then press Start.':'Add some exercises on the Editor page, then press Start.';
-  else if(S.mode==='single'){const b=exercises[0];sum.textContent=showPattern(b.notes,b.groupStart,b.subs,b.defSub,b.sig,b.src)+' · '+S.bpm+' BPM'+pulseNote(exercises)+' · runs until you press Stop';}
+  else if(S.mode==='single'){const b=exercises[0];sum.textContent=S.bpm+' BPM'+pulseNote(exercises)+' · runs until you press Stop';}
   else{let tt=0;exercises.forEach(b=>{tt+=b.secs;});sum.textContent=(routineParsed.title||'Routine')+' · '+exercises.length+(exercises.length===1?' exercise':' exercises')+(S.startExercise>1?' from exercise '+S.startExercise:'')+' · about '+fmtTime(tt)+' · '+S.bpm+' BPM'+pulseNote(exercises)+routineGuide();}
+  {const b=exercises[0];$('playPat').textContent=exercises.length&&S.mode==='single'?showPattern(b.notes,b.groupStart,b.subs,b.defSub,b.sig,b.src):'';}
   $('bpmOut').textContent=S.bpm+' BPM';
 }
 /* BPM counts the pulse. Say so when that is the eighth note. */
