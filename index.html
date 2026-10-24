@@ -157,8 +157,8 @@ canvas{display:block;width:100%;height:170px}
 details{border:1px solid var(--line);border-radius:10px;background:var(--surface)}
 summary{cursor:pointer;padding:14px;font:800 20px var(--font-display);letter-spacing:.06em;text-transform:uppercase;list-style:none}
 summary::-webkit-details-marker{display:none}
-summary::after{content:"+";float:right;font-family:var(--font-data)}
-details[open] summary::after{content:"–"}
+summary::after{content:"";float:right;width:9px;height:9px;margin:6px 4px 0 0;border:solid var(--muted);border-width:0 2.5px 2.5px 0;transform:rotate(45deg);transition:transform .15s}
+details[open]>summary::after{transform:rotate(-135deg);margin-top:10px}
 .libitem{display:flex;justify-content:space-between;gap:8px;width:100%;text-align:left;padding:9px 12px;border:0;border-bottom:1px solid var(--line);background:transparent;font:600 14px var(--font-body);color:var(--ink);cursor:pointer}
 .libitem:last-child{border-bottom:0}
 .libitem:hover{background:color-mix(in srgb,var(--accent) 10%,transparent)}
@@ -204,11 +204,24 @@ svg.spark{display:block;overflow:visible}
 .hist{display:grid;gap:6px}
 .hist h4{margin:10px 0 0;font-size:13px;color:var(--muted);font-weight:600}
 .hrow{border:1px solid var(--line);border-radius:10px;background:var(--surface)}
-.hrow summary{cursor:pointer;padding:10px 32px 10px 12px;display:grid;gap:2px;font:400 16px var(--font-body);letter-spacing:normal;text-transform:none;position:relative}
-.hrow summary::after{position:absolute;right:12px;top:10px}
+.hrow summary,.hrow .sm{cursor:pointer;padding:10px 118px 10px 12px;display:grid;gap:2px;font:400 16px var(--font-body);letter-spacing:normal;text-transform:none;position:relative}
+.hrow summary::after{position:absolute;right:14px;top:14px;margin:0}
+.hrow[open]>summary::after{margin:0;top:19px}
 .hrow .hn{font:700 17px var(--font-data);letter-spacing:.06em;overflow-wrap:anywhere}
 .hrow .hs{font-size:13px;color:var(--muted)}
+.hrow.flat .sm{cursor:default;padding-right:92px}
+.hgrp .hrow .sm{padding-right:54px}
+.hgrp .hrow summary{padding-right:84px}
+.hgrp>summary{padding-right:84px}
+.hrow .ha{position:absolute;right:38px;top:50%;transform:translateY(-50%);display:flex;gap:2px}
+.hrow.flat .ha{right:8px}
+.ib{border:0;background:transparent;color:var(--muted);min-width:38px;height:38px;border-radius:8px;display:grid;place-items:center;cursor:pointer;font:700 12px var(--font-body);padding:0 6px}
+.ib.replay{color:var(--accent)}
+.ib:disabled{opacity:.35;cursor:not-allowed}
+.ib.del.arm{color:var(--late);border:1px solid var(--late);padding:0 8px}
 .hrow .hb{padding:0 12px 12px;display:grid;gap:8px}
+.hgrp>.hg{padding:0 8px 8px}
+.hgrp .hrow{background:var(--bg)}
 .hrow ul{margin:0;padding:0;list-style:none;font-size:13px;display:grid;gap:2px}
 .hrow li{display:flex;gap:8px;justify-content:space-between}
 .cgrid{border-collapse:collapse;margin:8px 0 4px;font-size:13px;width:100%;max-width:360px}
@@ -632,7 +645,7 @@ button.pill.on{color:var(--ok)}
         <li><b>Play:</b> the Pattern or Routine switch, tempo, click level, Start, Pause, Restart and Stop, the notation, the lead/drag gauge and your results. With a routine loaded, scroll or swipe the rows (or press ↑ ↓) to choose which exercise to start at.</li>
         <li><b>Pattern:</b> what you practise: one pattern, or a routine of exercises you type, load from a file or load from a URL.</li>
         <li><b>Settings:</b> <b>Preferences</b> has the on-time window, visual pulse and click volume. <b>Device</b> has the input, microphone level, stick calibration and latency. <b>Data</b> has export, import and clear.</li>
-        <li><b>Stats:</b> three views. <b>History</b> lists your last runs with Replay. <b>Scores</b> shows each pattern and routine, weakest first, with its best cleared tempo. <b>Achievements</b> shows your practice days for the last four weeks, a streak that forgives one rest day a week, and your badges.</li>
+        <li><b>Stats:</b> three views. <b>History</b> lists your last runs by exercise or routine, with Replay. <b>Scores</b> shows each pattern and routine, weakest first, with its best cleared tempo. <b>Achievements</b> shows your practice days for the last four weeks, a streak that forgives one rest day a week, and your badges.</li>
       </ul>
     </section>
 
@@ -805,7 +818,7 @@ https://example.com/another-routine.txt</pre>
         <li><b>Practise weak exercises.</b> After a routine run, a button plays only the exercises that were below the target. Restart repeats the same exercises. A run of only some exercises never counts as clearing the routine.</li>
         <li><b>Tempo guidance.</b> Each exercise in the start list shows the tempo it has cleared, or "new". The summary shows the tempo at which the whole routine has been cleared.</li>
         <li><b>Records are saved in this browser only.</b> Use Export to keep a copy or move to another device, and Import to bring one back. The app asks the browser to keep your records and reminds you to export a copy if you never have, or if the last one is two weeks old. On iPhone and iPad, Safari can clear a site's data after about a week without use, so add the page to your Home Screen.</li>
-        <li><b>History:</b> on the Stats page, switch to History to see your last 300 runs, newest first. Tap a run for its exercises. <b>Replay</b> loads the same pattern or routine, tempo, click level and settings on the Play page, ready to start. <b>Delete</b> removes the run from your records. Runs older than the last 300 are folded into your totals, streaks, achievements and cleared tempos, which are kept for good, but they can no longer be replayed.</li>
+        <li><b>History:</b> on the Stats page, switch to History to see your last 300 runs, grouped by exercise or routine with the most recent group first. Tap a group for its runs, and a run for its exercises. <b>Replay</b> loads the same pattern or routine, tempo, click level and settings on the Play page, ready to start. <b>Delete</b> removes the run from your records. Runs older than the last 300 are folded into your totals, streaks, achievements and cleared tempos, which are kept for good, but they can no longer be replayed.</li>
       </ul>
     </section>
 
@@ -1811,7 +1824,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.5.71';                           /* shown beside the title */
+const VERSION='0.5.76';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const SAMPLE='# Example routine. Replace these with your own exercises, one per line.\n# To change how long an exercise plays, add x16 (16 passes) or 90s to the end of its line. Add @100 for its own tempo.\ntitle: Example routine\nRLRL RLRL RLRL RLRL\nLRLR LRLR LRLR LRLR\nRRLL RRLL RRLL RRLL\nLLRR LLRR LLRR LLRR\nRLRR LRLL RLRR LRLL\nRLLR LRRL RLLR LRRL\nRRLR LLRL RRLR LLRL\n';
@@ -3346,7 +3359,7 @@ function setSview(v){
   });
 }
 function showSetup(v){setSview(v);showTab('setup');}
-let pview='hist',histShown=30;
+let pview='hist',histShown=20;
 function setPview(v){
   pview=v;
   [['stats','pvStats','pvBtnStats'],['hist','pvHist','pvBtnHist'],['ach','pvAch','pvBtnAch']].forEach(x=>{
@@ -3355,40 +3368,66 @@ function setPview(v){
 }
 const runPct=r=>{let w=0,d=0;r.exercises.forEach(b=>{w+=b.within;d+=b.due;});return d?w/d:0;};
 let delArm=null;
-function renderHistory(){
-  const box=$('histList');box.textContent='';
-  const runs=recs.runs.slice().reverse();
-  $('histHint').textContent=runs.length?'Your last '+recs.runs.length+' runs, newest first. Tap a run for its exercises. Replay loads the same pattern or routine, tempo, click level and settings on the Play page.':'No runs yet. Each run you play is listed here.';
-  let day='';
-  runs.slice(0,histShown).forEach(r=>{
-    const dk=dayKey(r.t);
-    if(dk!==day){day=dk;const h=document.createElement('h4');h.textContent=new Date(r.t).toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'short'});box.appendChild(h);}
-    const det=document.createElement('details');det.className='hrow';
-    const sm=document.createElement('summary');
-    const name=r.mode==='routine'?(r.rt||'Routine')+' · '+r.ne+(r.ne===1?' exercise':' exercises'):showKey(r.exercises[0].k);
-    const n=document.createElement('span');n.className='hn';n.textContent=name;
-    const st=document.createElement('span');st.className='hs';
-    st.textContent=new Date(r.t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})+' · '+(r.lv==='off'?'Count-in only':levelName(r.lv))+' · '+r.bpm+' BPM · '+(r.lv==='off'?'':Math.round(runPct(r)*100)+'% on time · ')+fmtTime(r.sec||0);
-    sm.appendChild(n);sm.appendChild(st);det.appendChild(sm);
+const runKey=r=>r.mode==='routine'?'r:'+(r.rk||r.rt):'p:'+r.exercises[0].k;
+const fmtWhen=t=>new Date(t).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'})+' '+new Date(t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+const ICON={replay:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 4v5h5"/></svg>',
+  del:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>'};
+function iconBtn(kind,label,fn){
+  const b=document.createElement('button');b.type='button';b.className='ib '+kind;b.innerHTML=ICON[kind];b.setAttribute('aria-label',label);b.title=label;
+  b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();fn(b);});return b;
+}
+const replayBtn=r=>{const b=iconBtn('replay','Replay',()=>replayRun(r));if(!r.rp){b.disabled=true;b.title='This run was saved without its text.';}return b;};
+function deleteBtn(r){
+  return iconBtn('del','Delete',b=>{
+    if(delArm!==r.id){delArm=r.id;b.classList.add('arm');b.textContent='Delete?';setTimeout(()=>{if(delArm===r.id){delArm=null;b.classList.remove('arm');b.innerHTML=ICON.del;}},4000);return;}
+    delArm=null;deleteRun(r.id);
+  });
+}
+/* One run: Replay and Delete sit on the row. A routine run also expands to show each exercise's result. */
+function histRun(r,named){
+  const routine=r.mode==='routine';
+  const det=document.createElement(routine?'details':'div');det.className='hrow'+(routine?'':' flat');
+  const sm=document.createElement(routine?'summary':'div');if(!routine)sm.className='sm';
+  const name=named?(routine?(r.rt||'Routine')+' · '+r.ne+(r.ne===1?' exercise':' exercises'):showKey(r.exercises[0].k)):fmtWhen(r.t);
+  const n=document.createElement('span');n.className='hn';n.textContent=name;
+  const st=document.createElement('span');st.className='hs';
+  st.textContent=(named?fmtWhen(r.t)+' · ':'')+(r.lv==='off'?'Count-in only':levelName(r.lv))+' · '+r.bpm+' BPM'+(r.lv==='off'?'':' · '+Math.round(runPct(r)*100)+'% on time')+' · '+fmtTime(r.sec);
+  const ac=document.createElement('span');ac.className='ha';if(named)ac.appendChild(replayBtn(r));ac.appendChild(deleteBtn(r));   /* a run inside a group is replayed from the group row */
+  sm.appendChild(n);sm.appendChild(st);sm.appendChild(ac);det.appendChild(sm);
+  if(routine){
     const body=document.createElement('div');body.className='hb';
     const ul=document.createElement('ul');
     r.exercises.forEach(b=>{const li=document.createElement('li');
-      const a=document.createElement('span');a.textContent=(r.mode==='routine'?(b.i||'')+' ':'')+showKey(b.k);a.className='seq';
+      const a=document.createElement('span');a.textContent=(b.i||'')+' '+showKey(b.k);a.className='seq';
       const c=document.createElement('span');c.textContent=Math.round(b.within/b.due*100)+'%'+(b.bpm!==r.bpm?' · '+b.bpm+' BPM':'');
       li.appendChild(a);li.appendChild(c);ul.appendChild(li);});
-    body.appendChild(ul);
-    const btns=document.createElement('div');btns.className='btns';
-    const rp=document.createElement('button');rp.type='button';rp.className='btn small';rp.textContent='Replay';rp.disabled=!r.rp;
-    if(!r.rp)rp.title='This run was saved without its text.';
-    rp.addEventListener('click',()=>replayRun(r));
-    const dl=document.createElement('button');dl.type='button';dl.className='btn small';dl.textContent='Delete';
-    dl.addEventListener('click',()=>{
-      if(delArm!==r.id){delArm=r.id;dl.textContent='Click again to delete';setTimeout(()=>{if(delArm===r.id){delArm=null;dl.textContent='Delete';}},4000);return;}
-      delArm=null;deleteRun(r.id);
-    });
-    btns.appendChild(rp);btns.appendChild(dl);body.appendChild(btns);det.appendChild(body);box.appendChild(det);
+    body.appendChild(ul);det.appendChild(body);
+  }
+  return det;
+}
+/* Runs are grouped by exercise or routine, newest group first. A group of one run is shown as the run itself. */
+function renderHistory(){
+  const box=$('histList');box.textContent='';
+  const groups=new Map();
+  recs.runs.slice().reverse().forEach(r=>{const k=runKey(r);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r);});
+  const list=[...groups.values()];
+  $('histHint').textContent=list.length?'Your last '+recs.runs.length+' runs, grouped by exercise or routine, most recent first. Tap one for its runs. Replay loads the same pattern or routine, tempo, click level and settings on the Play page.':'No runs yet. Each run you finish is listed here.';
+  list.slice(0,histShown).forEach(g=>{
+    if(g.length===1){box.appendChild(histRun(g[0],true));return;}
+    const det=document.createElement('details');det.className='hrow hgrp';
+    const sm=document.createElement('summary');
+    const f=g[0],ranked=g.filter(r=>r.lv!=='off');
+    const best=ranked.reduce((m,r)=>!m||runPct(r)>runPct(m)||(runPct(r)===runPct(m)&&r.bpm>m.bpm)?r:m,null);
+    const n=document.createElement('span');n.className='hn';n.textContent=f.mode==='routine'?(f.rt||'Routine')+' · '+f.ne+(f.ne===1?' exercise':' exercises'):showKey(f.exercises[0].k);
+    const st=document.createElement('span');st.className='hs';
+    st.textContent=g.length+' runs · last '+new Date(f.t).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'})+(best?' · best '+Math.round(runPct(best)*100)+'% at '+best.bpm+' BPM':'');
+    const ac=document.createElement('span');ac.className='ha';ac.appendChild(replayBtn(f));
+    sm.appendChild(n);sm.appendChild(st);sm.appendChild(ac);det.appendChild(sm);
+    const body=document.createElement('div');body.className='hb hg';
+    g.forEach(r=>body.appendChild(histRun(r,false)));
+    det.appendChild(body);box.appendChild(det);
   });
-  $('histMore').hidden=runs.length<=histShown;
+  $('histMore').hidden=list.length<=histShown;
 }
 function deleteRun(id){
   const i=recs.runs.findIndex(x=>x.id===id);if(i<0)return;
@@ -4256,7 +4295,7 @@ function wire(){
   $('pvBtnStats').addEventListener('click',()=>setPview('stats'));
   $('pvBtnHist').addEventListener('click',()=>setPview('hist'));
   $('pvBtnAch').addEventListener('click',()=>setPview('ach'));
-  $('histMore').addEventListener('click',()=>{histShown+=30;renderHistory();});
+  $('histMore').addEventListener('click',()=>{histShown+=20;renderHistory();});
   $('recExport').addEventListener('click',exportRecs);
   $('bakGo').addEventListener('click',exportRecs);
   $('recImport').addEventListener('click',()=>$('recFile').click());
