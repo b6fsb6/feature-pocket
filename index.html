@@ -57,7 +57,7 @@ h3{font:600 12px var(--font-body);letter-spacing:.09em;text-transform:uppercase;
 .btn.small{min-height:40px;padding:6px 12px;font-size:14px}
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent;min-width:140px;min-height:58px;font:800 24px var(--font-display);letter-spacing:.07em;text-transform:uppercase}
 .btn.primary.running{background:var(--ink);color:var(--bg)}
-.btn:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:14px}
 .field{display:grid;gap:5px;min-width:0}
@@ -66,9 +66,6 @@ h3{font:600 12px var(--font-body);letter-spacing:.09em;text-transform:uppercase;
 input[type=text],input[type=number],select{font:500 16px var(--font-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:44px;width:100%}
 input[type=range]{width:100%;accent-color:var(--accent);min-height:32px}
 #pattern{font:600 24px var(--font-data);letter-spacing:.1em;text-transform:uppercase}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{font:500 13px var(--font-data);letter-spacing:.06em;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--ink);cursor:pointer;min-height:34px}
-.chip[aria-pressed=true]{border-color:var(--accent);color:var(--accent)}
 .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
 .tempo{display:grid;grid-template-columns:44px 1fr 44px;gap:8px;align-items:center}
 .tempo .btn{padding:0;font-size:22px}
@@ -210,6 +207,13 @@ body[data-run="1"][data-rm="play"] header,body[data-run="1"][data-rm="play"] .ta
 .page>*{min-width:0}
 body:not([data-state="done"]) #after,body:not([data-state="done"]) #advice{display:none}
 /* After a run the page stays in focus mode: the result card first, with Again, Next tempo and Done. */
+body[data-tab=pattern] header,body[data-tab=pattern] .tabs{display:none}   /* the editor is a full-screen view */
+.etop{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;padding:8px 0;background:var(--bg)}
+.etitle{flex:1;min-width:0;display:grid;line-height:1.2}
+.etitle b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.etitle .hint{margin:0;font-size:12px}
+.rtname{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.rtname b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 body[data-review="1"] header,body[data-review="1"] .tabs,body[data-review="1"] .cfg,body[data-review="1"] .transport,body[data-review="1"] .notice{display:none}
 .advmain{margin-top:10px}
 .advmain .btn{min-height:48px;font-weight:700}
@@ -221,6 +225,7 @@ svg.spark{display:block;overflow:visible}
 .pv[hidden]{display:none}
 #pvHist section{display:grid;gap:14px}
 #recMsg.flash{color:var(--ink);font-weight:700}
+.hfilter .pill.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 #pvHist section>*{margin:0}
 .hist{display:grid;gap:6px}
 .hist h4{margin:10px 0 0;font-size:13px;color:var(--muted);font-weight:600}
@@ -239,6 +244,7 @@ svg.spark{display:block;overflow:visible}
 .ib{border:0;background:transparent;color:var(--muted);min-width:40px;height:40px;border-radius:8px;display:grid;place-items:center;cursor:pointer;font:700 12px var(--font-body);padding:0 6px}
 .ib.replay{color:var(--accent)}
 .ib:disabled{opacity:.35;cursor:not-allowed}
+.btn.arm{color:var(--late);border-color:var(--late)}
 .ib.del.arm{color:var(--late);border:1px solid var(--late);padding:0 8px}
 .hrow .hb{padding:0 12px 12px;display:grid;gap:8px}
 .hgrp>.hg{padding:0 8px 8px}
@@ -415,7 +421,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 
   <nav class="switch tabs" role="tablist" aria-label="Pages">
     <button type="button" role="tab" id="tabPlay" aria-controls="pagePlay" aria-selected="true">Play</button>
-    <button type="button" role="tab" id="tabPattern" aria-controls="pagePattern" aria-selected="false">Editor</button>
+    <button type="button" role="tab" id="tabLibrary" aria-controls="pageLibrary" aria-selected="false">Library</button>
     <button type="button" role="tab" id="tabProgress" aria-controls="pageProgress" aria-selected="false">Stats</button>
     <button type="button" role="tab" id="tabSetup" aria-controls="pageSetup" aria-selected="false">Settings</button>
   </nav>
@@ -517,7 +523,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
     <div class="pv" id="svData" hidden>
     <section class="panel" aria-label="Data">
       <h3>Your data</h3>
-      <p class="hint">Scores are saved in this browser only. The last 300 runs are kept in full and can be replayed from History. Older runs are folded into your totals, streaks, achievements and cleared tempos, which are kept for good. Export a copy now and then, or to move to another device.</p>
+      <p class="hint">Scores are saved in this browser only. The last 300 runs are kept in full and can be replayed from History. Older runs are folded into your totals, streaks, achievements and cleared tempos, which are kept for good. Your saved routines are kept separately and stay when you clear runs and scores. Export a copy now and then, or to move to another device. The export has your runs and your saved routines.</p>
       <div class="btns">
         <button class="btn small" id="recExport" type="button">Export</button>
         <button class="btn small" id="recImport" type="button">Import</button>
@@ -530,10 +536,31 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
     </div>
   </div>
 
-  <!-- ===== Pattern: one pattern or a routine ===== -->
+  <!-- ===== Library: your saved routines, and where routines come from ===== -->
+  <div class="page" id="pageLibrary" role="tabpanel" aria-labelledby="tabLibrary" hidden>
+    <section class="panel" aria-label="Add a routine">
+      <div class="btns"><button class="btn small" id="clearRoutine" type="button">New</button><button class="btn small" id="openBtn" type="button">Import</button></div>
+      <p class="hint" id="libMsg" aria-live="polite"></p>
+    </section>
+    <section class="panel" aria-label="Your routines">
+      <h3>Your routines</h3>
+      <div class="btns hfilter" role="group" aria-label="Sort by"><button class="pill on" id="lsRecent" type="button" aria-pressed="true">Recent</button><button class="pill" id="lsName" type="button" aria-pressed="false">Name</button></div>
+      <div class="hist" id="libPage"></div>
+      <p class="hint" id="libEmpty" hidden>Nothing saved yet. New starts a routine. Import brings one in from a file, a link or a shared list.</p>
+    </section>
+  </div>
+
+  <!-- ===== Editor: a full-screen view, opened from Play or from the Library ===== -->
   <div class="page" id="pagePattern" role="tabpanel" aria-labelledby="tabPattern">
     <!-- Editor: one panel per job, like the Play page. Builder or Text is how the strokes are entered; both edit the same routine. -->
     <div class="editor cfg" id="builder" aria-label="Editor">
+      <div class="etop">
+        <button class="btn small" id="edBack" type="button">&larr; Back</button>
+        <div class="etitle"><b id="edName"></b><span class="hint" id="edState"></span></div>
+        <button class="btn small" id="saveBtn" type="button">Save</button>
+        <button class="dots" id="saveMore" type="button" aria-label="More ways to save" aria-haspopup="menu">&#8942;</button>
+      </div>
+      <div class="bmenu" id="saveMenu" role="menu" hidden><button class="btn" id="saveNew" type="button">Save as new</button><button class="btn" id="saveFile" type="button">Download file</button></div>
       <p class="hint" id="bNote" hidden></p>
       <div class="bmain" id="bMain">
         <section class="panel" aria-label="Editor mode">
@@ -541,7 +568,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
             <button type="button" id="bModeBuild" aria-pressed="true">Builder</button>
             <button type="button" id="bModeType" aria-pressed="false">Text</button>
           </div>
-          <div class="btns bacts2"><button class="btn small" id="clearRoutine" type="button">New</button><button class="btn small" id="openBtn" type="button">Open</button><button class="btn small" id="saveBtn" type="button">Save</button></div>
+          <p class="hint" id="saveMsg" aria-live="polite"></p>
         </section>
         <section class="panel buildonly" aria-label="Defaults">
           <div class="bset" id="bSet">
@@ -585,15 +612,9 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
             </div>
           </div>
           <div class="bmeta">
-    <div class="bmsg"><p class="err" id="patErr" role="alert"></p><p class="err" id="routineErr" role="alert"></p><p class="hint" id="bStatus" aria-live="polite"></p></div>
+    <div class="bmsg"><p class="err" id="patErr" role="alert"></p><p class="err" id="routineErr" role="alert"></p><p class="hint" id="bStatus" aria-live="polite"></p><button class="linkbtn" id="exLink" type="button" data-help="help-format">Examples &rarr;</button></div>
             <div class="bbtns"><button class="btn small iconbtn" id="bListen" type="button" aria-label="Listen to this exercise as clicks" title="Listen"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18 6.5a7.5 7.5 0 0 1 0 11"/></svg></button></div>
           </div>
-        <div class="bpane" id="typePane">
-          <div class="field single-only">
-            <div class="chips" id="chips"></div>
-          </div>
-          <p class="hint" id="patInfo" hidden></p>
-        </div>
 
         <div class="bpane" id="buildPane">
           <div class="field"><label>Note for the next strokes</label>
@@ -621,7 +642,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
             <code>7/8 (3+2+2):</code><span>time signature, at the start of a line</span>
             <code>x6 90s @70</code><span>passes, time, tempo, at the end of a line</span>
             <p class="full">One exercise per line. <code>title:</code> <code>time:</code> <code>strokes:</code> <code>each:</code> lines set defaults. <code>#</code> starts a note.</p>
-            <p class="full more"><button class="linkbtn" type="button" data-help="help-format">Full routine format help &rarr;</button></p>
+            <p class="full more"><button class="linkbtn" type="button" data-help="help-format">Full help on writing a routine &rarr;</button></p>
           </div>
         </section>
       </div>
@@ -661,6 +682,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
     <div class="pv" id="pvHist">
       <section aria-label="History">
         <p class="hint" id="histHint"></p>
+        <div class="btns hfilter" role="group" aria-label="Show"><button class="pill on" id="hfAll" type="button" aria-pressed="true">All</button><button class="pill" id="hfSaved" type="button" aria-pressed="false">Saved</button></div>
         <div class="hist" id="histList"></div>
         <div class="btns"><button class="btn small" id="histMore" type="button" hidden>Show more</button></div>
       </section>
@@ -680,7 +702,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <h3>Quick start</h3>
       <ol>
         <li><b>Settings:</b> pick a tempo, use headphones for the click, press "Turn microphone on" and hit the pad. The level bar should cross the trigger line on every stroke. Calibrating each stick is optional but lets the app tell L from R.</li>
-        <li><b>Editor:</b> write one exercise, or press <b>+ Add exercise</b> for more. One exercise plays on its own. Two or more make a routine, played one after another. Play shows how long each plays, the gap between them, and where to start.</li>
+        <li><b>Library:</b> press <b>New</b> to write a routine, or <b>Import</b> to bring one in. Press <b>Edit</b> on a routine, write one exercise, or press <b>+ Add exercise</b> for more. One exercise plays on its own. Two or more make a routine, played one after another. Play shows how long each plays, the gap between them, and where to start.</li>
         <li><b>Play:</b> set the tempo and click level, then press Start. <b>Plays for</b> sets how long each exercise plays, in minutes or passes. The page controls hide while you play. After a count-in, play on the moving line. Press Stop when you are done. The page stays in focus mode and shows your result first, with <b>Again</b>, <b>Next tempo</b> (when you cleared the target) and <b>Done</b>. The staff below it keeps its colours and numbers so you can see which strokes were off. Press Done to bring the controls back.</li>
       </ol>
       <p>No microphone? In Settings, under Device, change Input to "Keyboard or pads". Press <b>F</b> for left and <b>J</b> for right. This is a test mode, and its timing is rougher than a microphone on a pad.</p>
@@ -688,10 +710,10 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
     </section>
 
     <section class="panel" id="help-pages">
-      <h3>The four pages</h3>
+      <h3>The four pages and the editor</h3>
       <ul>
         <li><b>Play:</b> how long it plays, tempo, click level, Start, Pause, Restart and Stop, the notation, the lead/drag gauge and your results. With a routine loaded, scroll or swipe the rows (or press ↑ ↓) to choose which exercise to start at.</li>
-        <li><b>Editor:</b> what you practise: one exercise, or a routine of exercises you type, load from a file or load from a URL.</li>
+        <li><b>Library:</b> your saved routines, each with Edit and Play. <b>New</b> starts a routine and <b>Import</b> adds one from a file, a link or a shared list. What you are working on is the <b>scratch pad</b>: it is kept as you type, but a saved routine only changes when you press Save in the editor. The app asks before you open another routine and lose unsaved work. The editor opens full screen from Edit on the Play page or in the Library, and Back returns you.</li>
         <li><b>Stats:</b> three views. <b>History</b> lists your last runs by exercise or routine, with Replay. <b>Scores</b> shows each exercise and routine, weakest first, with its best cleared tempo. <b>Achievements</b> shows your practice days for the last four weeks, a streak that forgives one rest day a week, and your badges.</li>
         <li><b>Settings:</b> <b>Preferences</b> has the on-time window, visual pulse and click volume, and the colours. <b>Device</b> has the input, microphone level, stick calibration and latency. <b>Data</b> has export, import and clear.</li>
       </ul>
@@ -713,11 +735,11 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
 
-    <section class="panel" id="help-patterns">
-      <h3>Writing an exercise</h3>
-      <p><b>L</b> and <b>R</b> are strokes. A <b>space</b> starts a new group, and groups are joined with a beam. <b>_</b> is a rest. A <b>note code</b> says what the strokes are, and it means the same in any time signature: <b>q</b> quarter notes, <b>8</b> eighths, <b>16</b> sixteenths, <b>32</b> thirty-seconds, <b>8t</b> eighth-note triplets, <b>16t</b> sixteenth-note triplets, <b>5t</b> quintuplets and <b>7t</b> septuplets. A code applies to the strokes after it until the next code, so <b>8 RLRL 16 RLRL</b> is a beat of eighths, then a beat of sixteenths, in 4/4 or in cut time. A code only works where the strokes come out at a sensible speed for the beat. With no code, strokes are sixteenths</p>
-      <p>Every example below has a button that loads it for you.</p>
-
+    <section class="panel" id="help-format">
+      <h3>Writing a routine</h3>
+      <p><b>L</b> and <b>R</b> are strokes. A <b>space</b> starts a new group, and groups are joined with a beam. <b>_</b> is a rest. A <b>note code</b> says what the strokes are, and it means the same in any time signature: <b>q</b> quarter notes, <b>8</b> eighths, <b>16</b> sixteenths, <b>32</b> thirty-seconds, <b>8t</b> eighth-note triplets, <b>16t</b> sixteenth-note triplets, <b>5t</b> quintuplets and <b>7t</b> septuplets. A code applies to the strokes after it until the next code, so <b>8 RLRL 16 RLRL</b> is a beat of eighths, then a beat of sixteenths, in 4/4 or in cut time. A code only works where the strokes come out at a sensible speed for the beat. With no code, strokes are sixteenths. One line is one exercise. Two or more lines make a routine, played one after another.</p>
+      <h4>Simple examples</h4>
+      <p>Each example has a button that loads it for you.</p>
       <div class="ex">
         <h4>Four beats of sixteenths</h4>
         <pre>RLRL RLRL RLRL RLRL</pre>
@@ -748,12 +770,9 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         <p>A rest takes up time but no hit is expected. A hit during a rest counts as an extra hit.</p>
         <button class="btn small" type="button" data-try="single" data-text="16 R _ L _ R L _ L">Try it</button>
       </div>
-      <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
-    </section>
-
-    <section class="panel" id="help-format">
-      <h3>The routine format</h3>
-      <p>You do not have to type any of this. The notation help sits at the bottom of the Editor, and each exercise has a <b>&#8942;</b> menu to insert, clone, move or delete it. <b>Builder</b> and <b>Text</b> are two views of the same routine. In <b>Builder</b> you pick a note code, then tap R, L, rest and space to add strokes to the exercise you are editing, and Time, Grouping and Strokes are above the list. In <b>Text</b> you edit the whole routine as plain text, one exercise per line, with line numbers beside it for errors. The page opens on Builder and remembers your last choice on each device. The speaker button opens a popup with the staff and plays the exercise as clicks, with a bar moving along the staff as each stroke sounds. Press play or stop in the popup to hear it again, and Close or Esc to leave it. In a routine, <b>Title</b>, <b>Time</b>, <b>Grouping</b> and <b>Default note</b> are shared by every exercise.</p>
+      <h4>Using the editor</h4>
+      <p>You do not have to type any of this. The notation help sits at the bottom of the editor, and each exercise has a <b>&#8942;</b> menu to insert, clone, move or delete it. <b>Builder</b> and <b>Text</b> are two views of the same routine. In <b>Builder</b> you pick a note code, then tap R, L, rest and space to add strokes to the exercise you are editing, and Time, Grouping and Strokes are above the list. In <b>Text</b> you edit the whole routine as plain text, one exercise per line, with line numbers beside it for errors. The page opens on Builder and remembers your last choice on each device. The speaker button opens a popup with the staff and plays the exercise as clicks, with a bar moving along the staff as each stroke sounds. Press play or stop in the popup to hear it again, and Close or Esc to leave it. In a routine, <b>Title</b>, <b>Time</b>, <b>Grouping</b> and <b>Default note</b> are shared by every exercise.</p>
+      <h4>The routine format</h4>
       <p>A routine is plain text with one exercise per line. Lines starting with <b>#</b> are notes to yourself, and a name before a colon (<b>Exercise 4:</b>) is just a label. This app does not come with any book content. You supply the exercises.</p>
       <pre>title: My warm-up routine
 each: 1m
@@ -838,14 +857,14 @@ LRLR LRLR LRLR LRLR  x8</pre>
       <p>"Between exercises" can be a 4-beat count-in, or <b>Straight on</b> (the default), where the next exercise starts without a pause. With Straight on, nothing marks the change except the notation: the rows slide up and the new exercise's first pass starts on the next beat.</p>
       <p><b>Visual pulse</b> (in Settings, under Preferences) makes the moving line swell on every click, bigger on the first beat of each pass, so you can see the click as well as hear it. Turn it off for a plain moving line.</p>
       <p><b>Colours</b> (in Settings, under Preferences) switches to a colour-blind safe set: blue for leading, orange for dragging and grey for on time. Early notes also lean and late notes are underlined, and results at or above your target carry a tick, so colour is never the only signal.</p>
-      <h4>Loading a routine</h4>
-      <p>Use <b>Save</b> to keep the routine as a .txt you can open again later. <b>Open</b> takes a link to a routine, or a .txt, .json or .csv file. <b>New</b> starts again with an empty exercise. JSON also works: a list such as <b>["RLRR LRLL", {"sticking":"RLRL RLRL","passes":16}]</b>, or an object with <b>title</b>, <b>each</b> and <b>exercises</b>.</p>
+      <h4>Saving and importing</h4>
+      <p><b>Save</b> keeps the routine in <b>your library</b>. Saving again updates it, so the runs you already played still replay as they were. The <b>&#8942;</b> beside Save has <b>Save as new</b>, which keeps your changes as a second routine and leaves the original as it was, and <b>Download file</b>, a .txt you can send to someone. On the Library page, <b>Import</b> adds a routine from a link, a .txt, .json or .csv file, or a shared list, and <b>New</b> starts again with an empty exercise. In History, the bookmark on a routine saves it or removes it from your library, and <b>Saved</b> shows your library, including routines you have not played yet. JSON also works: a list such as <b>["RLRR LRLL", {"sticking":"RLRL RLRL","passes":16}]</b>, or an object with <b>title</b>, <b>each</b> and <b>exercises</b>.</p>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
 
     <section class="panel" id="help-library">
-      <h3>The routine library</h3>
-      <p>On the Editor page, with a routine of two or more exercises, you can point the app at a <b>library</b>: a web address that lists routine files. Press <b>Open</b>, open <b>Library</b>, press <b>Load list</b>, then tap a routine to load it into the editor. The address is remembered, and the list is fetched when you open a routine. <b>Remove</b> forgets it. This app does not come with any routines. You choose the library.</p>
+      <h3>Shared lists</h3>
+      <p>On the Library page you can point the app at a <b>shared list</b>: a web address that lists routine files. Press <b>Import</b>, find <b>Shared lists</b>, press <b>Load list</b>, then tap a routine to add it to your library. The address is remembered, and the list is fetched when you open a routine. <b>Remove</b> forgets it. This app does not come with any routines. You choose the list.</p>
       <h4>The list file</h4>
       <p>A plain text file with one routine per line. Put a title before a <b>|</b>, or leave it out and the file name is used. Lines starting with <b>#</b> are notes. An address can be a full web address or one relative to the list file, so a folder of routines can be moved without editing the list.</p>
       <pre># my routines
@@ -905,6 +924,7 @@ https://example.com/another-routine.txt</pre>
 
   <div class="page" id="pagePlay" role="tabpanel" aria-labelledby="tabPlay" hidden>
     <section class="panel cfg" aria-label="Exercises">
+      <div class="rtname"><b id="playName"></b><button class="linkbtn" id="playChange" type="button">Change</button></div>
       <div class="patrow"><p class="patline single-only" id="playPat"></p><p class="hint routine-only" id="routineInfo"></p><button class="btn small" id="editPlay" type="button">Edit</button></div>
       <div class="exercises routine-only" id="exerciseList" role="listbox" aria-label="Exercises in this routine. Choose the exercise to start at."></div>
     </section>
@@ -1056,9 +1076,9 @@ https://example.com/another-routine.txt</pre>
   </div>
 </div>
 
-<div class="modal" id="openModal" role="dialog" aria-modal="true" aria-label="Open a routine" hidden>
+<div class="modal" id="openModal" role="dialog" aria-modal="true" aria-label="Import a routine" hidden>
   <div class="mbox scroll">
-    <div class="mhead"><h3>Open a routine</h3><button class="btn small" id="openClose" type="button">Close</button></div>
+    <div class="mhead"><h3>Import a routine</h3><button class="btn small" id="openClose" type="button">Close</button></div>
     <div class="osec">
       <div class="olbl">File</div>
       <button class="btn" id="fileBtn" type="button">Choose a file&hellip;</button>
@@ -1072,9 +1092,9 @@ https://example.com/another-routine.txt</pre>
       </div>
       <p class="err" id="openErr" role="alert"></p>
     </div>
-    <div class="osec" id="libBox"><div class="olbl">Library</div>
+    <div class="osec" id="libBox"><div class="olbl">Shared lists</div>
       <div class="field">
-        <input type="text" id="libraryUrl" aria-label="Library address" inputmode="url" autocomplete="off" autocorrect="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" spellcheck="false" placeholder="https://example.com/routines.list">
+        <input type="text" id="libraryUrl" aria-label="Shared list address" inputmode="url" autocomplete="off" autocorrect="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" spellcheck="false" placeholder="https://example.com/routines.list">
         <div class="btns">
           <button class="btn small" id="libGo" type="button">Load list</button>
           <button class="btn small" id="libClear" type="button">Remove</button>
@@ -1082,9 +1102,17 @@ https://example.com/another-routine.txt</pre>
         <p class="err" id="libErr" role="alert"></p>
         <p class="hint" id="libInfo"></p>
       </div>
-      <div class="exercises" id="libList" role="list" aria-label="Routines in the library" hidden></div>
-      <p class="hint">A library is a text file that lists routine files, one per line. <button class="btn small" id="openHelp" type="button" data-help="help-library">Library help</button></p>
+      <div class="exercises" id="libList" role="list" aria-label="Routines in the shared list" hidden></div>
+      <p class="hint">A shared list is a text file that lists routine files, one per line. <button class="btn small" id="openHelp" type="button" data-help="help-library">Shared list help</button></p>
     </div>
+  </div>
+</div>
+
+<div class="modal" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="cfTitle" hidden>
+  <div class="mbox">
+    <div class="mhead"><h3 id="cfTitle"></h3></div>
+    <p class="hint" id="cfText"></p>
+    <div class="btns"><button class="btn" id="cfSave" type="button">Save</button><button class="btn" id="cfDiscard" type="button">Don't save</button><button class="btn" id="cfCancel" type="button">Cancel</button></div>
   </div>
 </div>
 
@@ -1502,6 +1530,14 @@ function hash32(str){let h=5381;for(let i=0;i<str.length;i++)h=((h<<5)+h+str.cha
 /* One canonical text per rhythm, whatever the default subdivision or spacing was. */
 function patKey(notes,gs,subs,def,sig){return sigPrefix(sig)+fmtPattern(notes,gs,subs.map(x=>x||def),0);}
 function routineKeyOf(keys){return 'p'+hash32(keys.join('|'));}
+/* The key a routine text is recorded under: the exercise's own key for one exercise, the routine key for more. Null if the text does not read. */
+function textKey(x,subdiv){
+  const p=parseRoutine(x);
+  if(p.errors.length||!p.exercises.length)return null;
+  const keys=resolveExercises(p.exercises,{unit:'pass',v:1},{bpm:60,subdiv:subdiv||4}).map(b=>patKey(b.notes,b.groupStart,b.subs,b.defSub,b.sig));
+  return keys.length===1?keys[0]:routineKeyOf(keys);
+}
+const isRoutineKey=k=>/^p[0-9a-z]+$/.test(k||'');
 /* What to suggest after a run. exercises: [{idx,pct,passes}] for the exercises that were played. */
 function adviceFor(exercises,bpm){
   const played=exercises.filter(b=>b.passes>=1);
@@ -1931,16 +1967,16 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.15.0';                           /* shown beside the title */
+const VERSION='0.19.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
-const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const CAL_N=12;
 const MAX_TEXT=200000;
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const LOOKAHEAD=0.35;                            /* how far ahead clicks are scheduled, in seconds */
 
-const S={mode:'single',routineText:'RLRL RLRL RLRL RLRL',eachUnit:'min',eachVal:1,gap:0,pulse:true,startExercise:1,
-  bpm:60,subdiv:4,click:'beat',lastExport:0,expRuns:0,tol:20,sens:-30,settle:40,library:'',vol:60,latency:null,latCal:false,input:'mic',editTab:'build',theme:'',palette:'std'};
+const STARTER='RLRL RLRL RLRL RLRL';
+const S={mode:'single',routineText:STARTER,eachUnit:'min',eachVal:1,gap:0,pulse:true,startExercise:1,
+  bpm:60,subdiv:4,click:'beat',lastExport:0,expRuns:0,tol:20,sens:-30,settle:40,library:'',vol:60,latency:null,latCal:false,input:'mic',editTab:'build',theme:'',palette:'std',libId:''};
 let cal={L:[],R:[]},model=null;
 try{
   const o=JSON.parse(localStorage.getItem(KEY)||'null');
@@ -1970,6 +2006,7 @@ S.eachVal=S.eachUnit==='pass'?clamp(Math.round(+S.eachVal)||8,1,200):clamp(+S.ea
 S.gap=+S.gap===0?0:4;
 S.pulse=S.pulse!==false;
 S.palette=S.palette==='cb'?'cb':'std';
+if(typeof S.libId!=='string')S.libId='';
 S.startExercise=1;
 if(!isFinite(+S.lastExport))S.lastExport=0;
 if(!isFinite(+S.expRuns))S.expRuns=0;
@@ -2006,8 +2043,19 @@ function cleanRun(x){
     o:Array.isArray(q.o)?q.o.map(n=>Math.round(+n)).filter(n=>n>=1&&n<=200):null};
   return o;
 }
-const recs={runs:[],sum:newSum(),names:{},nu:1};   /* names: one title per routine, by its key. nu: the next "Untitled" number. */
+const MAX_LIB=500;
+const recs={runs:[],sum:newSum(),names:{},nu:1,lib:[]};   /* lib: saved routines {id,x,t}. x is the text without its title, stored once in the same pool as the runs' text. */   /* names: one title per routine, by its key. nu: the next "Untitled" number. */
 const num=v=>isFinite(+v)?+v:0;
+function cleanLib(list,items,v){
+  const out=[],seen=new Set();
+  (Array.isArray(list)?list:[]).slice(0,MAX_LIB).forEach(e=>{
+    if(!e||typeof e.id!=='string'||seen.has(e.id))return;
+    const x=v>=2?items[e.x]:e.x;
+    if(typeof x!=='string'||!x.trim()||x.length>MAX_SNAP)return;
+    seen.add(e.id);out.push({id:e.id.slice(0,40),x:x,t:num(e.t)});
+  });
+  return out;
+}
 function unpackRecs(o){
   const items=o.items||{},runs=[],sum=newSum();
   (o.runs||[]).forEach(x=>{
@@ -2027,7 +2075,7 @@ function unpackRecs(o){
   }
   const names={};
   if(o.names&&typeof o.names==='object')Object.keys(o.names).forEach(k=>{if(typeof o.names[k]==='string'&&o.names[k].trim())names[k.slice(0,40)]=o.names[k].trim().slice(0,80);});
-  return {runs:runs,sum:sum,names:names,nu:Math.max(1,Math.round(num(o.nu))||1)};
+  return {runs:runs,sum:sum,names:names,nu:Math.max(1,Math.round(num(o.nu))||1),lib:cleanLib(o.lib,items,o.v)};
 }
 function packRecs(){
   const items={},hk=t=>{const h=hashOf(t);items[h]=t;return h;};
@@ -2038,11 +2086,11 @@ function packRecs(){
     return o;
   });
   const q=recs.sum;
-  return {v:2,items:items,names:recs.names,nu:recs.nu,runs:runs,sum:{runs:q.runs,sec:q.sec,days:q.days,rt:q.rt,pat:Object.keys(q.pat).map(k=>Object.assign({},q.pat[k],{k:hk(q.pat[k].k)}))}};
+  return {v:2,items:items,names:recs.names,nu:recs.nu,lib:recs.lib.map(e=>({id:e.id,x:hk(e.x),t:e.t})),runs:runs,sum:{runs:q.runs,sec:q.sec,days:q.days,rt:q.rt,pat:Object.keys(q.pat).map(k=>Object.assign({},q.pat[k],{k:hk(q.pat[k].k)}))}};
 }
 try{
   const o=JSON.parse(localStorage.getItem(RKEY)||'null');
-  if(o&&Array.isArray(o.runs)){const u=unpackRecs(o);recs.runs=u.runs;recs.sum=u.sum;recs.names=u.names;recs.nu=u.nu;}
+  if(o&&Array.isArray(o.runs)){const u=unpackRecs(o);recs.runs=u.runs;recs.sum=u.sum;recs.names=u.names;recs.nu=u.nu;recs.lib=u.lib;}
   else{
     const old=JSON.parse(localStorage.getItem(OLDKEY)||'null');
     if(old&&Array.isArray(old.runs))old.runs.forEach(x=>{const c=cleanRun(x);if(c)recs.runs.push(c);});
@@ -2055,9 +2103,17 @@ function foldOld(keep){
 /* A routine's name is kept only while it has runs or totals. */
 function pruneNames(){
   const live=new Set();recs.runs.forEach(r=>{if(r.rk)live.add(r.rk);});Object.keys(recs.sum.rt).forEach(k=>live.add(recs.sum.rt[k].rk));
+  recs.lib.forEach(e=>{const k=libKey(e);if(k)live.add(k);});
   Object.keys(recs.names).forEach(k=>{if(!live.has(k))delete recs.names[k];});
 }
 const routineName=rk=>recs.names[rk]||'Untitled routine';
+/* Saved routines. An entry is found by the key its text is recorded under, so History and the library agree on which routine is which. */
+const libKey=e=>e._k!==undefined?e._k:(e._k=textKey(e.x,S.subdiv));
+const libFor=k=>k?recs.lib.find(e=>libKey(e)===k):null;
+const entryName=e=>{const k=libKey(e);return isRoutineKey(k)?routineName(k):showKey(k||e.x);};
+const libId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+/* The text to load for an entry: a routine gets its name back as a title. */
+function entryText(e){const k=libKey(e);return isRoutineKey(k)&&recs.names[k]?setHeader(e.x,'title',recs.names[k]):e.x;}
 function saveRecs(){
   foldOld(MAX_RUNS);pruneNames();
   for(let i=0;i<4;i++){
@@ -3161,12 +3217,16 @@ function goExercise(i,animate){
   if(document.body.dataset.state!=='idle'){refreshPreview();return;}
   markExercises(null);previewRows(animate);syncInfo();
 }
-const TABS=['play','pattern','progress','setup'];
+const TABS=['play','library','progress','setup'];
+let editFrom='play',libSort='recent';
 const tabEl=n=>$('tab'+n[0].toUpperCase()+n.slice(1));
-/* Edit on the Play page opens the Editor on what is loaded. */
+/* The Editor is a full-screen view, not a tab. Back returns to the page that opened it. */
+function openEditor(from){
+  editFrom=from;showTab('pattern');window.scrollTo(0,0);
+}
 function editFromPlayPage(){
   if(run&&!run.ended)return;
-  showTab('pattern');
+  openEditor('play');
   if(S.mode==='routine')editExercise(Math.max(1,S.startExercise||1));
   window.scrollTo(0,0);
 }
@@ -3174,17 +3234,19 @@ function showTab(t){
   curTab=t;
   closeListen();
   $('pageHelp').hidden=t!=='help';
+  $('pagePattern').hidden=t!=='pattern';
   TABS.forEach(n=>{
     $('page'+n[0].toUpperCase()+n.slice(1)).hidden=n!==t;
     const b=tabEl(n);
     b.setAttribute('aria-selected',String(n===t));
-    b.tabIndex=(n===t||(t==='help'&&n===TABS[0]))?0:-1;
+    b.tabIndex=(n===t||((t==='help'||t==='pattern')&&n===TABS[0]))?0:-1;
   });
   document.body.dataset.tab=t;
   if(t==='play'){drawTrace();winKey='';syncWindow(lastCur);}
   if(t==='progress')renderProgress();
   if(t==='setup')syncData();
-  if(t==='pattern')renderBuilder();
+  if(t==='library')renderLibraryPage();
+  if(t==='pattern'){renderBuilder();syncInfo();}
 }
 const fmtDb=v=>(Math.abs(v)<0.05?'0':(v>0?'+':'\u2212')+Math.abs(v).toFixed(1));
 /* Level of the last 32 strokes against their own median: bar height 50% is the median, the top is 12 dB louder, the bottom 12 dB softer. */
@@ -3565,7 +3627,7 @@ function setSview(v){
   });
 }
 function showSetup(v){setSview(v);showTab('setup');}
-let pview='hist',histShown=20;
+let pview='hist',histShown=20,histFilter='all';
 function setPview(v){
   pview=v;
   [['stats','pvStats','pvBtnStats'],['hist','pvHist','pvBtnHist'],['ach','pvAch','pvBtnAch']].forEach(x=>{
@@ -3576,6 +3638,9 @@ const runPct=r=>{let w=0,d=0;r.exercises.forEach(b=>{w+=b.within;d+=b.due;});ret
 let delArm=null;
 const runKey=r=>r.mode==='routine'?'r:'+(r.rk||r.id):'p:'+r.exercises[0].k;
 const ICON={replay:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 4v5h5"/></svg>',
+  mark:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v16l-5-4-5 4z"/></svg>',
+  marked:'<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v16l-5-4-5 4z"/></svg>',
+  play:'<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>',
   edit:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
   del:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>'};
 function iconBtn(kind,label,fn){
@@ -3584,12 +3649,22 @@ function iconBtn(kind,label,fn){
 }
 const replayBtn=r=>{const b=iconBtn('replay','Replay',()=>replayRun(r));if(!r.rp){b.disabled=true;b.title='This run was saved without its text.';}return b;};
 /* Renames a routine in place. One name is kept for the routine, so every run and score row shows it. */
+/* The bookmark on a History row: saved routines are filled. Tapping saves it (from its latest run's text) or removes it from the library. */
+function markBtn(key,text){
+  const e=libFor(key),b=iconBtn(e?'marked':'mark',e?'Remove from your library':'Save to your library',()=>{
+    if(e)removeLibEntry(e);
+    else if(text&&recs.lib.length<MAX_LIB)recs.lib.push({id:libId(),x:text,t:Date.now()});
+    saveRecs();renderProgress();
+  });
+  if(!e&&!text){b.disabled=true;b.title='This run was saved without its text.';}
+  return b;
+}
 function renameBtn(n,rk){
   return iconBtn('edit','Rename',()=>{
     const inp=document.createElement('input');inp.type='text';inp.className='hname';inp.maxLength=80;inp.value=routineName(rk);
     inp.setAttribute('aria-label','Routine name');inp.autocomplete='off';inp.setAttribute('data-lpignore','true');inp.setAttribute('data-1p-ignore','');
     let done=false;
-    const end=ok=>{if(done)return;done=true;const v=inp.value.trim();if(ok&&v&&v!==recs.names[rk]){recs.names[rk]=v.slice(0,80);saveRecs();}renderProgress();};
+    const end=ok=>{if(done)return;done=true;const v=inp.value.trim();if(ok&&v&&v!==recs.names[rk]){recs.names[rk]=v.slice(0,80);saveRecs();const e=libFor(rk);if(e&&e.id===S.libId){S.routineText=setHeader(S.routineText,'title',recs.names[rk]);$('routineText').value=S.routineText;save();onRoutineChanged();}}renderProgress();renderLibraryPage();};
     inp.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();end(true);}else if(e.key==='Escape'){end(false);}});
     inp.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();});
     inp.addEventListener('blur',()=>end(true));
@@ -3623,8 +3698,15 @@ function renderHistory(){
   const box=$('histList');box.textContent='';
   const groups=new Map();
   recs.runs.slice().reverse().forEach(r=>{const k=runKey(r)+'|'+r.lv;if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r);});
-  const list=[...groups.values()];
-  $('histHint').textContent=list.length?(recs.runs.length===1?'Your last run, grouped':'Your last '+recs.runs.length+' runs, grouped')+' by exercise or routine, most recent first. Tap one for its runs. Replay loads the same exercise or routine, tempo, click level and settings on the Play page.':'No runs yet. Each run you finish is listed here.';
+  const gkey=r=>r.mode==='routine'?(r.rk||''):r.exercises[0].k;
+  let list=[...groups.values()];
+  const saved=histFilter==='saved';
+  if(saved)list=list.filter(g=>libFor(gkey(g[0])));
+  const played=new Set(recs.runs.map(gkey));
+  const unplayed=saved?recs.lib.filter(e=>!played.has(libKey(e))).sort((a,b)=>b.t-a.t):[];
+  $('hfAll').classList.toggle('on',!saved);$('hfAll').setAttribute('aria-pressed',String(!saved));
+  $('hfSaved').classList.toggle('on',saved);$('hfSaved').setAttribute('aria-pressed',String(saved));
+  $('histHint').textContent=saved?(list.length||unplayed.length?'Routines you saved, with their runs. The bookmark removes one from your library. Its runs stay in History.':'Nothing saved yet. Tap the bookmark on a routine, or use Save in the editor.'):list.length?(recs.runs.length===1?'Your last run, grouped':'Your last '+recs.runs.length+' runs, grouped')+' by exercise or routine, most recent first. Tap one for its runs. Replay loads the same exercise or routine, tempo, click level and settings on the Play page.':'No runs yet. Each run you finish is listed here.';
   list.slice(0,histShown).forEach(g=>{
     const det=document.createElement('details');det.className='hrow hgrp';
     const sm=document.createElement('summary');
@@ -3633,7 +3715,7 @@ function renderHistory(){
     const n=document.createElement('span');n.className='hn';n.textContent=f.mode==='routine'?routineName(f.rk)+' · '+f.ne+(f.ne===1?' exercise':' exercises'):showKey(f.exercises[0].k);
     const st=document.createElement('span');st.className='hs';
     st.textContent=(f.lv==='off'?'Count-in only':levelName(f.lv))+' · '+g.length+(g.length===1?' run':' runs')+' · latest '+dayWord(f.t)+(best?' · best '+Math.round(runPct(best)*100)+'% at '+best.bpm+' BPM':'');
-    const ac=document.createElement('span');ac.className='ha';if(routine)ac.appendChild(renameBtn(n,f.rk));ac.appendChild(replayBtn(f));
+    const ac=document.createElement('span');ac.className='ha';if(routine)ac.appendChild(renameBtn(n,f.rk));ac.appendChild(markBtn(gkey(f),f.rp&&f.rp.x));ac.appendChild(replayBtn(f));
     sm.appendChild(n);sm.appendChild(st);sm.appendChild(ac);det.appendChild(sm);
     const body=document.createElement('div');body.className='hb hg';
     const tw=tableWrap(),wrap=tw.wrap,tb=tw.tb;
@@ -3655,6 +3737,17 @@ function renderHistory(){
     }
     body.appendChild(wrap);det.appendChild(body);box.appendChild(det);
   });
+  unplayed.forEach(e=>{   /* saved routines with no runs yet */
+    const row=document.createElement('div');row.className='hrow flat lib';
+    const sm=document.createElement('div');sm.className='sm';
+    const k=libKey(e),n=document.createElement('span');n.className='hn';n.textContent=entryName(e);
+    const c=exerciseCount(e.x),st=document.createElement('span');st.className='hs';st.textContent=c+(c===1?' exercise':' exercises')+' · no runs yet';
+    const ac=document.createElement('span');ac.className='ha';
+    if(isRoutineKey(k))ac.appendChild(renameBtn(n,k));
+    ac.appendChild(markBtn(k,e.x));
+    const op=iconBtn('play','Play',()=>playEntry(e));ac.appendChild(op);
+    sm.appendChild(n);sm.appendChild(st);sm.appendChild(ac);row.appendChild(sm);box.appendChild(row);
+  });
   $('histMore').hidden=list.length<=histShown;
 }
 function deleteRun(id){
@@ -3664,15 +3757,15 @@ function deleteRun(id){
   renderProgress();
 }
 /* Loads a past run's pattern or routine, tempo, click level and settings, then opens Play. It does not start. */
-function replayRun(r){
-  if(run&&!run.ended)return;
+const replayRun=r=>{if(!(run&&!run.ended))guard(()=>loadRun(r));};
+function loadRun(r){
   const q=r.rp;if(!q)return;
   S.click=r.lv;$('click').value=r.lv;
   S.tol=r.tol;$('tol').value=String(r.tol);
   S.bpm=clamp(Math.round(r.bpm),40,220);$('bpm').value=S.bpm;
   S.eachVal=q.ev;S.eachUnit=q.eu;S.gap=q.gp;
   $('eachVal').value=q.ev;$('eachUnit').value=q.eu;$('gap').value=String(q.gp);syncEach();
-  setRoutineText(r.rk&&recs.names[r.rk]?setHeader(q.x,'title',recs.names[r.rk]):q.x);
+  openText(r.rk&&recs.names[r.rk]?setHeader(q.x,'title',recs.names[r.rk]):q.x,r.rk||r.exercises[0].k);
   S.startExercise=Math.max(1,q.o&&q.o.length?Math.min.apply(null,q.o):(q.st||1));
   save();syncInfo();
   setStatus('Loaded from history. Press Start to play it again.');
@@ -3680,9 +3773,11 @@ function replayRun(r){
 }
 function practisePattern(k,lv){
   if(run&&!run.ended)return;
-  if(lv){S.click=lv;$('click').value=lv;}
-  setRoutineText(keyToText(k));
-  showTab('play');
+  guard(()=>{
+    if(lv){S.click=lv;$('click').value=lv;}
+    openText(keyToText(k),k);
+    showTab('play');
+  });
 }
 /* Hands text to the browser as a download. */
 function saveFile(name,type,text){
@@ -3729,7 +3824,7 @@ function syncBackup(){
 function exportRecs(){
   S.lastExport=Date.now();S.expRuns=totalRuns();save();syncBackup();
   saveFile('stick-timing-records-'+stamp()+'.json','application/json',JSON.stringify(packRecs()));
-  $('recMsg').textContent='\u2713 Exported '+totalRuns()+(totalRuns()===1?' run':' runs')+'.';$('recMsg').classList.add('flash');
+  $('recMsg').textContent='\u2713 Exported '+totalRuns()+(totalRuns()===1?' run':' runs')+' and '+recs.lib.length+(recs.lib.length===1?' routine':' routines')+'.';$('recMsg').classList.add('flash');
 }
 async function importRecs(file){
   if(!file)return;
@@ -3737,16 +3832,18 @@ async function importRecs(file){
   if(file.size>5e6){say('\u26A0 That file is too large.');return;}
   try{
     const o=JSON.parse(await file.text());
-    if(!o||!Array.isArray(o.runs))throw 0;
+    if(!o||(!Array.isArray(o.runs)&&!Array.isArray(o.lib)))throw 0;
     const u=unpackRecs(o),fresh=!recs.runs.length&&!recs.sum.runs;
     if(fresh&&u.sum.runs)recs.sum=u.sum;
     const have=new Set(recs.runs.map(x=>x.id));let add=0;
     u.runs.forEach(c=>{if(!have.has(c.id)){recs.runs.push(c);have.add(c.id);add++;}});
     Object.keys(u.names).forEach(k=>{if(!recs.names[k])recs.names[k]=u.names[k];});recs.nu=Math.max(recs.nu,u.nu);
     recs.runs.sort((a,b)=>a.t-b.t);
+    let addL=0;
+    u.lib.forEach(c=>{const k=textKey(c.x,S.subdiv);if(k&&!libFor(k)&&recs.lib.length<MAX_LIB){recs.lib.push({id:recs.lib.some(q=>q.id===c.id)?libId():c.id,x:c.x,t:c.t});addL++;}});
     saveRecs();renderProgress();
-    const dup=u.runs.length-add;
-    say(add||dup?'\u2713 Imported '+add+(add===1?' new run':' new runs')+(dup?' ('+dup+' already here)':'')+'. '+recs.runs.length+' in history.':'\u26A0 That file has no runs in it.');
+    const dup=u.runs.length-add+u.lib.length-addL,pl=(n,w)=>n+' '+w+(n===1?'':'s');
+    say(add||addL||dup?'\u2713 Imported '+pl(add,'new run')+(u.lib.length?' and '+pl(addL,'routine'):'')+(dup?' ('+dup+' already here)':'')+'.':'\u26A0 That file has no runs or routines in it.');
   }catch(e){say('\u26A0 That file is not a records export.');}
 }
 let clearArm=0;
@@ -3754,7 +3851,7 @@ function clearRecs(){
   const b=$('recClear');
   if(!clearArm){clearArm=setTimeout(()=>{clearArm=0;b.textContent='Clear all';},4000);b.textContent='Click again to clear';return;}
   clearTimeout(clearArm);clearArm=0;b.textContent='Clear all';
-  recs.runs.length=0;recs.sum=newSum();recs.names={};recs.nu=1;saveRecs();lastRun=null;renderProgress();
+  recs.runs.length=0;recs.sum=newSum();saveRecs();lastRun=null;renderProgress();
 }
 
 /* ---------- results by exercise ---------- */
@@ -3869,6 +3966,7 @@ function frame(){
 /* ---------- routine loading ---------- */
 function reparse(){routineParsed=parseRoutine(S.routineText);}
 function setRoutineText(txt){
+  S.libId='';   /* text that arrives from a file, a link or History is not an open library entry */
   S.routineText=String(txt).slice(0,MAX_TEXT);
   $('routineText').value=S.routineText;
   S.startExercise=1;
@@ -3883,11 +3981,13 @@ function syncMode(){
   S.mode=m;document.body.dataset.mode=m;$('runInfo').hidden=true;
 }
 function onRoutineChanged(){
+  $('saveMsg').textContent='';
   reparse();syncMode();
   const n=routineParsed.exercises.length;
   S.startExercise=clamp(Math.round(+S.startExercise)||1,1,Math.max(1,n));
   buildExerciseList();
   refreshPreview();
+  syncPlayName();syncEditorBar();
 }
 function dotsBtn(fn){
   const d=document.createElement('button');d.type='button';d.className='dots';d.textContent='\u22EE';d.setAttribute('aria-label','Exercise actions');d.setAttribute('aria-haspopup','menu');
@@ -3972,7 +4072,7 @@ async function loadFile(file){
   if(!file)return;
   $('openErr').textContent='';
   if(file.size>MAX_TEXT){$('openErr').textContent='That file is too large for a routine.';return;}
-  try{setRoutineText(await file.text());closeOpen();}
+  try{importDone(addToLibrary(await file.text()),'openErr');}
   catch(e){$('openErr').textContent='Could not read that file.';}
 }
 /* Fetches text from a web address, with a time limit and a size limit. */
@@ -4000,13 +4100,188 @@ async function loadUrl(){
   if(!u){$('openErr').textContent=URL_HINT;return;}
   $('urlGo').disabled=true;
   try{
-    setRoutineText(await fetchText(u.href,MAX_TEXT));
-    $('routineUrl').value='';closeOpen();
+    if(importDone(addToLibrary(await fetchText(u.href,MAX_TEXT)),'openErr'))$('routineUrl').value='';
   }catch(e){
     $('openErr').textContent='Could not load that link ('+(e&&e.message?e.message:'blocked')+'). Download the file and choose it instead, or paste the text into the notation field.';
   }finally{$('urlGo').disabled=false;}
 }
-/* ---------- routine library ---------- */
+/* ---------- your library: saved routines ---------- */
+const saySaved=t=>{$('saveMsg').textContent=t;};
+/* Puts routine text in the library: over entry `id` if it exists, else over the entry for the same routine, else as a new one.
+   With keep, a routine already in the library is left as it is. Old runs keep their own text, so replacing is safe. */
+function putEntry(t,id,keep){
+  const p=parseRoutine(t);
+  if(p.errors.length)return {err:p.errors[0]};
+  const x=setHeader(t,'title','').trim(),key=textKey(x,S.subdiv);
+  if(!key)return {err:'No exercises found.'};
+  if(x.length>MAX_SNAP)return {err:'That routine is too long to save.'};
+  const title=(getHeader(t,'title')||'').trim().slice(0,80);
+  let e=recs.lib.find(q=>q.id===id);
+  if(!e){e=libFor(key);if(e&&keep)return {e:e,isNew:false};}
+  const isNew=!e,oldKey=e?libKey(e):null;
+  if(isNew){
+    if(recs.lib.length>=MAX_LIB)return {err:'Your library is full ('+MAX_LIB+' routines).'};
+    e={id:libId(),x:x,t:Date.now()};recs.lib.push(e);
+  }else{e.x=x;e.t=Date.now();}
+  e._k=key;
+  recs.lib=recs.lib.filter(q=>q===e||libKey(q)!==key);   /* two entries for one routine would only confuse */
+  if(isRoutineKey(key)){
+    if(title)recs.names[key]=title;
+    else if(!recs.names[key])recs.names[key]=oldKey&&recs.names[oldKey]?recs.names[oldKey]:'Untitled '+(recs.nu++);
+  }
+  if(!saveRecs())return {err:'Could not save. Browser storage may be full.'};
+  return {e:e,isNew:isNew};
+}
+/* Save: the scratch pad goes to the library entry it was opened from, or to a new one. */
+function saveToLibrary(){
+  const t=$('routineText').value;
+  if(!t.trim()){saySaved('⚠ Nothing to save yet.');return false;}
+  const r=putEntry(t,S.libId);
+  if(r.err){saySaved('⚠ '+r.err);return false;}
+  S.libId=r.e.id;save();
+  saySaved('✓ Saved to your library as '+entryName(r.e)+'.');syncInfo();
+  return true;
+}
+/* Save as new: changes are kept as a second routine and the original stays as it was. With no changes yet, the pad is cut loose from the original so the next Save adds a new one. */
+function saveAsNew(){
+  const t=$('routineText').value;
+  if(!t.trim()){saySaved('\u26A0 Nothing to save yet.');return;}
+  if(scratchState()==='dirty'){
+    const nm=curName();   /* two routines with one name would be confusing */
+    if(recs.lib.some(q=>entryName(q)===nm)){S.routineText=setHeader(t,'title',nm+' copy');$('routineText').value=S.routineText;}
+    const r=putEntry(S.routineText,'');
+    if(r.err){saySaved('\u26A0 '+r.err);return;}
+    S.libId=r.e.id;save();saySaved('\u2713 Saved as new: '+entryName(r.e)+'.');syncInfo();
+  }else if(S.libId){
+    S.libId='';save();saySaved('This is now a separate copy. Change it, then Save as new.');syncInfo();
+  }else saveToLibrary();
+}
+/* Imports always go straight to the library. They never touch the scratch pad. */
+const addToLibrary=(txt,name)=>putEntry(name&&!getHeader(txt,'title')?'title: '+name+'\n'+txt:txt,'',true);
+function importDone(r,errId){
+  if(r.err){$(errId).textContent=r.err;return false;}
+  $(errId).textContent='';closeOpen();
+  $('libMsg').textContent='✓ '+(r.isNew?'Added “'+entryName(r.e)+'” to your library.':'“'+entryName(r.e)+'” is already in your library.');
+  renderLibraryPage();
+  return true;
+}
+/* ---------- the scratch pad: what is loaded is a working copy; the library only changes on Save ---------- */
+const currentEntry=()=>recs.lib.find(q=>q.id===S.libId)||null;
+/* empty | clean (same as the library) | dirty (open entry with changes) | scratch (not in the library) */
+function scratchState(){
+  const t=S.routineText;
+  if(!t.trim()||t===STARTER)return 'empty';   /* the starter pattern is nothing to lose */
+  const x=setHeader(t,'title','').trim(),title=(getHeader(t,'title')||'').trim(),e=currentEntry();
+  if(e)return x===e.x.trim()&&(!title||title===(recs.names[libKey(e)]||''))?'clean':'dirty';
+  const key=textKey(x,S.subdiv);
+  return key&&libFor(key)?'clean':'scratch';
+}
+function curName(){
+  const e=currentEntry();
+  return e?entryName(e):(getHeader(S.routineText,'title')||'').trim()||'Scratch pad';
+}
+/* Puts library text in the scratch pad, linked to its entry. */
+function openText(txt,key){
+  setRoutineText(txt);
+  const m=key&&libFor(key);
+  if(m){S.libId=m.id;save();}
+  syncInfo();
+}
+const loadEntry=e=>openText(entryText(e),libKey(e));
+/* Runs fn now, or after the person has chosen what to do with work that would be lost. */
+let cfFn=null;
+function guard(fn){
+  const st=scratchState();
+  if(st!=='dirty'&&st!=='scratch'){fn();return;}
+  cfFn=fn;
+  $('cfTitle').textContent=st==='dirty'?'Save your changes?':'Save this routine?';
+  $('cfText').textContent=st==='dirty'?'“'+curName()+'” has changes that are not saved.':'“'+curName()+'” is not in your library yet.';
+  $('confirmModal').hidden=false;$('cfSave').focus();
+}
+function closeConfirm(go){
+  $('confirmModal').hidden=true;
+  const fn=cfFn;cfFn=null;
+  if(go&&fn)fn();
+}
+function syncPlayName(){
+  $('playName').textContent=curName();
+}
+function syncEditorBar(){
+  const st0=scratchState(),st=st0==='empty'&&S.routineText.trim()?'scratch':st0;   /* the starter pattern can be saved */
+  $('edName').textContent=curName();
+  $('edState').textContent=st==='dirty'?'Unsaved changes':st==='scratch'?'Not saved':st==='clean'?'Saved':'';
+  $('saveBtn').disabled=st==='empty'||st==='clean';
+}
+const playEntry=e=>{
+  if(run&&!run.ended)return;
+  if(e.id===S.libId){showTab('play');return;}
+  guard(()=>{loadEntry(e);showTab('play');});
+};
+const editEntry=e=>{
+  if(e.id===S.libId){openEditor('library');return;}
+  guard(()=>{loadEntry(e);openEditor('library');});
+};
+function removeLibEntry(e){
+  recs.lib=recs.lib.filter(q=>q!==e);
+  if(S.libId===e.id){S.libId='';save();}
+  saveRecs();
+}
+/* A button that asks twice: the first tap changes its label, the second does it. */
+function armBtn(label,fn){
+  const b=document.createElement('button');b.type='button';b.className='btn small';b.textContent=label;
+  let t=0;
+  b.addEventListener('click',()=>{
+    if(!t){b.textContent=label+'?';b.classList.add('arm');t=setTimeout(()=>{t=0;b.textContent=label;b.classList.remove('arm');},4000);return;}
+    clearTimeout(t);fn();
+  });
+  return b;
+}
+const textBtn=(label,fn)=>{const b=document.createElement('button');b.type='button';b.className='btn small';b.textContent=label;b.addEventListener('click',fn);return b;};
+/* The Library page: the pad if it holds something unsaved, then every saved routine. */
+function renderLibraryPage(){
+  const box=$('libPage');if(!box)return;
+  box.textContent='';
+  const byName=libSort==='name';
+  $('lsRecent').classList.toggle('on',!byName);$('lsRecent').setAttribute('aria-pressed',String(!byName));
+  $('lsName').classList.toggle('on',byName);$('lsName').setAttribute('aria-pressed',String(byName));
+  const list=recs.lib.slice().sort(byName?(a,b)=>entryName(a).localeCompare(entryName(b),undefined,{numeric:true,sensitivity:'base'}):(a,b)=>b.t-a.t),st=scratchState(),locked=!!(run&&!run.ended);
+  if(st==='scratch'){
+    const row=document.createElement('div');row.className='hrow flat lib';
+    const sm=document.createElement('div');sm.className='sm';
+    const n=document.createElement('span');n.className='hn';n.textContent=curName();
+    const hs=document.createElement('span');hs.className='hs';hs.textContent='Scratch pad · not saved';
+    const ac=document.createElement('span');ac.className='ha';
+    ac.appendChild(iconBtn('edit','Edit',()=>openEditor('library')));
+    ac.appendChild(iconBtn('play','Play',()=>showTab('play')));
+    sm.append(n,hs,ac);row.appendChild(sm);box.appendChild(row);
+  }
+  list.forEach(e=>{
+    const k=libKey(e),mine=recs.runs.filter(r=>(r.mode==='routine'?r.rk:r.exercises[0].k)===k);
+    const det=document.createElement('details');det.className='hrow hgrp';
+    const sm=document.createElement('summary');
+    const n=document.createElement('span');n.className='hn';n.textContent=entryName(e);
+    const c=exerciseCount(e.x),hs=document.createElement('span');hs.className='hs';
+    const latest=mine.reduce((m,r)=>Math.max(m,r.t),0);
+    hs.textContent=c+(c===1?' exercise':' exercises')+' · '+mine.length+(mine.length===1?' run':' runs')+(latest?' · latest '+dayWord(latest):'')+(e.id===S.libId?(st==='dirty'?' · open, unsaved changes':' · open'):'');
+    const ac=document.createElement('span');ac.className='ha';
+    const ed=iconBtn('edit','Edit',()=>editEntry(e)),pl=iconBtn('play','Play',()=>playEntry(e));
+    ed.disabled=pl.disabled=locked;
+    ac.append(ed,pl);
+    sm.append(n,hs,ac);det.appendChild(sm);
+    const body=document.createElement('div');body.className='hb';
+    const acts=document.createElement('div');acts.className='btns';
+    if(isRoutineKey(k))acts.appendChild(textBtn('Rename',()=>{det.open=true;renameBtn(n,k).click();}));
+    acts.appendChild(textBtn('Download',()=>{
+      const name=entryName(e).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'routine';
+      saveFile(name+'.txt','text/plain',entryText(e)+'\n');
+    }));
+    acts.appendChild(armBtn('Remove',()=>{removeLibEntry(e);$('libMsg').textContent='Removed “'+entryName(e)+'”. Its runs stay in History.';renderLibraryPage();}));
+    body.appendChild(acts);det.appendChild(body);box.appendChild(det);
+  });
+  $('libEmpty').hidden=!!(list.length||st==='scratch');
+}
+const exerciseCount=x=>parseRoutine(x).exercises.length;
+/* ---------- routine library (a list of routine files on the web) ---------- */
 let lib={items:[],loaded:false,busy:false,cur:''};
 function renderLibrary(){
   const box=$('libList');box.textContent='';
@@ -4050,11 +4325,9 @@ async function openLibraryItem(it){
   lib.busy=true;$('libInfo').textContent='Loading '+it.title+'…';renderLibrary();
   try{
     let txt=await fetchText(it.url,MAX_TEXT);
-    /* A routine with no title of its own takes the name it has in the list. */
-    if(!parseRoutine(txt).title)txt='title: '+it.title+'\n'+txt;
     lib.cur=it.url;
-    setRoutineText(txt);closeOpen();
-    $('libInfo').textContent='Loaded '+it.title+'. '+routineParsed.exercises.length+(routineParsed.exercises.length===1?' exercise.':' exercises.');
+    $('libInfo').textContent='';
+    importDone(addToLibrary(txt,it.title),'libErr');
   }catch(e){
     $('libErr').textContent='Could not load '+it.title+' ('+(e&&e.message?e.message:'blocked')+').';
     $('libInfo').textContent='';
@@ -4072,7 +4345,7 @@ function clearLibrary(){
 }
 
 /* ---------- controls ---------- */
-const LOCKED=['pulse','bpm','bpmDown','bpmUp','subdiv','click','inputMode','routineText','fileBtn','openBtn','urlGo','routineUrl','clearRoutine','libraryUrl','libGo','libClear','eachVal','eachUnit','gap'];
+const LOCKED=['pulse','bpm','bpmDown','bpmUp','subdiv','click','inputMode','routineText','fileBtn','openBtn','urlGo','routineUrl','clearRoutine','playChange','libraryUrl','libGo','libClear','eachVal','eachUnit','gap'];
 function syncRunUI(){
   const on=!!(run&&!run.ended),play=on&&run.mode==='play',paused=on&&!!run.paused;
   const b=$('startBtn');
@@ -4094,9 +4367,8 @@ function setRunning(on){
   document.body.dataset.run=on?'1':'0';
   document.body.dataset.rm=on&&run?run.mode:'';
   LOCKED.forEach(id=>{$(id).disabled=on;});
-  document.querySelectorAll('.chip').forEach(c=>{c.disabled=on;});
   renderLibrary();
-  ['setup','pattern','progress'].forEach(n=>{tabEl(n).disabled=on;});
+  ['setup','library','progress'].forEach(n=>{tabEl(n).disabled=on;});
   $('helpBtn').disabled=on;
   syncMicBtn();
   if(on&&run&&run.mode==='play'&&S.mode==='routine'){$('runInfo').hidden=false;lastTimeLeft='';}
@@ -4106,21 +4378,12 @@ function playsFor(){return ' · plays for '+(S.eachUnit==='pass'?S.eachVal+(S.ea
 /* How long a run of these exercises takes: each exercise, the gaps between them and the opening count-in. */
 function playTime(list){let t=0;list.forEach(b=>{t+=b.secs;});return t+(list.length>1?list.length-1:0)*S.gap*(60/S.bpm)+4*(60/S.bpm);}
 function syncInfo(){
+  syncPlayName();syncEditorBar();
   const exercises=currentExercises();
   if(S.mode==='single'){
     const e0=routineParsed.exercises[0],res=parseExerciseLine(e0&&e0.line!=null?bLines()[e0.line]:bGet()),ok=!!(res&&res.exercise);
     $('patErr').textContent=ok?'':(res&&res.err?'Check the sticking: '+res.err+'.':'');     /* a plain "too short" shows in the status line instead */
     $('startBtn').disabled=!ok&&!(run&&!run.ended);
-    if(ok){
-      const b=exercises[0],uniform=b.subs.every(s=>s===b.subs[0]);
-      const beats=b.passBeats;
-      const rests=b.notes.filter(n=>n==='_').length,strokes=b.notes.length-rests;
-      $('patInfo').textContent=strokes+' strokes'+(rests?' and '+rests+(rests===1?' rest':' rests'):'')+' = '+(Number.isInteger(beats)?beats:+beats.toFixed(2))+(b.sig&&b.sig.d===8?' eighth-note pulses':(b.sig&&b.sig.d===2?' half-note pulses':' beats'))+' at '+S.bpm+' BPM.'+(uniform?' Each stroke lasts '+Math.round(60/S.bpm/b.subs[0]*1000)+' ms.':'')+' Runs until you press Stop. Put a note code such as 8 or 8t before strokes to change the subdivision mid-bar, and _ for a rest.'+(res.exercise.warn?' Note: '+res.exercise.warn+'.':'');
-    }else $('patInfo').textContent='';
-    document.querySelectorAll('.chip').forEach(c=>{
-      const cr=parseExerciseLine(c.dataset.p);
-      c.setAttribute('aria-pressed',String(ok&&!!cr&&!!cr.exercise&&cr.exercise.notes.join('')===res.exercise.notes.join('')&&cr.exercise.subs.join()===res.exercise.subs.join()));
-    });
   }else{
     const all=allExercises(),n=all.length;
     const ok=exercises.length>0;
@@ -4138,7 +4401,7 @@ function syncInfo(){
     $('eachUnit').disabled=!!routineParsed.each||(run&&!run.ended);
   }
   const sum=$('playSummary');
-  if(!exercises.length)sum.textContent=S.mode==='single'?'Type a sticking on the Editor page, then press Start.':'Add some exercises on the Editor page, then press Start.';
+  if(!exercises.length)sum.textContent=S.mode==='single'?'Type a sticking in the editor, then press Start.':'Add some exercises in the editor, then press Start.';
   else if(S.mode==='single'){const b=exercises[0];sum.textContent=S.bpm+' BPM'+pulseNote(exercises)+playsFor();}
   else{const tt=playTime(exercises);sum.textContent=(routineParsed.title||recs.names[routineKeyOf(allExercises().map(b=>patKey(b.notes,b.groupStart,b.subs,b.defSub,b.sig)))]||'Routine')+' · '+exercises.length+(exercises.length===1?' exercise':' exercises')+(S.startExercise>1?' from exercise '+S.startExercise:'')+' · about '+fmtTime(tt)+' · '+S.bpm+' BPM'+pulseNote(exercises)+routineGuide();}
   {const b=exercises[0];$('playPat').textContent=exercises.length&&S.mode==='single'?showPattern(b.notes,b.groupStart,b.subs,b.defSub,b.sig,b.src):'';}
@@ -4319,7 +4582,7 @@ function renderBuilder(){
   $('bNote').hidden=!json;
   const build=S.editTab==='build'&&!json;
   document.body.dataset.edit=build?'build':'type';
-  $('typePane').hidden=build;$('buildPane').hidden=!build;
+  $('exLink').hidden=build;$('buildPane').hidden=!build;
   $('fRt').hidden=build;$('rPat').hidden=!build;
   $('bModeType').setAttribute('aria-pressed',String(!build));
   $('bModeBuild').setAttribute('aria-pressed',String(build));
@@ -4418,6 +4681,8 @@ function wireBuilder(){
   let menuY=0;
   window.addEventListener('scroll',()=>{if(menuOn&&Math.abs(scrollY-menuY)>30)closeMenu();});
   $('rowMenu').addEventListener('click',e=>{if(e.target.closest('.btn'))closeMenu();});
+  $('saveMore').addEventListener('click',()=>openMenu($('saveMenu'),$('saveMore')));
+  $('saveMenu').addEventListener('click',e=>{if(e.target.closest('.btn'))closeMenu();});
   openRowMenu=idx=>{const b=$('editList').querySelector('.erow[data-idx="'+idx+'"] .dots');if(b)openMenu($('rowMenu'),b);};
   const om=$('openModal');
   openOpen=()=>{if(run&&!run.ended)return;$('openErr').textContent='';om.hidden=false;ensureLibrary();renderLibrary();$('routineUrl').focus();};
@@ -4494,15 +4759,6 @@ function wireBuilder(){
   if(window.ResizeObserver)new ResizeObserver(fitGutter).observe(ta);
   ['click','keyup','focus'].forEach(ev=>ta.addEventListener(ev,bFromCaret));
 }
-function buildChips(){
-  const box=$('chips');
-  CHIPS.forEach(s=>{
-    const b=document.createElement('button');
-    b.type='button';b.className='chip';b.dataset.p=s;b.textContent=s;
-    b.addEventListener('click',()=>bPut(s));
-    box.appendChild(b);
-  });
-}
 function setInputMode(){
   syncNote();
   document.body.dataset.input=S.input;
@@ -4526,8 +4782,10 @@ function wire(){
   $('inputMode').addEventListener('change',e=>{S.input=e.target.value;save();setInputMode();});
   $('routineText').addEventListener('input',e=>{S.routineText=e.target.value.slice(0,MAX_TEXT);S.startExercise=1;save();onRoutineChanged();});
   $('fileBtn').addEventListener('click',()=>$('routineFile').click());
-  /* Saves the routine text as it stands, so Open can bring it back on any device. */
-  $('saveBtn').addEventListener('click',()=>{
+  /* Save keeps the routine in your library. Download file saves the text, to send it or move it to another device. */
+  $('saveBtn').addEventListener('click',saveToLibrary);
+  $('saveNew').addEventListener('click',saveAsNew);
+  $('saveFile').addEventListener('click',()=>{
     const t=$('routineText').value;if(!t.trim())return;
     const name=(getHeader(t,'title')||'routine').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'routine';
     saveFile(name+'.txt','text/plain',t.endsWith('\n')?t:t+'\n');
@@ -4539,7 +4797,15 @@ function wire(){
   $('libraryUrl').addEventListener('input',renderLibrary);
   $('libraryUrl').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();loadLibrary();}});
   $('routineUrl').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();loadUrl();}});
-  $('clearRoutine').addEventListener('click',()=>{bLine=0;setRoutineText('');$('routineText').focus();});
+  $('clearRoutine').addEventListener('click',()=>guard(()=>{bLine=0;setRoutineText('');openEditor('library');}));
+  $('lsRecent').addEventListener('click',()=>{libSort='recent';renderLibraryPage();});
+  $('lsName').addEventListener('click',()=>{libSort='name';renderLibraryPage();});
+  $('edBack').addEventListener('click',()=>{showTab(editFrom);window.scrollTo(0,0);});
+  $('playChange').addEventListener('click',()=>showTab('library'));
+  $('cfSave').addEventListener('click',()=>{if(saveToLibrary())closeConfirm(true);else $('cfText').textContent=$('saveMsg').textContent;});
+  $('cfDiscard').addEventListener('click',()=>closeConfirm(true));
+  $('cfCancel').addEventListener('click',()=>closeConfirm(false));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('confirmModal').hidden)closeConfirm(false);});
   $('eachVal').addEventListener('change',e=>{
     const v=+e.target.value;
     S.eachVal=S.eachUnit==='pass'?clamp(Math.round(v)||8,1,200):clamp(v||1,0.25,60);
@@ -4561,8 +4827,7 @@ function wire(){
   document.querySelectorAll('.totop button').forEach(b=>b.addEventListener('click',()=>window.scrollTo(0,0)));
   document.querySelectorAll('[data-try]').forEach(b=>b.addEventListener('click',()=>{
     if(run&&!run.ended)return;
-    setRoutineText(b.dataset.text);
-    showTab('play');window.scrollTo(0,0);
+    guard(()=>{setRoutineText(b.dataset.text);showTab('play');window.scrollTo(0,0);});
   }));
   $('advUse').addEventListener('click',e=>{setBpm(+e.currentTarget.dataset.bpm);e.currentTarget.hidden=true;startPlay(lastRun&&lastRun.only||undefined);});
   $('advAgain').addEventListener('click',()=>startPlay(lastRun&&lastRun.only||undefined));
@@ -4575,6 +4840,8 @@ function wire(){
   $('pvBtnHist').addEventListener('click',()=>setPview('hist'));
   $('pvBtnAch').addEventListener('click',()=>setPview('ach'));
   $('histMore').addEventListener('click',()=>{histShown+=20;renderHistory();});
+  $('hfAll').addEventListener('click',()=>{histFilter='all';histShown=20;renderHistory();});
+  $('hfSaved').addEventListener('click',()=>{histFilter='saved';histShown=20;renderHistory();});
   $('recExport').addEventListener('click',exportRecs);
   $('bakGo').addEventListener('click',exportRecs);
   $('recImport').addEventListener('click',()=>$('recFile').click());
@@ -4707,7 +4974,7 @@ function init(){
   $('sens').value=S.sens;$('sensOut').textContent=S.sens+' dB';$('mThr').style.left=((S.sens+60)/60*100)+'%';
   $('vol').value=S.vol;$('volOut').textContent=S.vol+'%';
   $('latency').value=S.latency==null?'':S.latency;
-  buildChips();wireBuilder();setInputMode();updateCalUI();
+  wireBuilder();setInputMode();updateCalUI();
   wire();applyTheme();
   showTab('play');
   onRoutineChanged();
