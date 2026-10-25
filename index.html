@@ -561,7 +561,6 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         <button class="dots" id="saveMore" type="button" aria-label="More ways to save" aria-haspopup="menu">&#8942;</button>
       </div>
       <div class="bmenu" id="saveMenu" role="menu" hidden><button class="btn" id="saveNew" type="button">Save as new</button><button class="btn" id="saveFile" type="button">Download file</button></div>
-      <p class="hint" id="bNote" hidden></p>
       <div class="bmain" id="bMain">
         <section class="panel" aria-label="Editor mode">
           <div class="switch" id="bMode" role="group" aria-label="How to enter the strokes">
@@ -573,6 +572,10 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         <section class="panel buildonly" aria-label="Defaults">
           <div class="bset" id="bSet">
             <div class="field b-routine"><label for="bTitle">Title</label><input type="text" id="bTitle" maxlength="80" autocomplete="off" autocorrect="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" placeholder="Name this routine"></div>
+            <div class="row b-routine">
+              <div class="field"><label for="bEachU">Each exercise plays for</label><select id="bEachU"></select></div>
+              <div class="field"><label for="bEachV">Amount</label><input type="number" id="bEachV" min="1" max="999" step="any" inputmode="decimal"></div>
+            </div>
             <div class="row b-routine">
               <div class="field"><label for="bTime">Time</label><select id="bTime"></select></div>
               <div class="field"><label for="bGroup">Grouping</label><select id="bGroup"></select></div>
@@ -604,6 +607,20 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
           </div>
           <div class="b-single"><button class="btn small addbtn" id="bAddEx1" type="button">+ Add exercise</button> <span class="hint">A second exercise makes this a routine.</span></div>
         </section>
+        <section class="panel buildonly b-routine" aria-label="This exercise">
+          <h3>This exercise</h3>
+          <div class="bset">
+            <div class="row">
+              <div class="field"><label for="oLenU">Plays for</label><select id="oLenU"></select></div>
+              <div class="field"><label for="oLenV">Amount</label><input type="number" id="oLenV" min="1" max="999" step="any" inputmode="decimal"></div>
+              <div class="field"><label for="oBpm">Tempo (BPM)</label><input type="number" id="oBpm" min="40" max="220" inputmode="numeric" placeholder="Same as Play"></div>
+            </div>
+            <div class="row">
+              <div class="field"><label for="oTime">Time</label><select id="oTime"></select></div>
+              <div class="field"><label for="oGroup">Grouping</label><select id="oGroup"></select></div>
+            </div>
+          </div>
+        </section>
         <section class="panel" aria-label="Notation">
           <div class="bnote">
             <div class="bfields">
@@ -617,8 +634,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
           </div>
 
         <div class="bpane" id="buildPane">
-          <div class="field"><label>Note for the next strokes</label>
-            <div class="bcodes" id="bCodes" role="group" aria-label="Note for the next strokes"></div></div>
+          <div class="bcodes" id="bCodes" role="group" aria-label="Note for the next strokes"></div>
           <div class="bkeys" role="group" aria-label="Strokes">
             <button class="bkey R" type="button" data-k="R" aria-label="Right">R</button>
             <button class="bkey L" type="button" data-k="L" aria-label="Left">L</button>
@@ -771,9 +787,9 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         <button class="btn small" type="button" data-try="single" data-text="16 R _ L _ R L _ L">Try it</button>
       </div>
       <h4>Using the editor</h4>
-      <p>You do not have to type any of this. The notation help sits at the bottom of the editor, and each exercise has a <b>&#8942;</b> menu to insert, clone, move or delete it. <b>Builder</b> and <b>Text</b> are two views of the same routine. In <b>Builder</b> you pick a note code, then tap R, L, rest and space to add strokes to the exercise you are editing, and Time, Grouping and Strokes are above the list. In <b>Text</b> you edit the whole routine as plain text, one exercise per line, with line numbers beside it for errors. The page opens on Builder and remembers your last choice on each device. The speaker button opens a popup with the staff and plays the exercise as clicks, with a bar moving along the staff as each stroke sounds. Press play or stop in the popup to hear it again, and Close or Esc to leave it. In a routine, <b>Title</b>, <b>Time</b>, <b>Grouping</b> and <b>Default note</b> are shared by every exercise.</p>
+      <p>You do not have to type any of this. The notation help sits at the bottom of the editor, and each exercise has a <b>&#8942;</b> menu to insert, clone, move or delete it. <b>Builder</b> and <b>Text</b> are two views of the same routine. In <b>Builder</b> you pick a note code, then tap R, L, rest and space to add strokes to the exercise you are editing, and Time, Grouping and Strokes are above the list. In <b>Text</b> you edit the whole routine as plain text, one exercise per line, with line numbers beside it for errors. The page opens on Builder and remembers your last choice on each device. The speaker button opens a popup with the staff and plays the exercise as clicks, with a bar moving along the staff as each stroke sounds. Press play or stop in the popup to hear it again, and Close or Esc to leave it. In a routine, <b>Title</b>, <b>Each exercise plays for</b>, <b>Time</b>, <b>Grouping</b> and <b>Default note</b> are shared by every exercise, and <b>This exercise</b> overrides them for the one you are editing: its own length, tempo, time signature and grouping.</p>
       <h4>The routine format</h4>
-      <p>A routine is plain text with one exercise per line. Lines starting with <b>#</b> are notes to yourself, and a name before a colon (<b>Exercise 4:</b>) is just a label. This app does not come with any book content. You supply the exercises.</p>
+      <p>A routine is plain text with one exercise per line. Lines starting with <b>#</b> are notes to yourself, and a name before a colon (<b>Exercise 4:</b>) is ignored, like a note. This app does not come with any book content. You supply the exercises.</p>
       <pre>title: My warm-up routine
 each: 1m
 RLRR LRLL
@@ -1259,7 +1275,7 @@ function fitSig(p,sig){
 function parseExerciseLine(raw,defSig,defStrokes,lenient){
   let line=String(raw).replace(/#.*$/,'').trim();
   if(!line)return null;
-  let label='',sig=defSig||null;
+  let sig=defSig||null;
   const SIGRE=/^\s*(\d{1,2}\s*\/\s*\d{1,2}(?:\s*\([\d\s+]+\))?)\s*:\s*(.*)$/;
   const takeSig=()=>{
     const sm=SIGRE.exec(line);
@@ -1270,7 +1286,7 @@ function parseExerciseLine(raw,defSig,defStrokes,lenient){
   };
   let se=takeSig();if(se)return se;
   const lm=/^([A-Za-z][A-Za-z0-9 ]*?)\s*:\s*(.*)$/.exec(line);
-  if(lm){label=lm[1].trim();line=lm[2];se=takeSig();if(se)return se;}
+  if(lm){line=lm[2];se=takeSig();if(se)return se;}   /* a name before a colon is a note to yourself and is not kept */
   line=line.replace(/^\s*\d+\s*[.)]\s+/,'');
   if(/^\d+\s*\/\s*\d+/.test(line))return {err:'write a time signature with a colon after it, like 7/8: RLR LR LR'};
   let dur=null,bpm=null,m;
@@ -1288,7 +1304,7 @@ function parseExerciseLine(raw,defSig,defStrokes,lenient){
   if(p.letters>MAXSTROKES)warns.push('more than '+MAXSTROKES+' strokes and rests, the remainder was cut off');
   let subs=p.subs,gs=p.groupStart;
   if(sig){const f=fitSig(p,sig);subs=f.subs;gs=f.groupStart;if(f.warn)warns.push(f.warn);}
-  return {exercise:{src:((defStrokes?defStrokes+' ':'')+core).replace(/\s+/g,' ').trim(),notes:p.notes,groupStart:gs,subs:subs,label:label,dur:dur,bpm:bpm,sig:sig,warn:warns.join('; ')}};
+  return {exercise:{src:((defStrokes?defStrokes+' ':'')+core).replace(/\s+/g,' ').trim(),notes:p.notes,groupStart:gs,subs:subs,dur:dur,bpm:bpm,sig:sig,warn:warns.join('; ')}};
 }
 /* ---------- helpers for the exercise builder: they only change text, so typing and tapping stay in step ---------- */
 const CODE_TAIL=/(^|\s)(8t|16t|5t|7t|q|8|16|32)$/i;
@@ -1324,7 +1340,7 @@ function routineContext(lines,upto){
   return {sig:sig,strokes:strokes};
 }
 /* title:, time: and strokes: lines at the top of a routine. */
-const HEADER_ORDER=['title','time','strokes'];
+const HEADER_ORDER=['title','each','time','strokes'];
 function getHeader(text,key){
   const re=new RegExp('^\\s*'+key+'\\s*:\\s*(.*)$','i');
   for(const ln of String(text).split(/\r?\n/)){const m=re.exec(ln.replace(/#.*$/,''));if(m)return m[1].trim();}
@@ -1370,12 +1386,35 @@ function jsonList(t,key,out){
   if(!arr){out.errors.push('JSON needs a "'+key+'" list.');return null;}
   return {j:j,arr:arr};
 }
+/* A JSON routine ({title, each, time, strokes, exercises: [...]} or a plain list) written as routine text. Returns null, with the reason in errors, if it is not one. */
+function jsonToText(t,errors){
+  const out={errors:errors};
+  const L=jsonList(t,'exercises',out);
+  if(!L)return null;
+  const len=d=>d?(d.unit==='pass'?'x'+d.v:d.v+'s'):'',lines=[];
+  if(!Array.isArray(L.j)){
+    const j=L.j;
+    if(typeof j.title==='string')lines.push('title: '+j.title.replace(/[\r\n]+/g,' ').trim());
+    const e=len(jsonDur(j.each));if(e)lines.push('each: '+e);
+    if(j.time!=null)lines.push('time: '+String(j.time));
+    if(j.strokes!=null)lines.push('strokes: '+String(j.strokes));
+  }
+  L.arr.slice(0,200).forEach((it,i)=>{
+    const where='Exercise '+(i+1);
+    if(typeof it==='string')return lines.push(it);
+    if(!it||typeof it!=='object')return errors.push(where+': not an exercise');
+    const st=String(it.sticking||it.pattern||'').replace(/[\r\n]+/g,' ').trim();
+    if(!st)return errors.push(where+': no sticking given');
+    lines.push((it.time!=null?String(it.time)+': ':'')+st+[len(jsonDur(it)),typeof it.bpm==='number'?'@'+Math.min(220,Math.max(40,Math.round(it.bpm))):''].filter(Boolean).map(x=>'  '+x).join(''));
+  });
+  return lines.join('\n');
+}
 function parseRoutine(text){
   const out={title:'',each:null,exercises:[],errors:[]};
   let routineSig=null,routineStrokes='';
   const STROKESRE=new RegExp('^'+NV_SRC+'$','i');
   const readStrokes=v=>{v=String(v).trim();if(/^(off|none|-|)$/i.test(v))return '';return STROKESRE.test(v)?v:null;};
-  const t=String(text||'').replace(/^\uFEFF/,'').trim();
+  let t=String(text||'').replace(/^\uFEFF/,'').trim();
   if(!t)return out;
   const take=(res,where,line)=>{
     if(!res)return;
@@ -1384,31 +1423,11 @@ function parseRoutine(text){
     if(line!=null)res.exercise.line=line;
     out.exercises.push(res.exercise);
   };
-  if(t[0]==='{'||t[0]==='['){
-    const L=jsonList(t,'exercises',out);
-    if(!L)return out;
-    const j=L.j,arr=L.arr;
-    if(!Array.isArray(j)){
-      if(typeof j.title==='string')out.title=j.title.slice(0,80);
-      out.each=jsonDur(j.each);
-      if(j.time!=null){const ps=parseSig(j.time);if(ps.err)out.errors.push('time: '+ps.err);else routineSig=ps.sig;}
-      if(j.strokes!=null){const v=readStrokes(j.strokes);if(v===null)out.errors.push('strokes: needs a note code like 8, 16 or 8t');else routineStrokes=v;}
-    }
-    arr.slice(0,200).forEach((it,i)=>{
-      const where='Exercise '+(i+1);
-      if(typeof it==='string')return take(parseExerciseLine(it,routineSig,routineStrokes),where);
-      if(!it||typeof it!=='object')return out.errors.push(where+': not an exercise');
-      let exerciseSig=routineSig;
-      if(it.time!=null){const ps=parseSig(it.time);if(ps.err)return out.errors.push(where+': '+ps.err);exerciseSig=ps.sig;}
-      const res=parseExerciseLine(String(it.sticking||it.pattern||''),exerciseSig,routineStrokes);
-      if(res&&res.exercise){
-        const d=jsonDur(it);if(d)res.exercise.dur=d;
-        if(typeof it.bpm==='number')res.exercise.bpm=Math.min(220,Math.max(40,Math.round(it.bpm)));
-        if(typeof it.label==='string')res.exercise.label=it.label.slice(0,30);
-      }
-      take(res||{err:'no sticking given'},where);
-    });
-  }else{
+  if(t[0]==='{'||t[0]==='['){   /* a JSON routine is read as the plain text it stands for */
+    t=jsonToText(t,out.errors);
+    if(t===null)return out;
+  }
+  {
     t.split(/\r?\n/).forEach((raw,i)=>{
       const s=raw.replace(/#.*$/,'');
       const hm=/^\s*(title|each|time|strokes)\s*:\s*(.*)$/i.exec(s);
@@ -1442,7 +1461,7 @@ function resolveExercises(exercises,def,o){
     beats=rb9(beats);
     const pass=beats*60/bpm,dur=b.dur||def;
     const passes=dur.unit==='pass'?dur.v:Math.max(1,Math.round(dur.v/pass));
-    return {idx:b.idx,notes:b.notes,groupStart:b.groupStart,subs:subs,defSub:o.subdiv,sig:b.sig||null,label:b.label||'',bpm:bpm,src:b.src||'',passBeats:beats,passes:passes,secs:passes*pass,passSecs:pass,own:!!b.dur};
+    return {idx:b.idx,notes:b.notes,groupStart:b.groupStart,subs:subs,defSub:o.subdiv,sig:b.sig||null,bpm:bpm,src:b.src||'',passBeats:beats,passes:passes,secs:passes*pass,passSecs:pass,own:!!b.dur};
   });
 }
 /* Lays out every click and every stroke slot of a session in seconds from the start of the first count-in. */
@@ -1488,7 +1507,7 @@ function buildPlan(exercises,o){
       }
     }
     t=t0+totalBeats*beat;gp+=b.passes;
-    segs.push({idx:b.idx,src:b.src||'',notes:b.notes,groupStart:b.groupStart,subs:b.subs,defSub:b.defSub,sig:sig,cin:cin,gst:gst,label:b.label,bpm:b.bpm,N:N,strokes:b.notes.filter(x=>x!=='_').length,passes:b.passes,passBeats:passBeats,beat:beat,leadStart:leadStart,lead:lead,leadBeats:leadBeats,t0:t0,end:t,first:first,cell0:cell0,g0:g0});
+    segs.push({idx:b.idx,src:b.src||'',notes:b.notes,groupStart:b.groupStart,subs:b.subs,defSub:b.defSub,sig:sig,cin:cin,gst:gst,bpm:b.bpm,N:N,strokes:b.notes.filter(x=>x!=='_').length,passes:b.passes,passBeats:passBeats,beat:beat,leadStart:leadStart,lead:lead,leadBeats:leadBeats,t0:t0,end:t,first:first,cell0:cell0,g0:g0});
   });
   return {slots:slots,cells:cells,clicks:clicks,segs:segs,end:t};
 }
@@ -1967,7 +1986,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.19.0';                           /* shown beside the title */
+const VERSION='0.20.3';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2383,7 +2402,7 @@ function beginRun(mode,only){
   closeListen();
   const lat=mode==='lat';
   const latNotes='RLRLRLRLRLRLRLRL'.split('');
-  const exercises=lat?[{idx:1,notes:latNotes,groupStart:latNotes.map((_,i)=>i%4===0),subs:latNotes.map(()=>2),defSub:2,label:'',bpm:75,passBeats:8,passes:LAT.rounds,secs:6.4*LAT.rounds,passSecs:6.4,own:true}]:(only?allExercises().filter(b=>only.includes(b.idx)):currentExercises());
+  const exercises=lat?[{idx:1,notes:latNotes,groupStart:latNotes.map((_,i)=>i%4===0),subs:latNotes.map(()=>2),defSub:2,bpm:75,passBeats:8,passes:LAT.rounds,secs:6.4*LAT.rounds,passSecs:6.4,own:true}]:(only?allExercises().filter(b=>only.includes(b.idx)):currentExercises());
   if(!exercises.length)return;
   const plan=buildPlan(exercises,{gapBeats:S.gap,clickMode:lat?'note':S.click});
   const r={
@@ -3860,7 +3879,7 @@ function exerciseRows(r){
   r.plan.segs.forEach((sg,si)=>{
     const Q=r.seg[si];
     if(!Q.slots)return;
-    rows.push({idx:sg.idx,key:patKey(sg.notes,sg.groupStart,sg.subs,sg.defSub,sg.sig),label:sg.label,seq:showPattern(sg.notes,sg.groupStart,sg.subs,sg.defSub,sg.sig,sg.src),bpm:sg.bpm,
+    rows.push({idx:sg.idx,key:patKey(sg.notes,sg.groupStart,sg.subs,sg.defSub,sg.sig),seq:showPattern(sg.notes,sg.groupStart,sg.subs,sg.defSub,sg.sig,sg.src),bpm:sg.bpm,
       passes:Math.floor(Q.slots/sg.strokes),due:Q.slots,heard:Q.errs.length,
       pct:Q.within/Q.slots,avg:Q.errs.length?mean(Q.errs):NaN,spread:sd(Q.errs),miss:Q.miss,
       L:Q.hand.L.length?mean(Q.hand.L):NaN,R:Q.hand.R.length?mean(Q.hand.R):NaN,lvl:levelStats(Q.lv)});
@@ -3891,9 +3910,9 @@ function csvCell(v){const s=String(v);return /[",\n]/.test(s)?'"'+s.replace(/"/g
 function downloadCsv(){
   const r=view;if(!r)return;
   const rows=exerciseRows(r);if(!rows.length)return;
-  const out=[['exercise','label','sticking','bpm','passes','strokes_due','strokes_heard','on_time_pct','avg_ms','spread_ms','missed','left_avg_ms','right_avg_ms'].join(',')];
+  const out=[['exercise','sticking','bpm','passes','strokes_due','strokes_heard','on_time_pct','avg_ms','spread_ms','missed','left_avg_ms','right_avg_ms'].join(',')];
   const n1=v=>isNaN(v)?'':v.toFixed(1);
-  rows.forEach(x=>out.push([x.idx,csvCell(x.label),csvCell(x.seq),x.bpm,x.passes,x.due,x.heard,Math.round(x.pct*100),n1(x.avg),n1(x.spread),x.miss,n1(x.L),n1(x.R)].join(',')));
+  rows.forEach(x=>out.push([x.idx,csvCell(x.seq),x.bpm,x.passes,x.due,x.heard,Math.round(x.pct*100),n1(x.avg),n1(x.spread),x.miss,n1(x.L),n1(x.R)].join(',')));
   saveFile('stick-timing-'+stamp(true)+'.csv','text/csv',out.join('\n')+'\n');
 }
 
@@ -3965,9 +3984,16 @@ function frame(){
 
 /* ---------- routine loading ---------- */
 function reparse(){routineParsed=parseRoutine(S.routineText);}
+/* JSON routines are turned into plain text as they arrive, so the editor only ever sees text. */
+function plainText(txt){
+  const t=String(txt);
+  if(!/^\s*[\[{]/.test(t))return t;
+  const c=jsonToText(t.trim(),[]);
+  return c===null?t:c;
+}
 function setRoutineText(txt){
   S.libId='';   /* text that arrives from a file, a link or History is not an open library entry */
-  S.routineText=String(txt).slice(0,MAX_TEXT);
+  S.routineText=plainText(txt).slice(0,MAX_TEXT);
   $('routineText').value=S.routineText;
   S.startExercise=1;
   save();onRoutineChanged();
@@ -4002,7 +4028,7 @@ function fillExerciseList(box,onPick,menu){
     row.addEventListener('click',()=>onPick(b.idx));
     row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onPick(b.idx);}});
     const n=document.createElement('span');n.textContent=b.idx;
-    const q=document.createElement('span');q.className='seq';q.textContent=showPattern(b.notes,b.groupStart,b.subs,b.defSub,b.sig,b.src)+(b.label?'  ('+b.label+')':'');
+    const q=document.createElement('span');q.className='seq';q.textContent=showPattern(b.notes,b.groupStart,b.subs,b.defSub,b.sig,b.src);
     const m=document.createElement('span');m.className='meta';
     m.textContent=b.passes+(b.passes===1?' pass':' passes')+' · '+fmtTime(b.secs)+(b.bpm!==S.bpm?' · @'+b.bpm:'');
     row.append(n,q,m);
@@ -4110,6 +4136,7 @@ const saySaved=t=>{$('saveMsg').textContent=t;};
 /* Puts routine text in the library: over entry `id` if it exists, else over the entry for the same routine, else as a new one.
    With keep, a routine already in the library is left as it is. Old runs keep their own text, so replacing is safe. */
 function putEntry(t,id,keep){
+  t=plainText(t);
   const p=parseRoutine(t);
   if(p.errors.length)return {err:p.errors[0]};
   const x=setHeader(t,'title','').trim(),key=textKey(x,S.subdiv);
@@ -4424,12 +4451,12 @@ function refreshPreview(){
 /* ---------- exercise builder: taps that write the same text you can type ---------- */
 let bLine=0;                                     /* the routine line the builder is editing */
 const SIG_PRE=/^\s*(\d{1,2})\s*\/\s*(\d{1,2})\s*(?:\(([\d\s+]+)\))?\s*:\s*/;
-const B_TIMES=['','2/2','3/4','4/4','5/4','6/8','7/8','9/8','12/8'];
+const B_TIMES=['','2/2','2/4','3/4','4/4','5/4','7/4','3/8','5/8','6/8','7/8','8/8','9/8','10/8','11/8','12/8'];
 /* Common ways to group the beats of an odd signature. The first is the usual one, which is written with no brackets. */
 function groupChoices(t){
   const m=/^(\d+)\/(\d+)$/.exec(t||'');if(!m)return [];
   const n=+m[1],d=+m[2];
-  return ({5:['3+2','2+3'],6:['3+3','2+2+2'],7:d===8?['2+2+3','3+2+2','2+3+2']:['4+3','3+4']})[n]||[];
+  return ({5:['3+2','2+3'],6:['3+3','2+2+2'],7:d===8?['2+2+3','3+2+2','2+3+2']:['4+3','3+4'],8:['3+3+2','2+3+3','3+2+3','2+2+2+2'],9:['3+3+3','2+2+2+3'],10:['3+3+2+2','2+3+2+3'],11:['3+3+3+2','2+2+3+2+2'],12:['3+3+3+3','2+2+2+2+2+2']})[n]||[];
 }
 function fillGroup(sel,t,cur){
   const L=groupChoices(t);sel.textContent='';
@@ -4446,7 +4473,6 @@ const CODE_NAME={q:'Quarter',8:'Eighth',16:'Sixteenth',32:'Thirty-second','8t':'
 const LEAD=/^\s*(q|8t|16t|32|16|8|5t|7t)(?=\s)/;
 const B_CODES=['q','8','16','32','8t','16t','5t','7t'];
 function bLines(){return S.routineText.split(/\r?\n/);}
-function bIsJson(){return S.mode==='routine'&&/^\s*[\[{]/.test(S.routineText);}
 function bExerciseLines(){return routineParsed.exercises.map(e=>e.line).filter(n=>n!=null);}
 function bValid(lines,i){
   if(i<0||i>=lines.length)return false;
@@ -4475,6 +4501,33 @@ function bPut(raw){
 function bEdit(act){
   const p=lineParts(bGet());
   bPut(p.pre+builderApply(p.body,act)+(p.opts?'  '+p.opts:'')+p.comment);
+}
+/* An exercise line as the fields the editor shows: time signature, length, tempo, and the strokes in between. */
+const LEN_UNITS={x:'Passes',m:'Minutes',s:'Seconds'},LEN_DEFAULT={x:8,m:1,s:30};
+const fmtLen=(u,v)=>u==='x'?'x'+v:v+u;
+function readLen(str){   /* x8, 1.5m, 90s => {u,v}, or null */
+  const m=/^\s*(?:x\s*(\d{1,3})|(\d+(?:\.\d+)?)\s*(s|sec|secs|seconds?|m|min|mins|minutes?))\s*$/i.exec(str||'');
+  return m?(m[1]?{u:'x',v:+m[1]}:{u:/^s/i.test(m[3])?'s':'m',v:+m[2]}):null;
+}
+function exFields(raw){
+  const p=lineParts(raw),f={t:'',g:'',label:'',len:null,bpm:'',body:p.body,comment:p.comment,rest:''};
+  let pre=p.pre,m;
+  const sig=()=>{if((m=/^\s*(\d{1,2})\s*\/\s*(\d{1,2})\s*(?:\(([\d\s+]+)\))?\s*:\s*/.exec(pre))){f.t=m[1]+'/'+m[2];f.g=(m[3]||'').replace(/\s+/g,'');pre=pre.slice(m[0].length);}};
+  sig();
+  if((m=/^\s*([A-Za-z][A-Za-z0-9 ]*?)\s*:\s*/.exec(pre))){f.label=m[1].trim();pre=pre.slice(m[0].length);sig();}
+  f.rest=pre;
+  const re=new RegExp(DUR_SRC,'gi'),o=' '+p.opts;
+  while((m=re.exec(o))){
+    if(m[1])f.len={u:'x',v:+m[1]};
+    else if(m[2])f.len={u:/^s/i.test(m[3])?'s':'m',v:+m[2]};
+    else if(m[4])f.bpm=m[4];
+  }
+  return f;
+}
+function exLine(f){
+  const sig=f.t?f.t+(f.g?' ('+f.g+')':'')+': ':'',opts=[f.len?fmtLen(f.len.u,f.len.v):'',f.bpm?'@'+f.bpm:''].filter(Boolean).join('  ');
+  const body=opts&&!CODE_TAIL.test(f.body.trimEnd())?f.body.trimEnd():f.body;   /* a space after a note code stays: it separates the code from the next stroke */
+  return (f.label?f.label+': ':'')+sig+f.rest+body+(opts?'  '+opts:'')+f.comment;
 }
 function bContext(){
   return routineContext(bLines(),bLine);
@@ -4576,17 +4629,14 @@ function syncLines(){
 }
 function renderBuilder(){
   syncLines();
-  const routine=S.mode==='routine',json=bIsJson();
-  if(!json)bSnap();
-  $('bMain').hidden=json;
-  $('bNote').hidden=!json;
-  const build=S.editTab==='build'&&!json;
+  const routine=S.mode==='routine';
+  bSnap();
+  const build=S.editTab==='build';
   document.body.dataset.edit=build?'build':'type';
   $('exLink').hidden=build;$('buildPane').hidden=!build;
   $('fRt').hidden=build;$('rPat').hidden=!build;
   $('bModeType').setAttribute('aria-pressed',String(!build));
   $('bModeBuild').setAttribute('aria-pressed',String(build));
-  if(json){$('bNote').textContent='This routine is written as JSON, which the editor cannot change with taps. Edit the text below, or clear it to build one here.';return;}
   document.querySelectorAll('.b-routine').forEach(e=>{e.hidden=!routine;});
   document.querySelectorAll('.b-single').forEach(e=>{e.hidden=routine;});
   if(!routine){
@@ -4611,6 +4661,15 @@ function renderBuilder(){
     fillGroup($('bGroup'),tb,tm&&tm[2]);
     let st=(getHeader(S.routineText,'strokes')||'').toLowerCase().replace(/^(off|none|-)$/,'');
     bFillSelect($('bStrokes'),[''].concat(B_CODES),v=>v?CODE_NAME[v]:'Sixteenth (default)',st);
+    const el=readLen(getHeader(S.routineText,'each'));
+    bFillSelect($('bEachU'),['','x','m','s'],v=>v?LEN_UNITS[v]:'Play page setting',el?el.u:'');
+    $('bEachV').disabled=!el;$('bEachV').value=el?el.v:'';
+    const f=exFields(bGet());
+    bFillSelect($('oLenU'),['','x','m','s'],v=>v?LEN_UNITS[v]:'Same as routine',f.len?f.len.u:'');
+    $('oLenV').disabled=!f.len;$('oLenV').value=f.len?f.len.v:'';
+    if(document.activeElement!==$('oBpm'))$('oBpm').value=f.bpm;
+    bFillSelect($('oTime'),B_TIMES,v=>v||'Same as routine',f.t);
+    fillGroup($('oGroup'),f.t,f.g);
     buildEditList();
   }
   /* strokes, staff and status for the exercise being edited */
@@ -4728,13 +4787,14 @@ function wireBuilder(){
     lines.splice(bLine,1);if(!lines.length)lines.push('');
     bLine=Math.min(bLine,lines.length-1);bSetLines(lines);
   });
-  const hdr=(id,key,ev,val)=>$(id).addEventListener(ev,e=>{
+  const setHdr=(key,v)=>{
     const before=bLines().length;
-    S.routineText=setHeader(S.routineText,key,val?val():e.target.value).slice(0,MAX_TEXT);
+    S.routineText=setHeader(S.routineText,key,v).slice(0,MAX_TEXT);
     $('routineText').value=S.routineText;
     bLine=Math.max(0,bLine+(bLines().length-before));      /* a header line added or removed above shifts the line being edited */
     save();onRoutineChanged();
-  });
+  };
+  const hdr=(id,key,ev,val)=>$(id).addEventListener(ev,e=>setHdr(key,val?val():e.target.value));
   /* Strokes are: writes the opening note code into the pattern, so the text always says what it plays. */
   $('subdiv').addEventListener('change',e=>{
     const cur=bGet(),m=SIG_PRE.exec(cur),pre=m?m[0]:'',rest=cur.slice(pre.length),c=e.target.value;
@@ -4752,6 +4812,22 @@ function wireBuilder(){
     bPut((t?t+(g?' ('+g+')':'')+': ':'')+rest);
     renderBuilder();
   });
+  /* A length control pair (unit and amount): apply gets the text, such as x8 or 1.5m, or '' for the default. */
+  const lenWire=(u,v,apply)=>{
+    const go=()=>{
+      const k=$(u).value;if(!k){apply('');return;}
+      let n=+$(v).value;if(!(n>0))n=LEN_DEFAULT[k];
+      apply(fmtLen(k,k==='x'?Math.min(999,Math.round(n)):Math.min(999,Math.round(n*100)/100)));
+    };
+    $(u).addEventListener('change',()=>{$(v).value='';go();});
+    $(v).addEventListener('change',go);
+  };
+  lenWire('bEachU','bEachV',t=>setHdr('each',t));
+  lenWire('oLenU','oLenV',t=>exSet({len:readLen(t)}));
+  const exSet=patch=>{bPut(exLine(Object.assign(exFields(bGet()),patch)));renderBuilder();};
+  $('oBpm').addEventListener('change',e=>{const n=Math.round(+e.target.value);exSet({bpm:n>0?String(Math.min(220,Math.max(40,n))):''});});
+  $('oTime').addEventListener('change',e=>exSet({t:e.target.value,g:''}));
+  $('oGroup').addEventListener('change',e=>exSet({g:e.target.value}));
   hdr('bTitle','title','input');hdr('bTime','time','change');hdr('bGroup','time','change',()=>{const t=$('bTime').value,g=$('bGroup').value;return t?t+(g?' ('+g+')':''):'';});hdr('bStrokes','strokes','change');
   const ta=$('routineText');
   ta.addEventListener('scroll',()=>{$('lnum').scrollTop=ta.scrollTop;});
@@ -4780,7 +4856,7 @@ function wire(){
   $('click').addEventListener('change',e=>{S.click=e.target.value;save();if(S.mode==='routine')buildExerciseList();syncInfo();});
   $('tol').addEventListener('change',e=>{S.tol=+e.target.value;save();renderAll();});
   $('inputMode').addEventListener('change',e=>{S.input=e.target.value;save();setInputMode();});
-  $('routineText').addEventListener('input',e=>{S.routineText=e.target.value.slice(0,MAX_TEXT);S.startExercise=1;save();onRoutineChanged();});
+  $('routineText').addEventListener('input',e=>{const v=plainText(e.target.value);if(v!==e.target.value)e.target.value=v;S.routineText=v.slice(0,MAX_TEXT);S.startExercise=1;save();onRoutineChanged();});
   $('fileBtn').addEventListener('click',()=>$('routineFile').click());
   /* Save keeps the routine in your library. Download file saves the text, to send it or move it to another device. */
   $('saveBtn').addEventListener('click',saveToLibrary);
