@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <title>Stick Timing Trainer</title>
-<script>(function(){var t='';try{t=JSON.parse(localStorage.getItem('stick-timing-trainer.v1')).settings.theme}catch(e){}
+<script>(function(){var t='',c='';try{var o=JSON.parse(localStorage.getItem('stick-timing-trainer.v1')).settings;t=o.theme;c=o.palette}catch(e){}
+if(c==='cb')document.documentElement.dataset.palette=c;
 if(t!=='light'&&t!=='dark')t=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t})()</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,6 +28,8 @@ if(t!=='light'&&t!=='dark')t=window.matchMedia&&matchMedia('(prefers-color-schem
     --early:#6FA8E8; --late:#F07A97; --ok:#5CC48A;
     color-scheme:dark;
   }
+  :root[data-palette=cb]{--early:#0072B2; --late:#A84300; --ok:#5A6560}     /* colour-blind safe: blue, vermillion, grey stay apart in all common forms */
+  :root[data-palette=cb][data-theme=dark]{--early:#56B4E9; --late:#FF8A3D; --ok:#9AA59D}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;touch-action:manipulation}   /* no double-tap zoom */
 body{
@@ -173,7 +176,7 @@ details[open]>summary::after{transform:rotate(-135deg);margin-top:10px}
 .libitem.cur{background:color-mix(in srgb,var(--accent) 20%,transparent)}
 .libitem:disabled{opacity:.5;cursor:default}
 .libitem span{color:var(--muted);font:12px var(--font-data);white-space:nowrap}
-.chkout{margin:0;padding-left:18px;font-size:13px;display:grid;gap:4px} .chkout:empty{display:none} .chkout .bad,.chkout .warn{color:var(--late)} .chkout .good{color:var(--ok)}
+.chkout{margin:0;padding-left:18px;font-size:13px;display:grid;gap:4px} .chkout:empty{display:none} .chkout .bad,.chkout .warn{color:var(--late)} .chkout .good{color:var(--ok)} .chkout .good::before{content:'\2713  '} .chkout .bad::before,.chkout .warn::before{content:'\26A0  '}
 .ctbox{display:grid;gap:6px;justify-items:center;text-align:center}
 .ctp{font:800 72px/1 var(--font-display);color:var(--accent);min-height:76px;display:flex;align-items:center}
 .ctp.hit{opacity:.35}
@@ -287,12 +290,6 @@ body[data-mode="routine"] .single-only{display:none}
 .bmsg .err:not(:empty)~#bStatus{display:none}
 .bmsg .err{margin:0}
 .bhdr{display:grid;gap:12px}
-.bsum{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:8px 8px 8px 12px}
-.bsumtxt{display:grid;min-width:0;flex:1}
-.bsumbtns{display:flex;gap:8px;flex:none}
-.bsumtxt b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bsumtxt b:empty{display:none}
-.bsumtxt span{color:var(--muted);font-size:13px}
 .bset{display:grid;gap:12px}
 .addbtn{background:transparent;color:var(--accent);border-color:var(--accent);justify-self:start;margin-top:8px}
 .b-single .addbtn{margin-top:0}
@@ -346,6 +343,8 @@ body[data-edit=type] .buildonly{display:none}
 .bkey.wide{grid-column:span 4;min-height:44px}
 .bkey.R{color:var(--accent)}
 .bkey.L{color:var(--early)}
+.bkey,.bcode{background:color-mix(in srgb,var(--ink) 6%,var(--surface));border-color:color-mix(in srgb,var(--ink) 18%,var(--surface))}   /* keys a touch lighter than the panel */
+.bcode[aria-pressed=true]{background:var(--accent);border-color:transparent}
 .bkey:active,.bcode:active{filter:brightness(.92)}
 .erow.editing{outline:2px solid var(--accent);outline-offset:-2px}
 .erow:hover{background:color-mix(in srgb,var(--accent) 10%,transparent)}
@@ -424,6 +423,11 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       </div>
       <div class="field"><label for="vol">Click volume <output id="volOut"></output></label><input type="range" id="vol" min="0" max="100" step="1"></div>
       <p class="hint mic-only">Use headphones for the click. A click from the speakers is picked up by the microphone and counted as a stroke.</p>
+    </section>
+    <section class="panel" aria-label="Appearance">
+      <h3>Appearance</h3>
+      <div class="field"><label for="palette">Colours</label>
+        <select id="palette"><option value="std">Standard</option><option value="cb">Colour-blind safe</option></select></div>
     </section>
 
     </div>
@@ -505,15 +509,15 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 
   <!-- ===== Pattern: one pattern or a routine ===== -->
   <div class="page" id="pagePattern" role="tabpanel" aria-labelledby="tabPattern">
-    <!-- One editor for both modes: Type or Build, with the notation field and Listen under the switch. Messages share one fixed-height slot, so nothing moves while you tap. -->
+    <!-- One editor for both modes: Builder or Text, with the notation field and Listen under the switch. Messages share one fixed-height slot, so nothing moves while you tap. -->
     <section class="panel cfg editor" id="builder" aria-label="Editor">
       <p class="hint" id="bNote" hidden></p>
       <div class="bmain" id="bMain">
 
 
         <div class="switch" id="bMode" role="group" aria-label="How to enter the strokes">
-          <button type="button" id="bModeBuild" aria-pressed="true">Build</button>
-          <button type="button" id="bModeType" aria-pressed="false">Type</button>
+          <button type="button" id="bModeBuild" aria-pressed="true">Builder</button>
+          <button type="button" id="bModeType" aria-pressed="false">Text</button>
         </div>
         <div class="btns bacts2"><button class="btn small" id="clearRoutine" type="button">New</button><button class="btn small" id="openBtn" type="button">Open</button><button class="btn small" id="saveBtn" type="button">Save</button></div>
         <div class="bset buildonly" id="bSet">
@@ -521,12 +525,12 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
           <div class="row b-routine">
             <div class="field"><label for="bTime">Time</label><select id="bTime"></select></div>
             <div class="field"><label for="bGroup">Grouping</label><select id="bGroup"></select></div>
-            <div class="field"><label for="bStrokes">Strokes are</label><select id="bStrokes"></select></div>
+            <div class="field"><label for="bStrokes">Default note</label><select id="bStrokes"></select></div>
           </div>
           <div class="row b-single">
             <div class="field"><label for="bTime1">Time</label><select id="bTime1"></select></div>
             <div class="field"><label for="bGroup1">Grouping</label><select id="bGroup1"></select></div>
-            <div class="field"><label for="subdiv">Strokes are</label><select id="subdiv"></select></div>
+            <div class="field"><label for="subdiv">Default note</label><select id="subdiv"></select></div>
           </div>
         </div>
         <div class="b-routine bhdr buildonly">
@@ -618,7 +622,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
     </div>
     <div class="pv" id="pvStats" hidden>
     <section aria-label="Rudiments">
-      <h3>Patterns, weakest first</h3>
+      <h3>Exercises, weakest first</h3>
       <p class="hint" id="progHint"></p>
       <div class="tablewrap"><table id="patTable"></table></div>
     </section>
@@ -650,7 +654,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <h3>Quick start</h3>
       <ol>
         <li><b>Settings:</b> pick a tempo, use headphones for the click, press "Turn microphone on" and hit the pad. The level bar should cross the trigger line on every stroke. Calibrating each stick is optional but lets the app tell L from R.</li>
-        <li><b>Editor:</b> write one exercise, or press <b>+ Add exercise</b> for more. One exercise plays as a single pattern. Two or more make a routine, played one after another. Play shows how long each plays, the gap between them, and where to start.</li>
+        <li><b>Editor:</b> write one exercise, or press <b>+ Add exercise</b> for more. One exercise plays on its own. Two or more make a routine, played one after another. Play shows how long each plays, the gap between them, and where to start.</li>
         <li><b>Play:</b> set the tempo and click level, then press Start. <b>Plays for</b> sets how long each exercise plays, in minutes or passes. The page controls hide while you play. After a count-in, play on the moving line. Press Stop when you are done. The page stays in focus mode and shows your result first, with <b>Again</b>, <b>Next tempo</b> (when you cleared the target) and <b>Done</b>. The staff below it keeps its colours and numbers so you can see which strokes were off. Press Done to bring the controls back.</li>
       </ol>
       <p>No microphone? In Settings, under Device, change Input to "Keyboard or pads". Press <b>F</b> for left and <b>J</b> for right. This is a test mode, and its timing is rougher than a microphone on a pad.</p>
@@ -661,9 +665,9 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <h3>The four pages</h3>
       <ul>
         <li><b>Play:</b> how long it plays, tempo, click level, Start, Pause, Restart and Stop, the notation, the lead/drag gauge and your results. With a routine loaded, scroll or swipe the rows (or press ↑ ↓) to choose which exercise to start at.</li>
-        <li><b>Pattern:</b> what you practise: one pattern, or a routine of exercises you type, load from a file or load from a URL.</li>
-        <li><b>Settings:</b> <b>Preferences</b> has the on-time window, visual pulse and click volume. <b>Device</b> has the input, microphone level, stick calibration and latency. <b>Data</b> has export, import and clear.</li>
-        <li><b>Stats:</b> three views. <b>History</b> lists your last runs by exercise or routine, with Replay. <b>Scores</b> shows each pattern and routine, weakest first, with its best cleared tempo. <b>Achievements</b> shows your practice days for the last four weeks, a streak that forgives one rest day a week, and your badges.</li>
+        <li><b>Editor:</b> what you practise: one exercise, or a routine of exercises you type, load from a file or load from a URL.</li>
+        <li><b>Settings:</b> <b>Preferences</b> has the on-time window, visual pulse and click volume, and the colours. <b>Device</b> has the input, microphone level, stick calibration and latency. <b>Data</b> has export, import and clear.</li>
+        <li><b>Stats:</b> three views. <b>History</b> lists your last runs by exercise or routine, with Replay. <b>Scores</b> shows each exercise and routine, weakest first, with its best cleared tempo. <b>Achievements</b> shows your practice days for the last four weeks, a streak that forgives one rest day a week, and your badges.</li>
       </ul>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
@@ -683,7 +687,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
     </section>
 
     <section class="panel" id="help-patterns">
-      <h3>Writing a pattern</h3>
+      <h3>Writing an exercise</h3>
       <p><b>L</b> and <b>R</b> are strokes. A <b>space</b> starts a new group, and groups are joined with a beam. <b>_</b> is a rest. A <b>note code</b> says what the strokes are, and it means the same in any time signature: <b>q</b> quarter notes, <b>8</b> eighths, <b>16</b> sixteenths, <b>32</b> thirty-seconds, <b>8t</b> eighth-note triplets, <b>16t</b> sixteenth-note triplets, <b>5t</b> quintuplets and <b>7t</b> septuplets. A code applies to the strokes after it until the next code, so <b>8 RLRL 16 RLRL</b> is a beat of eighths, then a beat of sixteenths, in 4/4 or in cut time. A code only works where the strokes come out at a sensible speed for the beat. With no code, strokes are sixteenths</p>
       <p>Every example below has a button that loads it for you.</p>
 
@@ -722,7 +726,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 
     <section class="panel" id="help-format">
       <h3>The routine format</h3>
-      <p>You do not have to type any of this. The <b>?</b> beside the notation field lists the codes, and each exercise has a <b>&#8942;</b> menu to insert, clone, move or delete it. The notation field on the Editor page shows what you have written. With <b>Type</b> you edit it as text. With <b>Build</b> it is the same field but read-only, and the keys under it add to it. The speaker beside it opens a popup with the staff and plays the exercise as clicks, with a bar moving along the staff as each stroke sounds. Press the play or stop button in the popup to hear it again, and Close or Esc to leave it. In Build: pick a note code, then tap R, L, rest and space. Time and Grouping sit above the toggle and work in both. The page opens on Type, and remembers your last choice on each device. In a routine, <b>Title</b>, <b>Time</b>, <b>Grouping</b> and <b>Strokes are</b> are shared by every exercise. <b>Insert above</b> or <b>Insert below</b>, <b>Clone</b> and <b>Delete</b> manage the list, the arrow buttons beside the list move the exercise you are editing to the top, up, down or the bottom, and the arrows pick which exercise you are editing. Typing and tapping can be mixed freely, and the speaker button plays the exercise as clicks.</p>
+      <p>You do not have to type any of this. The notation help sits at the bottom of the Editor, and each exercise has a <b>&#8942;</b> menu to insert, clone, move or delete it. <b>Builder</b> and <b>Text</b> are two views of the same routine. In <b>Builder</b> you pick a note code, then tap R, L, rest and space to add strokes to the exercise you are editing, and Time, Grouping and Strokes are above the list. In <b>Text</b> you edit the whole routine as plain text, one exercise per line, with line numbers beside it for errors. The page opens on Builder and remembers your last choice on each device. The speaker button opens a popup with the staff and plays the exercise as clicks, with a bar moving along the staff as each stroke sounds. Press play or stop in the popup to hear it again, and Close or Esc to leave it. In a routine, <b>Title</b>, <b>Time</b>, <b>Grouping</b> and <b>Default note</b> are shared by every exercise.</p>
       <p>A routine is plain text with one exercise per line. Lines starting with <b>#</b> are notes to yourself, and a name before a colon (<b>Exercise 4:</b>) is just a label. This app does not come with any book content. You supply the exercises.</p>
       <pre>title: My warm-up routine
 each: 1m
@@ -806,8 +810,9 @@ LRLR LRLR LRLR LRLR  x8</pre>
       <h4>Between exercises and the visual pulse</h4>
       <p>"Between exercises" can be a 4-beat count-in, or <b>Straight on</b> (the default), where the next exercise starts without a pause. With Straight on, nothing marks the change except the notation: the rows slide up and the new exercise's first pass starts on the next beat.</p>
       <p><b>Visual pulse</b> (in Settings, under Preferences) makes the moving line swell on every click, bigger on the first beat of each pass, so you can see the click as well as hear it. Turn it off for a plain moving line.</p>
+      <p><b>Colours</b> (in Settings, under Preferences) switches to a colour-blind safe set: blue for leading, orange for dragging and grey for on time. Early notes also lean and late notes are underlined, and results at or above your target carry a tick, so colour is never the only signal.</p>
       <h4>Loading a routine</h4>
-      <p>Use <b>Save</b> to keep the routine as a .txt you can open again later. <b>Open</b> takes a link to a routine, or a .txt, .json or .csv file. <b>New</b> starts again with an empty pattern. JSON also works: a list such as <b>["RLRR LRLL", {"sticking":"RLRL RLRL","passes":16}]</b>, or an object with <b>title</b>, <b>each</b> and <b>exercises</b>.</p>
+      <p>Use <b>Save</b> to keep the routine as a .txt you can open again later. <b>Open</b> takes a link to a routine, or a .txt, .json or .csv file. <b>New</b> starts again with an empty exercise. JSON also works: a list such as <b>["RLRR LRLL", {"sticking":"RLRL RLRL","passes":16}]</b>, or an object with <b>title</b>, <b>each</b> and <b>exercises</b>.</p>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
 
@@ -837,7 +842,7 @@ https://example.com/another-routine.txt</pre>
         <li><b>Exercise table:</b> after a routine run, each exercise gets its own accuracy, average error and spread, plus your earlier best at that tempo.</li>
         <li><b>The target is 90%.</b> An exercise is "cleared" at a tempo when it reaches 90% there. After a run the app says whether every exercise cleared, and suggests +4 BPM if so. Otherwise it names the weak exercises and suggests staying at the same tempo. These are only suggestions. Any tempo is always allowed.</li>
         <li><b>Discard this run</b> removes a run from your records, for example after a bad microphone read.</li>
-        <li><b>Stats page:</b> every pattern, weakest first, with accuracy at the tempo you last played, your fastest cleared tempo and your lead/drag bias. "Practise" loads that pattern. A routine counts as cleared at a tempo when one run covered every exercise and all reached 90%.</li>
+        <li><b>Stats page:</b> every exercise, weakest first, with accuracy at the tempo you last played, your fastest cleared tempo and your lead/drag bias. "Practise" loads that exercise. A routine counts as cleared at a tempo when one run covered every exercise and all reached 90%.</li>
         <li><b>Practise weak exercises.</b> After a routine run, a button plays only the exercises that were below the target. Restart repeats the same exercises. A run of only some exercises never counts as clearing the routine.</li>
         <li><b>Tempo guidance.</b> Each exercise in the start list shows the tempo it has cleared, or "new". The summary shows the tempo at which the whole routine has been cleared.</li>
         <li><b>Records are saved in this browser only.</b> Use Export to keep a copy or move to another device, and Import to bring one back. The app asks the browser to keep your records and reminds you to export a copy if you never have, or if the last one is two weeks old. On iPhone and iPad, Safari can clear a site's data after about a week without use, so add the page to your Home Screen.</li>
@@ -882,10 +887,11 @@ https://example.com/another-routine.txt</pre>
         <div class="field"><label for="eachVal"><span class="routine-only">Each exercise plays for</span><span class="single-only">Plays for</span></label>
           <input type="number" id="eachVal" min="1" max="200" step="1" inputmode="decimal"></div>
         <div class="field"><label for="eachUnit">Measured in</label>
-          <select id="eachUnit"><option value="min">Minutes</option><option value="pass">Passes of the exercise</option></select></div>
+          <select id="eachUnit"><option value="min">Minutes</option><option value="pass">Passes</option></select></div>
         <div class="field routine-only"><label for="gap">Between exercises</label>
           <select id="gap"><option value="4">4-beat count-in</option><option value="0">Straight on</option></select></div>
       </div>
+      <p class="hint">A pass is the exercise played once through.</p>
       <p class="hint" id="eachNote" hidden></p>
     </section>
 
@@ -969,8 +975,8 @@ https://example.com/another-routine.txt</pre>
     </section>
 
     <div class="page after" id="after">
-      <section aria-label="Session numbers">
-        <h3>Session numbers</h3>
+      <section aria-label="Run numbers">
+        <h3>Run numbers</h3>
         <div class="stats">
           <div class="stat"><div class="v" id="sWithin">—</div><div class="k">On time</div></div>
           <div class="stat"><div class="v" id="sSpread">—</div><div class="k">Spread σ (ms)</div></div>
@@ -1280,6 +1286,14 @@ function builderApply(body,act){
   }
   return b;
 }
+/* JSON text that is a list, or an object holding one under key. Pushes the error onto out and returns null if not. */
+function jsonList(t,key,out){
+  let j;
+  try{j=JSON.parse(t);}catch(e){out.errors.push('That looks like JSON but could not be read ('+e.message+').');return null;}
+  const arr=Array.isArray(j)?j:(j&&Array.isArray(j[key])?j[key]:null);
+  if(!arr){out.errors.push('JSON needs a "'+key+'" list.');return null;}
+  return {j:j,arr:arr};
+}
 function parseRoutine(text){
   const out={title:'',each:null,exercises:[],errors:[]};
   let routineSig=null,routineStrokes='';
@@ -1295,10 +1309,9 @@ function parseRoutine(text){
     out.exercises.push(res.exercise);
   };
   if(t[0]==='{'||t[0]==='['){
-    let j;
-    try{j=JSON.parse(t);}catch(e){out.errors.push('That looks like JSON but could not be read ('+e.message+').');return out;}
-    const arr=Array.isArray(j)?j:(j&&Array.isArray(j.exercises)?j.exercises:null);
-    if(!arr){out.errors.push('JSON needs an "exercises" list.');return out;}
+    const L=jsonList(t,'exercises',out);
+    if(!L)return out;
+    const j=L.j,arr=L.arr;
     if(!Array.isArray(j)){
       if(typeof j.title==='string')out.title=j.title.slice(0,80);
       out.each=jsonDur(j.each);
@@ -1542,12 +1555,12 @@ function streakOf(days,now){
   return n;
 }
 /* Achievements: three tracks, each with levels. Worked out from the saved runs, so discarding a run takes its credit back. */
-const BADGES=[{id:'ses',name:'Sessions',unit:'sessions',at:[5,10,25,50,100,250,500]},{id:'str',name:'Days in a row',unit:'days in a row',at:[5,10,20,30,60,100,180,365]}];
-LEVELS.forEach(l=>BADGES.push({id:'l'+l.v,lv:l.v,name:l.n,unit:'patterns cleared on '+l.n,at:[1,5,10,20,30,50]}));
-BADGES.push({id:'all',name:'On all four levels',unit:'patterns cleared on all four levels',at:[1]});
-const BGROUPS=[{name:'Sessions',d:'Runs where at least one pattern was played through once and scored.',ids:['ses']},
+const BADGES=[{id:'ses',name:'Runs',unit:'runs',at:[5,10,25,50,100,250,500]},{id:'str',name:'Days in a row',unit:'days in a row',at:[5,10,20,30,60,100,180,365]}];
+LEVELS.forEach(l=>BADGES.push({id:'l'+l.v,lv:l.v,name:l.n,unit:'exercises cleared on '+l.n,at:[1,5,10,20,30,50]}));
+BADGES.push({id:'all',name:'On all four levels',unit:'exercises cleared on all four levels',at:[1]});
+const BGROUPS=[{name:'Runs',d:'Runs where at least one exercise was played through once and scored.',ids:['ses']},
   {name:'Days in a row',d:'Your longest run of practice days. One rest day a week does not break it.',ids:['str']},
-  {name:'Patterns cleared',d:'A pattern is cleared on a level when you play it at 90% or more of strokes on time at that click level. Each level is cleared on its own. The table counts patterns by the fastest tempo they were cleared at.',grid:true,ids:['lstrokes','lbeat','lhalf','lbar','all']}];
+  {name:'Exercises cleared',d:'An exercise is cleared on a level when you play it at 90% or more of strokes on time at that click level. Each level is cleared on its own. The table counts exercises by the fastest tempo they were cleared at.',grid:true,ids:['lstrokes','lbeat','lhalf','lbar','all']}];
 function badgeValues(runs,sum){
   const days=practiceDays(runs,sum),best=Array.from(days.keys()).reduce((m,k)=>{const a=k.split('-');return Math.max(m,streakOf(days,new Date(+a[0],+a[1]-1,+a[2])));},0);
   const st=patStats(runs,sum).filter(e=>e.cleared),o={ses:(sum?sum.runs:0)+runs.length,str:best},per=new Map();
@@ -1842,10 +1855,9 @@ function parseLibrary(text,base){
   };
   if(!t)return out;
   if(t[0]==='['||t[0]==='{'){
-    let j;
-    try{j=JSON.parse(t);}catch(e){out.errors.push('That looks like JSON but could not be read ('+e.message+').');return out;}
-    const arr=Array.isArray(j)?j:(j&&Array.isArray(j.routines)?j.routines:null);
-    if(!arr){out.errors.push('JSON needs a "routines" list.');return out;}
+    const L=jsonList(t,'routines',out);
+    if(!L)return out;
+    const arr=L.arr;
     arr.slice(0,200).forEach((it,i)=>{
       const where='Entry '+(i+1);
       if(typeof it==='string')return add('',it,where);
@@ -1870,7 +1882,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.13.2';                           /* shown beside the title */
+const VERSION='0.13.10';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const CAL_N=12;
@@ -1879,7 +1891,7 @@ const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const LOOKAHEAD=0.35;                            /* how far ahead clicks are scheduled, in seconds */
 
 const S={mode:'single',routineText:'RLRL RLRL RLRL RLRL',eachUnit:'min',eachVal:1,gap:0,pulse:true,startExercise:1,
-  bpm:60,subdiv:4,click:'beat',lastExport:0,expRuns:0,tol:20,sens:-30,settle:40,library:'',vol:60,latency:null,latCal:false,input:'mic',editTab:'build',theme:''};
+  bpm:60,subdiv:4,click:'beat',lastExport:0,expRuns:0,tol:20,sens:-30,settle:40,library:'',vol:60,latency:null,latCal:false,input:'mic',editTab:'build',theme:'',palette:'std'};
 let cal={L:[],R:[]},model=null;
 try{
   const o=JSON.parse(localStorage.getItem(KEY)||'null');
@@ -1908,6 +1920,7 @@ S.eachUnit=S.eachUnit==='pass'?'pass':'min';
 S.eachVal=S.eachUnit==='pass'?clamp(Math.round(+S.eachVal)||8,1,200):clamp(+S.eachVal||1,0.25,60);
 S.gap=+S.gap===0?0:4;
 S.pulse=S.pulse!==false;
+S.palette=S.palette==='cb'?'cb':'std';
 S.startExercise=1;
 if(!isFinite(+S.lastExport))S.lastExport=0;
 if(!isFinite(+S.expRuns))S.expRuns=0;
@@ -2841,24 +2854,6 @@ function buildStaff(sg,availW,cursor,strict){
   });
   return {svg:box,cards:cards,lines:pl.lines.length,plan:pl};
 }
-/* An empty row with just the clef and the cursor: shown when the next stroke starts a new row. width matches the other rows. */
-function emptyStaffRow(sg,avail,pl){
-  const NS='http://www.w3.org/2000/svg',mk=(n,a)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
-  const padL=(sg&&sg.sig?PADL_SIG:PADL),H=92,Y0=8,Y=54;
-  const LW=pl?Math.max(avail,Math.ceil(MINSLOT*pl.beats/pl.dmin)+pl.ext+padL+PADR):avail;
-  const svg=mk('svg',{viewBox:'0 '+Y0+' '+LW+' '+H,class:'staff','aria-hidden':'true'});
-  svg.appendChild(mk('line',{class:'sl',x1:2,x2:LW-6,y1:Y,y2:Y}));
-  svg.appendChild(mk('rect',{class:'clef',x:6,y:Y-9,width:4.4,height:18}));
-  svg.appendChild(mk('rect',{class:'clef',x:15,y:Y-9,width:4.4,height:18}));
-  svg.appendChild(mk('line',{class:'bcur',x1:padL+6,x2:padL+6,y1:Y-26,y2:Y+26}));
-  return svg;
-}
-/* Would one more stroke, at the same note, start a new row? */
-function nextStartsRow(sg,avail){
-  const sg2=Object.assign({},sg,{N:sg.N+1,notes:sg.notes.concat(['R']),groupStart:sg.groupStart.concat([false]),subs:sg.subs.concat([sg.subs[sg.N-1]||sg.defSub])});
-  const pl=staffPlan(sg2,avail,true),L=pl.lines[pl.lines.length-1];
-  return pl.lines.length>1&&L[0]===sg.N;
-}
 /* How tall a row is and how many passes fit, from the most lines any bar needs at this width. */
 const withPasses=(b,n)=>Object.assign({},b,{passes:n});
 function previewPlan(exercises){return exercises.length?buildPlan(exercises,{gapBeats:S.gap,clickMode:'off'}):null;}
@@ -3278,7 +3273,7 @@ function recordRun(r){
   const bv0=badgeValues(recs.runs,recs.sum);
   recs.runs.push(run);
   const bv1=badgeValues(recs.runs,recs.sum),won=[];
-  BADGES.forEach(b=>b.at.forEach(n=>{if(bv0[b.id]<n&&bv1[b.id]>=n)won.push((n+' '+b.unit).replace(/^1 patterns/,'1 pattern'));}));
+  BADGES.forEach(b=>b.at.forEach(n=>{if(bv0[b.id]<n&&bv1[b.id]>=n)won.push((n+' '+b.unit).replace(/^1 exercises/,'1 exercise'));}));
   const saved=saveRecs();
   askPersist();
   lastRun={run:run,only:r.only||null,prevBest:prevBest,newTempo:newTempo,won:won,rows:rows,skipped:skipped,saved:saved,discarded:false};
@@ -3342,6 +3337,7 @@ function showKey(k){
   return nameMarkers(k.replace(/^\/4 (?![^\/]*\/)/,''),4).trim();
 }
 /* Replaces a table's contents. A cell is text, [text, class] or a node. */
+function tableWrap(){const wrap=document.createElement('div');wrap.className='tablewrap';const tb=document.createElement('table');wrap.appendChild(tb);return {wrap:wrap,tb:tb};}
 function fillTable(tbl,cols,rows){
   tbl.textContent='';
   if(cols.length){
@@ -3379,6 +3375,7 @@ function sparkline(vals){
 }
 const biasCls=v=>isNaN(v)?'':(v<-2.5?'early':(v>2.5?'late':'ok'));
 const accCls=p=>p>=TARGET?'ok':'late';
+const accCell=p=>[Math.round(p*100)+'%'+(p>=TARGET?' \u2713':''),accCls(p)];
 function renderPractice(){
   const days=practiceDays(recs.runs,recs.sum),now=new Date(),mins=k=>Math.round((days.get(k)||0)/60);
   const mon=(now.getDay()+6)%7,start=new Date(now.getFullYear(),now.getMonth(),now.getDate()-mon-21);
@@ -3395,7 +3392,7 @@ function renderPractice(){
   }
   const n=streakOf(days,now);
   $('streakLine').textContent=n?n+(n===1?' day':' days')+' in a row':'No streak yet';
-  $('stripHint').textContent=days.size?'This week: '+weekDays+(weekDays===1?' day':' days')+', '+week+' min. One rest day a week keeps the streak going. Darker means more minutes.':'Play a pattern and your practice days show up here. One rest day a week keeps the streak going.';
+  $('stripHint').textContent=days.size?'This week: '+weekDays+(weekDays===1?' day':' days')+', '+week+' min. One rest day a week keeps the streak going. Darker means more minutes.':'Play an exercise and your practice days show up here. One rest day a week keeps the streak going.';
 }
 function renderBadges(){
   const v=badgeValues(recs.runs,recs.sum),box=$('badges');box.textContent='';
@@ -3433,13 +3430,13 @@ function renderProgress(){
   const tgt=Math.round(TARGET*100);
   $('progHint').textContent=stats.length
     ?'Accuracy is the share of strokes inside your timing window over your last three runs at the tempo you played most recently. Trend plots each run at that tempo (up to 12), with the dotted line at the target. Cleared means '+tgt+'% or better at that tempo.'
-    :'Nothing yet. Play a pattern or a routine and each exercise\'s score shows up here, so you can see which rudiments need work.';
-  const practise=(k,lv)=>iconBtn('replay','Practise this pattern',()=>practisePattern(k,lv));
+    :'Nothing yet. Play an exercise or a routine and each exercise\'s score shows up here, so you can see which rudiments need work.';
+  const practise=(k,lv)=>iconBtn('replay','Practise this exercise',()=>practisePattern(k,lv));
   /* A routine is replayed from its newest run at that level, while that run's text is still kept. */
   const replayRoutine=x=>{const r=recs.runs.slice().reverse().find(q=>q.rk===x.rk&&q.lv===x.lv);
     if(r)return replayBtn(r);const b=iconBtn('replay','Replay',()=>{});b.disabled=true;b.title='This routine was saved without its text.';return b;};
-  fillTable($('patTable'),stats.length?['Pattern','Level','BPM','Accuracy','Trend','Cleared','Bias ms','']:[],
-    stats.map(x=>[[showKey(x.k),'seq'],levelName(x.lv),String(x.bpm),[Math.round(x.recent*100)+'%',accCls(x.recent)],sparkline(x.trend),x.cleared?(Date.now()-x.clearedT<6048e5?'★ ':'')+x.cleared:'—',
+  fillTable($('patTable'),stats.length?['Exercise','Level','BPM','Accuracy','Trend','Cleared','Bias ms','']:[],
+    stats.map(x=>[[showKey(x.k),'seq'],levelName(x.lv),String(x.bpm),accCell(x.recent),sparkline(x.trend),x.cleared?(Date.now()-x.clearedT<6048e5?'★ ':'')+x.cleared:'—',
       [isNaN(x.bias)?'—':fmtMs(x.bias,1),biasCls(x.bias)],practise(x.k,x.lv)]));
   fillTable($('rtTable'),routines.length?['Routine','Level','Exercises','Runs','Cleared at','Last','']:[],
     routines.length?routines.map(x=>[routineName(x.rk),levelName(x.lv),String(x.ne),String(x.runs),x.cleared?x.cleared+' BPM':'—',fmtDate(x.t),replayRoutine(x)])
@@ -3464,7 +3461,6 @@ function setPview(v){
 const runPct=r=>{let w=0,d=0;r.exercises.forEach(b=>{w+=b.within;d+=b.due;});return d?w/d:0;};
 let delArm=null;
 const runKey=r=>r.mode==='routine'?'r:'+(r.rk||r.id):'p:'+r.exercises[0].k;
-const fmtWhen=t=>new Date(t).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'})+' '+new Date(t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
 const ICON={replay:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 4v5h5"/></svg>',
   edit:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
   del:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>'};
@@ -3498,15 +3494,15 @@ const dayWord=t=>{const n=Date.now(),k=dayKey(t);return k===dayKey(n)?'today':k=
 const fmtDay=t=>new Date(t).toLocaleDateString(undefined,{day:'numeric',month:'short'})+' '+new Date(t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
 /* One routine run, exercise by exercise, laid out like the Scores list. */
 function exTable(r){
-  const wrap=document.createElement('div');wrap.className='tablewrap';const tb=document.createElement('table');
+  const tw=tableWrap(),wrap=tw.wrap,tb=tw.tb;
   /* every exercise of the routine in order, the ones not played greyed out */
   const rows=r.exercises.map(b=>({i:b.i||0,b:b})).concat((r.sk||[]).map(b=>({i:b.i,k:b.k})));
   rows.sort((a,c)=>a.i-c.i);
   fillTable(tb,['#','Exercise','BPM','Accuracy','Bias ms'],rows.map(x=>{
     if(!x.b)return [[String(x.i),'muted'],[showKey(x.k),'seq muted'],['—','muted'],['skipped','muted'],['—','muted']];
     const b=x.b,pc=b.due?b.within/b.due:0;
-    return [[String(b.i||''),'muted'],[showKey(b.k),'seq'],String(b.bpm),[Math.round(pc*100)+'%',accCls(pc)],[b.heard?fmtMs(b.avg,1):'—',b.heard?biasCls(b.avg):'muted']];}));
-  wrap.appendChild(tb);return wrap;
+    return [[String(b.i||''),'muted'],[showKey(b.k),'seq'],String(b.bpm),accCell(pc),[b.heard?fmtMs(b.avg,1):'—',b.heard?biasCls(b.avg):'muted']];}));
+  return wrap;
 }
 /* Runs are grouped by exercise or routine, newest group first. A group of one run looks the same as a larger one. */
 function renderHistory(){
@@ -3514,7 +3510,7 @@ function renderHistory(){
   const groups=new Map();
   recs.runs.slice().reverse().forEach(r=>{const k=runKey(r)+'|'+r.lv;if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r);});
   const list=[...groups.values()];
-  $('histHint').textContent=list.length?'Your last '+recs.runs.length+' runs, grouped by exercise or routine, most recent first. Tap one for its runs. Replay loads the same pattern or routine, tempo, click level and settings on the Play page.':'No runs yet. Each run you finish is listed here.';
+  $('histHint').textContent=list.length?'Your last '+recs.runs.length+' runs, grouped by exercise or routine, most recent first. Tap one for its runs. Replay loads the same exercise or routine, tempo, click level and settings on the Play page.':'No runs yet. Each run you finish is listed here.';
   list.slice(0,histShown).forEach(g=>{
     const det=document.createElement('details');det.className='hrow hgrp';
     const sm=document.createElement('summary');
@@ -3526,10 +3522,10 @@ function renderHistory(){
     const ac=document.createElement('span');ac.className='ha';if(routine)ac.appendChild(renameBtn(n,f.rk));ac.appendChild(replayBtn(f));
     sm.appendChild(n);sm.appendChild(st);sm.appendChild(ac);det.appendChild(sm);
     const body=document.createElement('div');body.className='hb hg';
-    const wrap=document.createElement('div');wrap.className='tablewrap';const tb=document.createElement('table');
+    const tw=tableWrap(),wrap=tw.wrap,tb=tw.tb;
     fillTable(tb,['Date','BPM','Accuracy','Bias',''],g.map(r=>{
       const off=r.lv==='off',pc=runPct(r);let hs=0,sw=0;r.exercises.forEach(b=>{hs+=b.heard||0;sw+=(b.avg||0)*(b.heard||0);});const bias=hs?sw/hs:NaN;
-      const row=[fmtDay(r.t),String(r.bpm),off?['—','muted']:[Math.round(pc*100)+'%',accCls(pc)],off||!hs?['—','muted']:[fmtMs(bias,1),biasCls(bias)],deleteBtn(r)];
+      const row=[fmtDay(r.t),String(r.bpm),off?['—','muted']:accCell(pc),off||!hs?['—','muted']:[fmtMs(bias,1),biasCls(bias)],deleteBtn(r)];
       if(routine){const cv=document.createElement('button');cv.type='button';cv.className='ib cv';cv.setAttribute('aria-label','Show the exercises');cv.setAttribute('aria-expanded','false');cv.innerHTML='<span></span>';row.push(cv);}
       return row;}));
     if(routine){   /* each run opens to its own exercise table, in a row of its own under it */
@@ -3543,7 +3539,7 @@ function renderHistory(){
         tr.addEventListener('click',e=>{if(!e.target.closest('button'))flip();});
       });
     }
-    wrap.appendChild(tb);body.appendChild(wrap);det.appendChild(body);box.appendChild(det);
+    body.appendChild(wrap);det.appendChild(body);box.appendChild(det);
   });
   $('histMore').hidden=list.length<=histShown;
 }
@@ -3664,7 +3660,7 @@ function renderResults(r){
   if(!rows.length){box.hidden=true;return;}
   box.hidden=false;
   fillTable($('resTable'),['Exercise','Sticking','Passes','On time','Best before','Avg ms','Spread','Miss'],rows.map(x=>[
-    String(x.idx),[x.seq,'seq'],String(x.passes),[Math.round(x.pct*100)+'%',accCls(x.pct)],
+    String(x.idx),[x.seq,'seq'],String(x.passes),accCell(x.pct),
     x.passes<1?'—':(prevBest&&prevBest.has(x.key)?(x.pct>prevBest.get(x.key)+1e-9?'new best':Math.round(prevBest.get(x.key)*100)+'%'):'first run'),
     [fmtMs(x.avg,1),biasCls(x.avg)],isNaN(x.spread)?'—':x.spread.toFixed(1),String(x.miss)]));
   const rated=rows.filter(x=>x.heard>=8&&!isNaN(x.avg));
@@ -3877,13 +3873,14 @@ async function fetchText(href,max){
     throw e;
   }finally{clearTimeout(timer);}
 }
+const URL_HINT='Enter a full web address starting with https://';
+function httpUrl(raw){try{const u=new URL(raw);return /^https?:$/.test(u.protocol)?u:null;}catch(e){return null;}}
 async function loadUrl(){
   const raw=$('routineUrl').value.trim();
   if(!raw)return;
   $('openErr').textContent='';
-  let u;
-  try{u=new URL(raw);if(!/^https?:$/.test(u.protocol))throw new Error('scheme');}
-  catch(e){$('openErr').textContent='Enter a full web address starting with https://';return;}
+  const u=httpUrl(raw);
+  if(!u){$('openErr').textContent=URL_HINT;return;}
   $('urlGo').disabled=true;
   try{
     setRoutineText(await fetchText(u.href,MAX_TEXT));
@@ -3915,9 +3912,8 @@ async function loadLibrary(){
   const raw=$('libraryUrl').value.trim();
   $('libErr').textContent='';
   if(!raw){return;}
-  let u;
-  try{u=new URL(raw);if(!/^https?:$/.test(u.protocol))throw new Error('scheme');}
-  catch(e){$('libErr').textContent='Enter a full web address starting with https://';return;}
+  const u=httpUrl(raw);
+  if(!u){$('libErr').textContent=URL_HINT;return;}
   lib.busy=true;$('libInfo').textContent='Loading the list…';renderLibrary();
   try{
     const res=parseLibrary(await fetchText(u.href,200000),u.href);
@@ -4399,6 +4395,7 @@ function setInputMode(){
 function applyTheme(){
   const d=S.theme==='dark',b=$('themeBtn');
   document.documentElement.dataset.theme=S.theme;
+  if(S.palette==='cb')document.documentElement.dataset.palette='cb';else delete document.documentElement.dataset.palette;
   b.textContent=d?'\u2600':'\u263E';b.title=b.ariaLabel=d?'Switch to light':'Switch to dark';
   drawTrace();
 }
@@ -4437,6 +4434,7 @@ function wire(){
     syncEach();save();buildExerciseList();syncInfo();
   });
   $('gap').addEventListener('change',e=>{S.gap=+e.target.value===0?0:4;save();syncInfo();});
+  $('palette').addEventListener('change',e=>{S.palette=e.target.value;applyTheme();save();});
   $('pulse').addEventListener('change',e=>{S.pulse=e.target.value==='on';save();if(!S.pulse)clearPulse();});
   $('csvBtn').addEventListener('click',downloadCsv);
   document.querySelectorAll('[data-help]').forEach(b=>b.addEventListener('click',()=>{
@@ -4578,7 +4576,7 @@ function init(){
   $('click').value=S.click;
   $('tol').value=String(S.tol);
   $('gap').value=String(S.gap);
-  $('pulse').value=S.pulse?'on':'off';
+  $('pulse').value=S.pulse?'on':'off';$('palette').value=S.palette;
   syncEach();
   $('ver').textContent='v'+VERSION;
   /* Line the version up with the right end of the title's longest line, however the title wraps. */
