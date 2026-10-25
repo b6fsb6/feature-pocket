@@ -154,10 +154,12 @@ body[data-input="mic"] .kb-only{display:none}
 .g-needle{position:absolute;top:8px;width:4px;height:28px;margin-left:-2px;border-radius:2px;background:var(--accent)}
 .g-ticks{display:grid;grid-template-columns:repeat(5,1fr);font:11px var(--font-data);color:var(--muted)}
 .g-ticks span:nth-child(1){text-align:left}.g-ticks span:nth-child(5){text-align:right}.g-ticks span:nth-child(n+2):nth-child(-n+4){text-align:center}
-.lvbars{display:flex;align-items:flex-end;gap:2px;height:56px;margin-top:6px;border-bottom:1px solid var(--line)}
-.lvbars i{flex:1;min-width:0;border-radius:2px 2px 0 0;background:var(--accent);opacity:.85}
-.lvbars i.L{background:var(--early)}
-.lvbars i.none{background:transparent}
+.hscw{position:relative;min-width:0}
+.hscroll{overflow-x:auto;overscroll-behavior-x:contain;height:170px}
+.hscroll.lv{height:56px}
+.hscin{height:1px}
+.hscw canvas{position:absolute;left:0;top:0;pointer-events:none}
+.jump{position:absolute;right:6px;top:6px}
 .g-ends{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:2px}
 
 .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));column-gap:12px}
@@ -745,7 +747,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         <li><b>Letter colours:</b> green is on time, blue and slanted is early (leading), pink and underlined is late (dragging), and a faded letter means no hit was heard. The "on-time window" in Settings decides how close counts as green.</li>
         <li><b>A small arrow tag</b> such as →R beside a letter means that stroke was due on the other hand but the app heard R. This needs both sticks calibrated.</li>
         <li><b>The gauge</b> shows your average lead or drag over the last 32 strokes. Left of the middle is leading and right is dragging.</li>
-        <li><b>The level bars</b> show how loud each of the last 32 strokes was compared with your own typical stroke: the middle is typical, higher is louder. Blue bars are left-hand strokes. The number is the spread in decibels, so smaller is more even, and the line under it says if one hand is quieter. Levels are relative to your own playing, so they do not depend on how loud your pad is. Clipped hits are left out, and keyboard mode has no levels.</li>
+        <li><b>The level bars</b> appear below the timing trace when a run ends. They show how loud every stroke was compared with your own typical stroke: the middle is typical, higher is louder. Blue bars are left-hand strokes. Scroll sideways to see the whole run. The number is the spread in decibels for the whole run, so smaller is more even, and the line under it says if one hand is quieter. Levels are relative to your own playing, so they do not depend on how loud your pad is. Clipped hits are left out, and keyboard mode has no levels.</li>
         <li><b>On narrow screens</b> a busy pass wraps onto two lines at the barline so the notes stay roomy.</li>
         <li><b>Pause</b> stops the click. Resume counts you in again from the start of that pass. Tapping the notation while playing also pauses, and tapping it again resumes. <b>Restart</b> goes back to your chosen start exercise.</li>
       </ul>
@@ -1038,18 +1040,9 @@ https://example.com/another-routine.txt</pre>
       <div class="g-ends"><span>◀ early, leading</span><span>late, dragging ▶</span></div>
     </section>
 
-    <section class="panel mic-only" aria-label="Level">
-      <h3>Level, last 32 strokes</h3>
-      <div class="readout">
-        <div class="big"><span id="lvVal">—</span><small>dB</small></div>
-        <div class="word" id="lvWord">Waiting for strokes</div>
-      </div>
-      <div class="lvbars" id="lvBars" aria-hidden="true"></div>
-      <div class="g-ends"><span>◀ older</span><span>newest ▶</span></div>
-    </section>
 
     <div class="page after" id="after">
-      <section aria-label="Run numbers">
+      <section class="panel" aria-label="Run numbers">
         <h3>Run numbers</h3>
         <div class="stats">
           <div class="stat"><div class="v" id="sWithin">—</div><div class="k">On time</div></div>
@@ -1066,17 +1059,27 @@ https://example.com/another-routine.txt</pre>
         <p class="insight" id="insight"></p>
       </section>
 
-      <section aria-label="Timing trace">
-        <h3>Timing trace, last 48 strokes</h3>
-        <canvas id="trace" role="img" aria-label="Timing error of each recent stroke in milliseconds"></canvas>
-        <p class="cap">Up is late (dragging), down is early (leading). Ring is left stick, solid dot is right stick. The green band is your on-time window.</p>
+      <section class="panel" aria-label="Timing trace">
+        <h3>Timing trace</h3>
+        <div class="hscw"><div class="hscroll" id="trBox"><div class="hscin" id="trIn"><canvas id="trace" role="img" aria-label="Timing error of every heard stroke in the run, in milliseconds, newest at the right"></canvas></div></div><button class="btn small jump" id="trJump" type="button" hidden>Newest &#9656;</button></div>
+        <p class="cap">Up is late (dragging), down is early (leading). Ring is left stick, solid dot is right stick. The green band is your on-time window. Scroll sideways for earlier strokes.</p>
       </section>
 
-      <section id="results" hidden aria-label="Results by exercise">
+      <section class="panel mic-only" aria-label="Level">
+        <h3>Level</h3>
+        <div class="readout">
+          <div class="big"><span id="lvVal">—</span><small id="lvUnit">dB</small></div>
+          <div class="word" id="lvWord">Waiting for strokes</div>
+        </div>
+        <div class="hscw"><div class="hscroll lv" id="lvBox"><div class="hscin" id="lvIn"><canvas id="lvCv" role="img" aria-label="Loudness of every stroke in the run, newest at the right"></canvas></div></div><button class="btn small jump" id="lvJump" type="button" hidden>Newest &#9656;</button></div>
+        <div class="g-ends"><span>◀ older, scroll back</span><span>newest ▶</span></div>
+      </section>
+
+      <section class="panel" id="results" hidden aria-label="Results by exercise">
         <h3>Results by exercise</h3>
         <div class="tablewrap"><table id="resTable"></table></div>
-        <p class="insight" id="resInsight" style="margin-top:10px"></p>
-        <div class="btns" style="margin-top:10px"><button class="btn small" id="csvBtn" type="button">Download CSV</button></div>
+        <p class="insight" id="resInsight"></p>
+        <div class="btns"><button class="btn small" id="csvBtn" type="button">Download CSV</button></div>
       </section>
     </div>
   </div>
@@ -1984,7 +1987,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.21.0';                           /* shown beside the title */
+const VERSION='0.22.2';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2451,7 +2454,7 @@ function finalizeSlot(i){
   const redo=r.fin.has(i);r.fin.add(i);
   if(!redo){r.slots++;Q.slots++;}
   r.dirty=true;
-  if(!hits.length){if(!redo){r.miss++;Q.miss++;r.streak=0;r.missRun++;r.seq.push({db:null});}r.res.set(i,{miss:true});return;}
+  if(!hits.length){if(!redo){r.miss++;Q.miss++;r.streak=0;r.missRun++;r.seq.push({db:null});if(r.seq.length>STRIP_MAX)r.seq.shift();}r.res.set(i,{miss:true});return;}
   const h=pickBest(hits),ex=hits.length-1;
   const ms=h.e*1000,det=h.det;
   const sure=!!det&&(h.kb||det.conf>=0.2);
@@ -2463,11 +2466,11 @@ function finalizeSlot(i){
     r.errs.push(ms);Q.errs.push(ms);r.hand[hand].push(ms);Q.hand[hand].push(ms);
     const db=h.kb?null:strokeDb(h.pk,h.raw);
     if(db!==null){r.lv.push({db:db,hand:hand});Q.lv.push({db:db,hand:hand});}
-    r.seq.push({db:db,hand:hand});   /* one entry per stroke due, so a miss leaves a gap in the level bars */
+    r.seq.push({db:db,hand:hand});if(r.seq.length>STRIP_MAX)r.seq.shift();   /* one entry per stroke due, so a miss leaves a gap in the level bars */
     r.missRun=0;if(r.mode==='lat')latLive(r);
     if(Math.abs(ms)<=S.tol){r.within++;Q.within++;r.streak++;if(r.streak>r.best)r.best=r.streak;}else r.streak=0;
     Q.posSum[pos]+=ms;Q.posCnt[pos]++;
-    r.trace.push({ms:ms,hand:hand,wrong:wrong});if(r.trace.length>48)r.trace.shift();
+    r.trace.push({ms:ms,hand:hand,wrong:wrong});if(r.trace.length>STRIP_MAX)r.trace.shift();
   }
   r.res.set(i,{ms:ms,wrong:wrong?det.hand:null});
 }
@@ -3267,18 +3270,11 @@ function showTab(t){
   if(t==='pattern'){renderBuilder();syncInfo();}
 }
 const fmtDb=v=>(Math.abs(v)<0.05?'0':(v>0?'+':'\u2212')+Math.abs(v).toFixed(1));
-/* Level of the last 32 strokes against their own median: bar height 50% is the median, the top is 12 dB louder, the bottom 12 dB softer. */
+/* The headline is the level of the last 32 strokes, or the whole run once it ends. The bars show the whole run against your typical stroke: bar height 50% is the median, the top is 12 dB louder, the bottom 12 dB softer. */
 function updateLevel(r){
-  const box=$('lvBars');
-  if(!box.children.length)for(let i=0;i<32;i++)box.appendChild(document.createElement('i'));
-  const last=r?r.seq.slice(-32):[],st=levelStats(last.filter(x=>x.db!==null));
-  const pad=32-last.length;
-  Array.prototype.forEach.call(box.children,(el,i)=>{
-    const x=i>=pad?last[i-pad]:null;
-    if(!x||x.db===null||!st){el.className='none';el.style.height='0';return;}
-    el.className=x.hand==='L'?'L':'R';
-    el.style.height=(8+clamp((x.db-st.med)/12*0.5+0.5,0,1)*92)+'%';
-  });
+  const done=!!(r&&r.ended),st=levelStats(done?r.lv:(r?r.seq.slice(-32):[]).filter(x=>x.db!==null));   /* the last 32 while playing, the whole run once it is over */
+  $('lvUnit').textContent=done?'dB, whole run':'dB, last 32';
+  if(lvStrip)lvStrip.draw();
   if(!st){$('lvVal').textContent='—';$('lvWord').textContent='Waiting for strokes';return;}
   $('lvVal').textContent='±'+st.sd.toFixed(1);
   const w=st.sd<=2?'Even':(st.sd<=4?'A little uneven':'Uneven');
@@ -3340,41 +3336,87 @@ function updateStats(r){
   $('sLR').textContent=ls&&ls.diff!==null?fmtDb(ls.diff):'—';
   $('insight').textContent=insightText(r);
 }
-function drawTrace(){
-  const cv=$('trace'),dpr=window.devicePixelRatio||1;
-  const w=cv.clientWidth,h=cv.clientHeight;
-  if(!w||!h)return;
-  if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);}
-  const g=cv.getContext('2d');
-  g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,w,h);
-  const cs=getComputedStyle(document.documentElement);
-  const col=n=>cs.getPropertyValue(n).trim();
-  const padL=36,padR=8,padT=8,padB=8,R=50;
-  const y=v=>padT+(1-(v+R)/(2*R))*(h-padT-padB);
-  g.font='11px '+col('--font-data');
-  g.globalAlpha=0.16;g.fillStyle=col('--ok');
-  g.fillRect(padL,y(S.tol),w-padL-padR,y(-S.tol)-y(S.tol));
-  g.globalAlpha=1;
-  g.textAlign='right';g.textBaseline='middle';
-  for(const v of [-40,-20,0,20,40]){
-    g.strokeStyle=v===0?col('--muted'):col('--line');g.lineWidth=v===0?1.5:1;
-    g.beginPath();g.moveTo(padL,y(v));g.lineTo(w-padR,y(v));g.stroke();
-    g.fillStyle=col('--muted');g.fillText(v>0?'+'+v:(v<0?'−'+Math.abs(v):'0'),padL-6,y(v));
-  }
-  const pts=view?view.trace:[];
-  if(!pts.length){
-    g.fillStyle=col('--muted');g.textAlign='center';
-    g.fillText('Each stroke you play appears here',padL+(w-padL-padR)/2,y(0)-14);return;
-  }
-  const step=(w-padL-padR)/48;
-  pts.forEach((p,i)=>{
-    const x=w-padR-(pts.length-1-i)*step-step/2;
-    const c=Math.abs(p.ms)<=S.tol?col('--ok'):(p.ms<0?col('--early'):col('--late'));
-    const yy=y(clamp(p.ms,-R,R));
-    g.beginPath();g.arc(x,yy,4.5,0,Math.PI*2);
-    if(p.hand==='R'){g.fillStyle=c;g.fill();}else{g.strokeStyle=c;g.lineWidth=2;g.stroke();}
+/* A strip that scrolls sideways: the run is as wide as it needs to be, and only the part in view is painted. While you play it
+   follows the newest stroke, and scrolling back stops that until you press Newest. */
+const STRIP_MAX=3000;
+function makeStrip(id,jumpId,o){
+  const box=$(id+'Box'),inner=$(id+'In'),cv=o.canvas,jump=$(jumpId),s={follow:true,key:null,ticking:false};
+  const paint=()=>{
+    const w=box.clientWidth,h=box.clientHeight,dpr=window.devicePixelRatio||1;
+    if(!w||!h)return;
+    cv.style.width=w+'px';cv.style.height=h+'px';
+    if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);}
+    const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,w,h);
+    o.paint(g,w,h,box.scrollLeft);
+  };
+  s.draw=()=>{
+    const w=box.clientWidth;if(!w)return;
+    if(s.key!==o.key()){s.key=o.key();s.follow=true;}
+    const n=o.count();
+    inner.style.width=Math.max(w,o.padL+n*o.step+o.padR)+'px';
+    if(s.follow)box.scrollLeft=box.scrollWidth;
+    jump.hidden=s.follow||!n;
+    paint();
+  };
+  box.addEventListener('scroll',()=>{
+    s.follow=box.scrollLeft+box.clientWidth>=box.scrollWidth-4;
+    jump.hidden=s.follow||!o.count();
+    if(!s.ticking){s.ticking=true;requestAnimationFrame(()=>{s.ticking=false;paint();});}
   });
+  jump.addEventListener('click',()=>{s.follow=true;s.draw();});
+  return s;
 }
+let lvStrip=null,trStrip=null;
+function initStrips(){
+  const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  let med={seq:null,n:-1,v:null};
+  lvStrip=makeStrip('lv','lvJump',{canvas:$('lvCv'),step:10,padL:0,padR:0,key:()=>view,count:()=>view?view.seq.length:0,
+    paint(g,w,h,x0){
+      const seq=view?view.seq:[];
+      if(med.seq!==seq||med.n!==seq.length){med={seq:seq,n:seq.length,v:levelStats(seq.filter(x=>x.db!==null))};}
+      g.fillStyle=css('--line');g.fillRect(0,h-1,w,1);
+      const st=med.v;if(!st)return;
+      const i0=Math.max(0,Math.floor(x0/10)),i1=Math.min(seq.length,Math.ceil((x0+w)/10));
+      g.globalAlpha=.85;
+      for(let i=i0;i<i1;i++){
+        const x=seq[i];if(x.db===null)continue;
+        const bh=(8+clamp((x.db-st.med)/12*0.5+0.5,0,1)*92)/100*(h-1);
+        g.fillStyle=x.hand==='L'?css('--early'):css('--accent');
+        g.fillRect(i*10-x0,h-1-bh,8,bh);
+      }
+      g.globalAlpha=1;
+    }});
+  trStrip=makeStrip('tr','trJump',{canvas:$('trace'),step:12,padL:36,padR:8,key:()=>view,count:()=>view?view.trace.length:0,
+    paint(g,w,h,x0){
+      const col=css,padL=36,padR=8,padT=8,padB=8,R=50,step=12;
+      const y=v=>padT+(1-(v+R)/(2*R))*(h-padT-padB);
+      g.font='11px '+col('--font-data');
+      g.globalAlpha=0.16;g.fillStyle=col('--ok');
+      g.fillRect(padL,y(S.tol),w-padL-padR,y(-S.tol)-y(S.tol));
+      g.globalAlpha=1;
+      g.textAlign='right';g.textBaseline='middle';
+      for(const v of [-40,-20,0,20,40]){
+        g.strokeStyle=v===0?col('--muted'):col('--line');g.lineWidth=v===0?1.5:1;
+        g.beginPath();g.moveTo(padL,y(v));g.lineTo(w-padR,y(v));g.stroke();
+        g.fillStyle=col('--muted');g.fillText(v>0?'+'+v:(v<0?'−'+Math.abs(v):'0'),padL-6,y(v));
+      }
+      const pts=view?view.trace:[];
+      if(!pts.length){
+        g.fillStyle=col('--muted');g.textAlign='center';
+        g.fillText('Each stroke you play appears here',padL+(w-padL-padR)/2,y(0)-14);return;
+      }
+      g.save();g.beginPath();g.rect(padL,0,w-padL,h);g.clip();
+      const i0=Math.max(0,Math.floor((x0-step)/step)),i1=Math.min(pts.length,Math.ceil((x0+w)/step)+1);
+      for(let i=i0;i<i1;i++){
+        const p=pts[i],x=padL+i*step+step/2-x0;
+        const c=Math.abs(p.ms)<=S.tol?col('--ok'):(p.ms<0?col('--early'):col('--late'));
+        g.beginPath();g.arc(x,y(clamp(p.ms,-R,R)),4.5,0,Math.PI*2);
+        if(p.hand==='R'){g.fillStyle=c;g.fill();}else{g.strokeStyle=c;g.lineWidth=2;g.stroke();}
+      }
+      g.restore();
+    }});
+}
+function drawTrace(){if(lvStrip)lvStrip.draw();if(trStrip)trStrip.draw();}
 function renderAll(){
   const r=view;
   updateGauge(r);updateStats(r);drawTrace();paintRows(r,null);
@@ -3533,6 +3575,7 @@ function sparkline(vals){
 }
 const biasCls=v=>isNaN(v)?'':(v<-2.5?'early':(v>2.5?'late':'ok'));
 const accCls=p=>p>=TARGET?'ok':'late';
+const dbCell=v=>typeof v==='number'?'\u00B1'+v.toFixed(1):['\u2014','muted'];   /* how much the stroke loudness varies, in dB */
 const accCell=p=>[Math.round(p*100)+'%'+(p>=TARGET?' \u2713':''),accCls(p)];
 function renderPractice(){
   const days=practiceDays(recs.runs,recs.sum),now=new Date(),mins=k=>Math.round((days.get(k)||0)/60);
@@ -3705,10 +3748,10 @@ function exTable(r){
   /* every exercise of the routine in order, the ones not played greyed out */
   const rows=r.exercises.map(b=>({i:b.i||0,b:b})).concat((r.sk||[]).map(b=>({i:b.i,k:b.k})));
   rows.sort((a,c)=>a.i-c.i);
-  fillTable(tb,['#','Exercise','BPM','Accuracy','Bias ms'],rows.map(x=>{
-    if(!x.b)return [[String(x.i),'muted'],[showKey(x.k),'seq muted'],['—','muted'],['skipped','muted'],['—','muted']];
+  fillTable(tb,['#','Exercise','BPM','Accuracy','Bias ms','dB'],rows.map(x=>{
+    if(!x.b)return [[String(x.i),'muted'],[showKey(x.k),'seq muted'],['—','muted'],['skipped','muted'],['—','muted'],['—','muted']];
     const b=x.b,pc=b.due?b.within/b.due:0;
-    return [[String(b.i||''),'muted'],[showKey(b.k),'seq'],String(b.bpm),accCell(pc),[b.heard?fmtMs(b.avg,1):'—',b.heard?biasCls(b.avg):'muted']];}));
+    return [[String(b.i||''),'muted'],[showKey(b.k),'seq'],String(b.bpm),accCell(pc),[b.heard?fmtMs(b.avg,1):'—',b.heard?biasCls(b.avg):'muted'],dbCell(b.ls)];}));
   return wrap;
 }
 /* Runs are grouped by exercise or routine, newest group first. A group of one run looks the same as a larger one. */
@@ -3737,16 +3780,16 @@ function renderHistory(){
     sm.appendChild(n);sm.appendChild(st);sm.appendChild(ac);det.appendChild(sm);
     const body=document.createElement('div');body.className='hb hg';
     const tw=tableWrap(),wrap=tw.wrap,tb=tw.tb;
-    fillTable(tb,['Date','BPM','Accuracy','Bias',''],g.map(r=>{
+    fillTable(tb,['Date','BPM','Accuracy','Bias','dB',''],g.map(r=>{
       const off=r.lv==='off',pc=runPct(r);let hs=0,sw=0;r.exercises.forEach(b=>{hs+=b.heard||0;sw+=(b.avg||0)*(b.heard||0);});const bias=hs?sw/hs:NaN;
-      const row=[fmtDay(r.t),String(r.bpm),off?['—','muted']:accCell(pc),off||!hs?['—','muted']:[fmtMs(bias,1),biasCls(bias)],deleteBtn(r)];
+      const lss=r.exercises.map(b=>b.ls).filter(v=>typeof v==='number'),row=[fmtDay(r.t),String(r.bpm),off?['—','muted']:accCell(pc),off||!hs?['—','muted']:[fmtMs(bias,1),biasCls(bias)],dbCell(lss.length?lss.reduce((a,v)=>a+v,0)/lss.length:null),deleteBtn(r)];
       if(routine){const cv=document.createElement('button');cv.type='button';cv.className='ib cv';cv.setAttribute('aria-label','Show the exercises');cv.setAttribute('aria-expanded','false');cv.innerHTML='<span></span>';row.push(cv);}
       return row;}));
     if(routine){   /* each run opens to its own exercise table, in a row of its own under it */
       tb.querySelector('thead tr').appendChild(document.createElement('th'));
       [...tb.querySelectorAll('tbody tr')].forEach((tr,i)=>{
         const dt=document.createElement('tr');dt.className='dt';dt.hidden=true;
-        const td=document.createElement('td');td.colSpan=6;td.appendChild(exTable(g[i]));dt.appendChild(td);tr.after(dt);
+        const td=document.createElement('td');td.colSpan=7;td.appendChild(exTable(g[i]));dt.appendChild(td);tr.after(dt);
         const cv=tr.querySelector('.cv');
         const flip=()=>{dt.hidden=!dt.hidden;cv.setAttribute('aria-expanded',String(!dt.hidden));cv.classList.toggle('open',!dt.hidden);};
         cv.addEventListener('click',flip);
@@ -5073,7 +5116,7 @@ function init(){
   $('sens').value=S.sens;$('sensOut').textContent=S.sens+' dB';$('mThr').style.left=((S.sens+60)/60*100)+'%';
   $('vol').value=S.vol;$('volOut').textContent=S.vol+'%';
   $('latency').value=S.latency==null?'':S.latency;
-  wireBuilder();setInputMode();updateCalUI();
+  initStrips();wireBuilder();setInputMode();updateCalUI();
   wire();applyTheme();
   showTab('play');
   onRoutineChanged();
