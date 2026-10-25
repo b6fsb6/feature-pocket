@@ -77,6 +77,7 @@ input[type=range]{width:100%;accent-color:var(--accent);min-height:32px}
 .tc .tempo{grid-template-columns:36px 1fr 36px;gap:4px}
 .tc .tempo .btn{min-width:0;width:36px}
 .err{color:var(--late);font-size:13px;margin:0;min-height:0}
+.panel>p:empty,.panel>ul:empty{display:none}   /* empty message slots would add a grid gap each */
 .hint{font-size:13px;color:var(--muted);margin:0}
 .notice{font-size:14px;margin:8px 0 0;padding:8px 12px;border:1px solid var(--accent);border-left-width:4px;border-radius:8px;background:var(--surface)}
 .linkbtn{font:inherit;font-weight:600;color:var(--accent);background:none;border:0;padding:6px 2px;text-decoration:underline;cursor:pointer;min-height:36px}
@@ -156,6 +157,10 @@ body[data-input="mic"] .kb-only{display:none}
 .g-needle{position:absolute;top:8px;width:4px;height:28px;margin-left:-2px;border-radius:2px;background:var(--accent)}
 .g-ticks{display:grid;grid-template-columns:repeat(5,1fr);font:11px var(--font-data);color:var(--muted)}
 .g-ticks span:nth-child(1){text-align:left}.g-ticks span:nth-child(5){text-align:right}.g-ticks span:nth-child(n+2):nth-child(-n+4){text-align:center}
+.lvbars{display:flex;align-items:flex-end;gap:2px;height:56px;margin-top:6px;border-bottom:1px solid var(--line)}
+.lvbars i{flex:1;min-width:0;border-radius:2px 2px 0 0;background:var(--accent);opacity:.85}
+.lvbars i.L{background:var(--early)}
+.lvbars i.none{background:transparent}
 .g-ends{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:2px}
 
 .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));column-gap:12px}
@@ -215,6 +220,7 @@ svg.spark{display:block;overflow:visible}
 .pv>*{min-width:0}
 .pv[hidden]{display:none}
 #pvHist section{display:grid;gap:14px}
+#recMsg.flash{color:var(--ink);font-weight:700}
 #pvHist section>*{margin:0}
 .hist{display:grid;gap:6px}
 .hist h4{margin:10px 0 0;font-size:13px;color:var(--muted);font-weight:600}
@@ -236,11 +242,20 @@ svg.spark{display:block;overflow:visible}
 .ib.del.arm{color:var(--late);border:1px solid var(--late);padding:0 8px}
 .hrow .hb{padding:0 12px 12px;display:grid;gap:8px}
 .hgrp>.hg{padding:0 8px 8px}
+.slist{display:grid}
+.srow{display:grid;gap:3px;padding:9px 2px;border-top:1px solid var(--line)}
+.srow:first-child{border-top:0}
+.srow .sq{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.srow .seq{font:700 14px var(--font-data);letter-spacing:.06em}
+.srow .sn{display:flex;flex-wrap:wrap;align-items:center;gap:2px 14px;font:13px var(--font-data);font-variant-numeric:tabular-nums}
+.srow .sn small{color:var(--muted);font:11px var(--font-body);letter-spacing:.04em;margin-left:3px}
+.srow .sn .muted{color:var(--muted)} .srow .sn .ok{color:var(--ok)} .srow .sn .late{color:var(--late)} .srow .sn .early{color:var(--early)}
+.srow .ib{flex:none;margin:-6px 0}
 .hgrp .tablewrap td,.hgrp .tablewrap th{padding-left:6px;padding-right:6px}
 .hgrp .tablewrap .ib{min-width:40px;height:40px;padding:0;margin:-8px -6px}
 .hgrp .tablewrap .ib svg{width:17px;height:17px}
 .hgrp tr.dt td{padding:6px;background:var(--bg)}
-.hgrp tr.dt .tablewrap{background:var(--surface)}
+.hgrp tr.dt .tablewrap{background-color:var(--surface)}
 .hgrp tbody tr:has(.cv){cursor:pointer}
 .ib.cv span{width:8px;height:8px;border:solid var(--muted);border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-2px,-2px);transition:transform .15s}
 .ib.cv.open span{transform:rotate(-135deg) translate(-2px,-2px)}
@@ -359,7 +374,12 @@ body[data-edit=type] .buildonly{display:none}
 .progress{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
 .progress>div{height:100%;width:0;background:var(--accent)}
 .runline{display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px 14px;font:13px var(--font-data);color:var(--muted)}
-.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background-color:var(--surface);
+  /* scroll shadows: a soft edge appears only on a side that has more to scroll to */
+  background-image:linear-gradient(to right,var(--surface) 30%,transparent),linear-gradient(to left,var(--surface) 30%,transparent),
+    radial-gradient(farthest-side at 0 50%,color-mix(in srgb,var(--ink) 20%,transparent),transparent),radial-gradient(farthest-side at 100% 50%,color-mix(in srgb,var(--ink) 20%,transparent),transparent);
+  background-position:left center,right center,left center,right center;background-size:36px 100%,36px 100%,14px 100%,14px 100%;
+  background-repeat:no-repeat;background-attachment:local,local,scroll,scroll}
 table{border-collapse:collapse;width:100%;font:13px var(--font-data);font-variant-numeric:tabular-nums}
 th{text-align:left;font:600 11px var(--font-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
 td{padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -396,8 +416,8 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
   <nav class="switch tabs" role="tablist" aria-label="Pages">
     <button type="button" role="tab" id="tabPlay" aria-controls="pagePlay" aria-selected="true">Play</button>
     <button type="button" role="tab" id="tabPattern" aria-controls="pagePattern" aria-selected="false">Editor</button>
-    <button type="button" role="tab" id="tabSetup" aria-controls="pageSetup" aria-selected="false">Settings</button>
     <button type="button" role="tab" id="tabProgress" aria-controls="pageProgress" aria-selected="false">Stats</button>
+    <button type="button" role="tab" id="tabSetup" aria-controls="pageSetup" aria-selected="false">Settings</button>
   </nav>
 
   <p class="status" id="status" role="status" aria-live="polite"></p>
@@ -452,17 +472,18 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <div class="field">
         <label for="sens">Trigger line <output id="sensOut"></output></label>
         <input type="range" id="sens" min="-55" max="-8" step="1">
+        <p class="hint">Hit the pad. The bar should cross the line on every stroke and fall back under it between strokes. Raise the line if room noise triggers hits, lower it if soft strokes are missed.</p>
       </div>
       <div class="field">
         <label for="settle">Settle time <output id="settleOut"></output></label>
         <input type="range" id="settle" min="20" max="120" step="5">
+        <p class="hint">How long the app ignores the pad after a hit. Raise it if one stroke counts twice. Fast playing lowers it automatically so real strokes are not skipped.</p>
       </div>
       <div class="btns"><button class="btn small" id="testMic" type="button">Turn microphone on</button><button class="btn small" id="micCheck" type="button">Mic check</button><span class="heard" id="heard" aria-live="off"></span></div>
       <p class="err" id="micMsg" role="alert"></p>
       <p class="hint" id="chkMsg" aria-live="polite"></p>
       <ul class="chkout" id="chkOut"></ul>
-      <p class="hint">Settle time is how long the app ignores the pad after a hit. Raise it if one stroke counts twice. Fast playing lowers it automatically so real strokes are not skipped. Mic check listens to the room, then to ten strokes, and sets both for you.</p>
-      <p class="hint">Hit the pad. The bar should cross the line on every stroke and fall back under it between strokes. Raise the line if room noise triggers hits, lower it if soft strokes are missed. Echo cancellation and noise suppression are switched off for this page so stick attacks stay sharp.</p>
+      <p class="hint">Mic check listens to the room, then to ten strokes, and sets the trigger line and settle time for you. Echo cancellation and noise suppression are switched off for this page so stick attacks stay sharp.</p>
     </section>
 
     <section class="panel mic-only" aria-label="Stick calibration">
@@ -502,11 +523,11 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         <button class="btn small" id="recImport" type="button">Import</button>
         <button class="btn small" id="recClear" type="button">Clear all</button>
         <input type="file" id="recFile" accept=".json,application/json" hidden>
-        </div>
-  </div>
+      </div>
       <p class="hint" id="recMsg"></p>
       <p class="hint" id="storeMsg"></p>
     </section>
+    </div>
   </div>
 
   <!-- ===== Pattern: one pattern or a routine ===== -->
@@ -630,7 +651,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
     <section class="panel" aria-label="Rudiments">
       <h3>Exercises, weakest first</h3>
       <p class="hint" id="progHint"></p>
-      <div class="tablewrap"><table id="patTable"></table></div>
+      <div class="hist" id="patGroups"></div>
     </section>
     <section class="panel" aria-label="Routines">
       <h3>Routines</h3>
@@ -671,8 +692,8 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <ul>
         <li><b>Play:</b> how long it plays, tempo, click level, Start, Pause, Restart and Stop, the notation, the lead/drag gauge and your results. With a routine loaded, scroll or swipe the rows (or press ↑ ↓) to choose which exercise to start at.</li>
         <li><b>Editor:</b> what you practise: one exercise, or a routine of exercises you type, load from a file or load from a URL.</li>
-        <li><b>Settings:</b> <b>Preferences</b> has the on-time window, visual pulse and click volume, and the colours. <b>Device</b> has the input, microphone level, stick calibration and latency. <b>Data</b> has export, import and clear.</li>
         <li><b>Stats:</b> three views. <b>History</b> lists your last runs by exercise or routine, with Replay. <b>Scores</b> shows each exercise and routine, weakest first, with its best cleared tempo. <b>Achievements</b> shows your practice days for the last four weeks, a streak that forgives one rest day a week, and your badges.</li>
+        <li><b>Settings:</b> <b>Preferences</b> has the on-time window, visual pulse and click volume, and the colours. <b>Device</b> has the input, microphone level, stick calibration and latency. <b>Data</b> has export, import and clear.</li>
       </ul>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
@@ -685,6 +706,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         <li><b>Letter colours:</b> green is on time, blue and slanted is early (leading), pink and underlined is late (dragging), and a faded letter means no hit was heard. The "on-time window" in Settings decides how close counts as green.</li>
         <li><b>A small arrow tag</b> such as →R beside a letter means that stroke was due on the other hand but the app heard R. This needs both sticks calibrated.</li>
         <li><b>The gauge</b> shows your average lead or drag over the last 32 strokes. Left of the middle is leading and right is dragging.</li>
+        <li><b>The level bars</b> show how loud each of the last 32 strokes was compared with your own typical stroke: the middle is typical, higher is louder. Blue bars are left-hand strokes. The number is the spread in decibels, so smaller is more even, and the line under it says if one hand is quieter. Levels are relative to your own playing, so they do not depend on how loud your pad is. Clipped hits are left out, and keyboard mode has no levels.</li>
         <li><b>On narrow screens</b> a busy pass wraps onto two lines at the barline so the notes stay roomy.</li>
         <li><b>Pause</b> stops the click. Resume counts you in again from the start of that pass. Tapping the notation while playing also pauses, and tapping it again resumes. <b>Restart</b> goes back to your chosen start exercise.</li>
       </ul>
@@ -847,7 +869,7 @@ https://example.com/another-routine.txt</pre>
         <li><b>Exercise table:</b> after a routine run, each exercise gets its own accuracy, average error and spread, plus your earlier best at that tempo.</li>
         <li><b>The target is 90%.</b> An exercise is "cleared" at a tempo when it reaches 90% there. After a run the app says whether every exercise cleared, and suggests +4 BPM if so. Otherwise it names the weak exercises and suggests staying at the same tempo. These are only suggestions. Any tempo is always allowed.</li>
         <li><b>Discard this run</b> removes a run from your records, for example after a bad microphone read.</li>
-        <li><b>Stats page:</b> every exercise, weakest first, with accuracy at the tempo you last played, your fastest cleared tempo and your lead/drag bias. "Practise" loads that exercise. A routine counts as cleared at a tempo when one run covered every exercise and all reached 90%.</li>
+        <li><b>Stats page:</b> every exercise, weakest first, with accuracy at the tempo you last played, a trend and your lead/drag bias, grouped by click level. "Practise" loads that exercise. A routine counts as cleared at a tempo when one run covered every exercise and all reached 90%.</li>
         <li><b>Practise weak exercises.</b> After a routine run, a button plays only the exercises that were below the target. Restart repeats the same exercises. A run of only some exercises never counts as clearing the routine.</li>
         <li><b>Tempo guidance.</b> Each exercise in the start list shows the tempo it has cleared, or "new". The summary shows the tempo at which the whole routine has been cleared.</li>
         <li><b>Records are saved in this browser only.</b> Use Export to keep a copy or move to another device, and Import to bring one back. The app asks the browser to keep your records and reminds you to export a copy if you never have, or if the last one is two weeks old. On iPhone and iPad, Safari can clear a site's data after about a week without use, so add the page to your Home Screen.</li>
@@ -962,7 +984,7 @@ https://example.com/another-routine.txt</pre>
       </div>
     </section>
 
-    <section aria-label="Lead or drag">
+    <section class="panel" aria-label="Lead or drag">
       <h3>Lead or drag, last 32 strokes</h3>
       <div class="readout">
         <div class="big"><span id="gVal">—</span><small>ms</small></div>
@@ -979,6 +1001,16 @@ https://example.com/another-routine.txt</pre>
       <div class="g-ends"><span>◀ early, leading</span><span>late, dragging ▶</span></div>
     </section>
 
+    <section class="panel mic-only" aria-label="Level">
+      <h3>Level, last 32 strokes</h3>
+      <div class="readout">
+        <div class="big"><span id="lvVal">—</span><small>dB</small></div>
+        <div class="word" id="lvWord">Waiting for strokes</div>
+      </div>
+      <div class="lvbars" id="lvBars" aria-hidden="true"></div>
+      <div class="g-ends"><span>◀ older</span><span>newest ▶</span></div>
+    </section>
+
     <div class="page after" id="after">
       <section aria-label="Run numbers">
         <h3>Run numbers</h3>
@@ -991,6 +1023,8 @@ https://example.com/another-routine.txt</pre>
           <div class="stat"><div class="v" id="sR">—</div><div class="k">Right avg (ms)</div></div>
           <div class="stat"><div class="v" id="sStick">—</div><div class="k">Sticking correct</div></div>
           <div class="stat"><div class="v" id="sExtra">—</div><div class="k">Extra hits</div></div>
+          <div class="stat mic-only"><div class="v" id="sLevel">—</div><div class="k">Level spread σ (dB)</div></div>
+          <div class="stat mic-only"><div class="v" id="sLR">—</div><div class="k">Left vs right (dB)</div></div>
         </div>
         <p class="insight" id="insight"></p>
       </section>
@@ -1101,6 +1135,15 @@ function parseStrokes(str,pd){
 }
 function mean(a){if(!a.length)return NaN;let s=0;for(const v of a)s+=v;return s/a.length;}
 function sd(a){if(a.length<2)return NaN;const m=mean(a);let s=0;for(const v of a)s+=(v-m)*(v-m);return Math.sqrt(s/(a.length-1));}
+/* Stroke loudness in dB from a hit's peak. Clipped hits and keyboard hits have no usable level. */
+function strokeDb(pk,raw){return pk>0&&!(raw>=0.98)?20*Math.log10(pk):null;}
+/* items: [{db,hand}]. Evenness is the spread in dB, diff is the left hand minus the right. Needs four strokes. */
+function levelStats(items){
+  const dbs=items.map(x=>x.db);
+  if(dbs.length<4)return null;
+  const L=items.filter(x=>x.hand==='L').map(x=>x.db),R=items.filter(x=>x.hand==='R').map(x=>x.db);
+  return {n:dbs.length,sd:sd(dbs),med:median(dbs),diff:(L.length>=3&&R.length>=3)?mean(L)-mean(R):null};
+}
 function median(a){if(!a.length)return NaN;const b=[...a].sort((x,y)=>x-y),m=b.length>>1;return b.length%2?b[m]:(b[m-1]+b[m])/2;}
 function fmtMs(v,dec){
   if(v==null||isNaN(v))return '—';
@@ -1473,7 +1516,7 @@ function patStats(runs,sum){
     if(!(b.due>0)||run.lv==='off')return;
     const mk=b.k+'|'+run.lv;
     let e=m.get(mk);if(!e){e={k:b.k,lv:run.lv,recs:[]};m.set(mk,e);}
-    e.recs.push({t:run.t,bpm:b.bpm||run.bpm,pct:b.within/b.due,avg:b.avg});
+    e.recs.push({t:run.t,bpm:b.bpm||run.bpm,pct:b.within/b.due,avg:b.avg,ls:b.ls});
   }));
   const out=[];
   m.forEach(e=>{
@@ -1482,14 +1525,15 @@ function patStats(runs,sum){
     const cleared=e.recs.filter(x=>x.pct>=TARGET).reduce((a,x)=>Math.max(a,x.bpm),0);
     const clearedT=cleared?e.recs.find(x=>x.pct>=TARGET&&x.bpm===cleared).t:0;
     const bias=recent.filter(x=>typeof x.avg==='number'&&!isNaN(x.avg));
+    const ev=recent.filter(x=>typeof x.ls==='number');
     out.push({k:e.k,lv:e.lv,bpm:last.bpm,recent:recent.reduce((a,x)=>a+x.pct,0)/recent.length,last:last.pct,cleared:cleared||null,clearedT:clearedT,
-      runs:e.recs.length,trend:at.slice(-12).map(x=>x.pct),t:last.t,bias:bias.length?bias.reduce((a,x)=>a+x.avg,0)/bias.length:NaN});
+      runs:e.recs.length,trend:at.slice(-12).map(x=>x.pct),t:last.t,bias:bias.length?bias.reduce((a,x)=>a+x.avg,0)/bias.length:NaN,even:ev.length?ev.reduce((a,x)=>a+x.ls,0)/ev.length:NaN});
   });
   if(sum){
     const idx=new Map(out.map(e=>[e.k+'|'+e.lv,e]));
     Object.keys(sum.pat).forEach(key=>{
       const q=sum.pat[key],d=idx.get(key);
-      if(!d){const r=q.tr.slice(-3);out.push({k:q.k,lv:q.lv,bpm:q.bpm,recent:r.reduce((a,x)=>a+x,0)/r.length,last:q.tr[q.tr.length-1],cleared:q.cleared||null,clearedT:q.clearedT,runs:q.runs,trend:q.tr.slice(),t:q.t,bias:q.avg==null?NaN:q.avg});}
+      if(!d){const r=q.tr.slice(-3);out.push({k:q.k,lv:q.lv,bpm:q.bpm,recent:r.reduce((a,x)=>a+x,0)/r.length,last:q.tr[q.tr.length-1],cleared:q.cleared||null,clearedT:q.clearedT,runs:q.runs,trend:q.tr.slice(),t:q.t,bias:q.avg==null?NaN:q.avg,even:NaN});}
       else{d.runs+=q.runs;if(q.cleared&&(!d.cleared||q.cleared>d.cleared||(q.cleared===d.cleared&&q.clearedT<d.clearedT))){d.cleared=q.cleared;d.clearedT=q.clearedT;}}
     });
   }
@@ -1887,7 +1931,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.13.17';                           /* shown beside the title */
+const VERSION='0.15.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const CAL_N=12;
@@ -1950,7 +1994,8 @@ function cleanRun(x){
   x.exercises.forEach(b=>{
     if(!b||typeof b.k!=='string'||b.k.length>400||!(+b.due>0)||!isFinite(+b.within))return;
     exercises.push({k:b.k,bpm:isFinite(+b.bpm)?+b.bpm:+x.bpm,due:+b.due,within:Math.max(0,Math.min(+b.due,+b.within)),heard:+b.heard||0,
-      avg:typeof b.avg==='number'&&isFinite(b.avg)?b.avg:null,sd:typeof b.sd==='number'&&isFinite(b.sd)?b.sd:null,miss:+b.miss||0,i:+b.i||0});
+      avg:typeof b.avg==='number'&&isFinite(b.avg)?b.avg:null,sd:typeof b.sd==='number'&&isFinite(b.sd)?b.sd:null,miss:+b.miss||0,i:+b.i||0,
+      ls:typeof b.ls==='number'&&isFinite(b.ls)?b.ls:null,ld:typeof b.ld==='number'&&isFinite(b.ld)?b.ld:null});
   });
   if(!exercises.length)return null;
   const o={id:x.id.slice(0,40),t:+x.t,mode:x.mode==='routine'?'routine':'single',rk:typeof x.rk==='string'?x.rk.slice(0,40):null,
@@ -2288,9 +2333,9 @@ function beginRun(mode,only){
   const r={
     mode:mode,plan:plan,w0:Date.now(),t0:ctx.currentTime+0.25,kb:S.input==='kb',
     nextClick:0,pulseIdx:-1,nextFin:0,pending:new Map(),cur:-1,showSeg:0,gridSeg:-1,
-    errs:[],hand:{L:[],R:[]},within:0,slots:0,miss:0,extras:0,streak:0,best:0,checked:0,bad:0,trace:[],res:new Map(),showG:0,missRun:0,trail:[],live:'',
+    errs:[],lv:[],seq:[],hand:{L:[],R:[]},within:0,slots:0,miss:0,extras:0,streak:0,best:0,checked:0,bad:0,trace:[],res:new Map(),showG:0,missRun:0,trail:[],live:'',
     fin:new Set(),paused:false,ci:null,
-    seg:plan.segs.map(sg=>({errs:[],hand:{L:[],R:[]},within:0,slots:0,miss:0,extras:0,checked:0,bad:0,
+    seg:plan.segs.map(sg=>({errs:[],lv:[],hand:{L:[],R:[]},within:0,slots:0,miss:0,extras:0,checked:0,bad:0,
       posSum:new Array(sg.N).fill(0),posCnt:new Array(sg.N).fill(0)})),
     dirty:true,ended:false,totalExercises:routineParsed.exercises.length,only:only||null,
     startExercise:only?Math.min.apply(null,only):(S.mode==='routine'?S.startExercise:1)
@@ -2332,7 +2377,7 @@ function finalizeSlot(i){
   const redo=r.fin.has(i);r.fin.add(i);
   if(!redo){r.slots++;Q.slots++;}
   r.dirty=true;
-  if(!hits.length){if(!redo){r.miss++;Q.miss++;r.streak=0;r.missRun++;}r.res.set(i,{miss:true});return;}
+  if(!hits.length){if(!redo){r.miss++;Q.miss++;r.streak=0;r.missRun++;r.seq.push({db:null});}r.res.set(i,{miss:true});return;}
   const h=pickBest(hits),ex=hits.length-1;
   const ms=h.e*1000,det=h.det;
   const sure=!!det&&(h.kb||det.conf>=0.2);
@@ -2342,6 +2387,9 @@ function finalizeSlot(i){
     r.extras+=ex;Q.extras+=ex;
     if(sure){r.checked++;Q.checked++;if(wrong){r.bad++;Q.bad++;}}
     r.errs.push(ms);Q.errs.push(ms);r.hand[hand].push(ms);Q.hand[hand].push(ms);
+    const db=h.kb?null:strokeDb(h.pk,h.raw);
+    if(db!==null){r.lv.push({db:db,hand:hand});Q.lv.push({db:db,hand:hand});}
+    r.seq.push({db:db,hand:hand});   /* one entry per stroke due, so a miss leaves a gap in the level bars */
     r.missRun=0;if(r.mode==='lat')latLive(r);
     if(Math.abs(ms)<=S.tol){r.within++;Q.within++;r.streak++;if(r.streak>r.best)r.best=r.streak;}else r.streak=0;
     Q.posSum[pos]+=ms;Q.posCnt[pos]++;
@@ -2490,7 +2538,7 @@ function handleHit(h){
     r.extras++;r.seg[sl.seg].extras++;r.dirty=true;return;
   }
   const arr=r.pending.get(i)||[];
-  arr.push({e:e,det:h.det,kb:h.kb});
+  arr.push({e:e,det:h.det,kb:h.kb,pk:h.pk,raw:h.raw});
   r.pending.set(i,arr);
   /* Show the result straight away. finalizeSlot replaces it once the window has closed. */
   const b=pickBest(arr),exp=plan.segs[sl.seg].notes[sl.pos],det=b.det;
@@ -3113,7 +3161,7 @@ function goExercise(i,animate){
   if(document.body.dataset.state!=='idle'){refreshPreview();return;}
   markExercises(null);previewRows(animate);syncInfo();
 }
-const TABS=['play','pattern','setup','progress'];
+const TABS=['play','pattern','progress','setup'];
 const tabEl=n=>$('tab'+n[0].toUpperCase()+n.slice(1));
 /* Edit on the Play page opens the Editor on what is loaded. */
 function editFromPlayPage(){
@@ -3138,7 +3186,26 @@ function showTab(t){
   if(t==='setup')syncData();
   if(t==='pattern')renderBuilder();
 }
+const fmtDb=v=>(Math.abs(v)<0.05?'0':(v>0?'+':'\u2212')+Math.abs(v).toFixed(1));
+/* Level of the last 32 strokes against their own median: bar height 50% is the median, the top is 12 dB louder, the bottom 12 dB softer. */
+function updateLevel(r){
+  const box=$('lvBars');
+  if(!box.children.length)for(let i=0;i<32;i++)box.appendChild(document.createElement('i'));
+  const last=r?r.seq.slice(-32):[],st=levelStats(last.filter(x=>x.db!==null));
+  const pad=32-last.length;
+  Array.prototype.forEach.call(box.children,(el,i)=>{
+    const x=i>=pad?last[i-pad]:null;
+    if(!x||x.db===null||!st){el.className='none';el.style.height='0';return;}
+    el.className=x.hand==='L'?'L':'R';
+    el.style.height=(8+clamp((x.db-st.med)/12*0.5+0.5,0,1)*92)+'%';
+  });
+  if(!st){$('lvVal').textContent='—';$('lvWord').textContent='Waiting for strokes';return;}
+  $('lvVal').textContent='±'+st.sd.toFixed(1);
+  const w=st.sd<=2?'Even':(st.sd<=4?'A little uneven':'Uneven');
+  $('lvWord').textContent=w+(st.diff!==null&&Math.abs(st.diff)>=3?', '+(st.diff<0?'left':'right')+' hand '+Math.abs(st.diff).toFixed(0)+' dB quieter':'');
+}
 function updateGauge(r){
+  updateLevel(r);
   const last=r?r.errs.slice(-32):[];
   const zone=$('gZone');
   zone.style.width=(S.tol/80*100)+'%';zone.style.left=(50-S.tol/80*50)+'%';
@@ -3171,6 +3238,8 @@ function insightText(r){
     }
     if(wi>=0&&Math.abs(wv)>=6)parts.push((r.plan.segs.length>1?'In exercise '+sg.idx+', stroke ':'Stroke ')+sg.notes.slice(0,wi+1).filter(n=>n!=='_').length+' ('+sg.notes[wi]+') drifts most, '+Math.abs(wv).toFixed(0)+' ms '+(wv>0?'late':'early')+'.');
   }
+  const lvs=levelStats(r.lv);
+  if(lvs&&lvs.diff!==null&&Math.abs(lvs.diff)>=3)parts.push('Your '+(lvs.diff<0?'left':'right')+' hand is '+Math.abs(lvs.diff).toFixed(0)+' dB quieter than your '+(lvs.diff<0?'right':'left')+'.');
   if(r.slots&&r.miss/r.slots>0.1)parts.push(r.miss+' strokes were not heard. Check the trigger line in Settings, under Device.');
   if(r.checked>=8&&r.bad/r.checked>0.15)parts.push('The wrong stick seems to have played on '+r.bad+' of '+r.checked+' strokes.');
   if(!parts.length)parts.push('Timing is even across both hands and all strokes.');
@@ -3186,6 +3255,9 @@ function updateStats(r){
   $('sR').textContent=r&&r.hand.R.length?fmtMs(mean(r.hand.R),1):'—';
   $('sStick').textContent=r&&r.checked?Math.round((1-r.bad/r.checked)*100)+'%':'off';
   $('sExtra').textContent=r?String(r.extras):'—';
+  const ls=r?levelStats(r.lv):null;
+  $('sLevel').textContent=ls?ls.sd.toFixed(1):'—';
+  $('sLR').textContent=ls&&ls.diff!==null?fmtDb(ls.diff):'—';
   $('insight').textContent=insightText(r);
 }
 function drawTrace(){
@@ -3267,7 +3339,8 @@ function recordRun(r){
   const run={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t:Date.now(),mode:S.mode,
     rk:all?routineKeyOf(all):null,ne:all?all.length:1,bpm:S.bpm,tol:S.tol,lv:S.click,rp:replaySnap(r),sec:Math.max(0,Math.min(14400,Math.round((Date.now()-(r.w0||Date.now()))/1000))),
     exercises:rows.map(x=>({k:x.key,bpm:x.bpm,due:x.due,within:Math.round(x.pct*x.due),heard:x.heard,
-      avg:isNaN(x.avg)?null:x.avg,sd:isNaN(x.spread)?null:x.spread,miss:x.miss,i:x.idx}))};
+      avg:isNaN(x.avg)?null:x.avg,sd:isNaN(x.spread)?null:x.spread,miss:x.miss,i:x.idx,
+      ls:x.lvl?Math.round(x.lvl.sd*10)/10:null,ld:x.lvl&&x.lvl.diff!==null?Math.round(x.lvl.diff*10)/10:null}))};
   if(all){   /* exercises of the routine that were not played, so a partial run still shows the whole routine */
     const played=new Set(rows.map(x=>x.idx));
     run.sk=all.map((k,i)=>({i:i+1,k:k})).filter(b=>!played.has(b.i));
@@ -3426,23 +3499,59 @@ function renderBadges(){
   });
 }
 function syncData(){
+  $('recMsg').classList.remove('flash');
   $('recMsg').textContent=recs.runs.length+(recs.runs.length===1?' run':' runs')+' in history, '+(recs.runs.length+recs.sum.runs)+' in all.';
   syncBackup();
+}
+/* Scores by click level, each level its own collapsible group. The first level with scores starts open, then your choices stick. */
+let scoreOpen=null;
+function renderScoreGroups(stats,practise){
+  const box=$('patGroups');box.textContent='';
+  if(!stats.length){const p=document.createElement('p');p.className='hint';p.textContent='No exercises scored yet.';box.appendChild(p);return;}
+  const levels=LEVELS.map(l=>({v:l.v,n:l.n})).concat([...new Set(stats.map(x=>x.lv))].filter(v=>!LEVELS.some(l=>l.v===v)).map(v=>({v:v,n:levelName(v)})));
+  levels.forEach(l=>{
+    const rows=stats.filter(x=>x.lv===l.v);
+    if(!rows.length)return;
+    if(scoreOpen===null)scoreOpen=new Set([l.v]);
+    const det=document.createElement('details');det.className='hrow hgrp';det.open=scoreOpen.has(l.v);
+    det.addEventListener('toggle',()=>{if(det.open)scoreOpen.add(l.v);else scoreOpen.delete(l.v);});
+    const sm=document.createElement('summary');
+    const n=document.createElement('span');n.className='hn';n.textContent=l.n;
+    const st=document.createElement('span');st.className='hs';
+    st.textContent=rows.length+(rows.length===1?' exercise':' exercises');
+    sm.appendChild(n);sm.appendChild(st);det.appendChild(sm);
+    const body=document.createElement('div');body.className='hb hg';
+    const list=document.createElement('div');list.className='slist';
+    rows.forEach(x=>{
+      const row=document.createElement('div');row.className='srow';
+      const q=document.createElement('div');q.className='sq';
+      const seq=document.createElement('span');seq.className='seq';seq.textContent=showKey(x.k);
+      q.appendChild(seq);q.appendChild(practise(x.k,x.lv));row.appendChild(q);
+      const n=document.createElement('div');n.className='sn';
+      const stat=(txt,unit,cls)=>{const e=document.createElement('span');if(cls)e.className=cls;e.textContent=txt;if(unit){const u=document.createElement('small');u.textContent=unit;e.appendChild(u);}n.appendChild(e);};
+      const acc=accCell(x.recent);
+      stat(String(x.bpm),'BPM');
+      stat(acc[0],'ACC',acc[1]);
+      const sp=sparkline(x.trend);
+      if(Array.isArray(sp))stat(sp[0],'trend','muted');else n.appendChild(sp);
+      stat(isNaN(x.bias)?'\u2014':fmtMs(x.bias,1),'ms',biasCls(x.bias));
+      stat(isNaN(x.even)?'\u2014':'\u00B1'+x.even.toFixed(1),'dB');
+      row.appendChild(n);list.appendChild(row);
+    });
+    body.appendChild(list);det.appendChild(body);box.appendChild(det);
+  });
 }
 function renderProgress(){
   renderPractice();renderBadges();
   const stats=patStats(recs.runs,recs.sum),routines=routineStats(recs.runs,recs.sum);
-  const tgt=Math.round(TARGET*100);
   $('progHint').textContent=stats.length
-    ?'Accuracy is the share of strokes inside your timing window over your last three runs at the tempo you played most recently. Trend plots each run at that tempo (up to 12), with the dotted line at the target. Cleared means '+tgt+'% or better at that tempo.'
+    ?'Accuracy (ACC) is the share of strokes inside your timing window over your last three runs at the tempo you played most recently. Trend plots each run at that tempo (up to 12), with the dotted line at the target. EVEN is how much your stroke loudness varies, in dB. Smaller is more even.'
     :'Nothing yet. Play an exercise or a routine and each exercise\'s score shows up here, so you can see which rudiments need work.';
   const practise=(k,lv)=>iconBtn('replay','Practise this exercise',()=>practisePattern(k,lv));
   /* A routine is replayed from its newest run at that level, while that run's text is still kept. */
   const replayRoutine=x=>{const r=recs.runs.slice().reverse().find(q=>q.rk===x.rk&&q.lv===x.lv);
     if(r)return replayBtn(r);const b=iconBtn('replay','Replay',()=>{});b.disabled=true;b.title='This routine was saved without its text.';return b;};
-  fillTable($('patTable'),stats.length?['Exercise','Level','BPM','Accuracy','Trend','Cleared','Bias ms','']:[],
-    stats.map(x=>[[showKey(x.k),'seq'],levelName(x.lv),String(x.bpm),accCell(x.recent),sparkline(x.trend),x.cleared?(Date.now()-x.clearedT<6048e5?'★ ':'')+x.cleared:'—',
-      [isNaN(x.bias)?'—':fmtMs(x.bias,1),biasCls(x.bias)],practise(x.k,x.lv)]));
+  renderScoreGroups(stats,practise);
   fillTable($('rtTable'),routines.length?['Routine','Level','Exercises','Runs','Cleared at','Last','']:[],
     routines.length?routines.map(x=>[routineName(x.rk),levelName(x.lv),String(x.ne),String(x.runs),x.cleared?x.cleared+' BPM':'—',fmtDate(x.t),replayRoutine(x)])
       :[[['No routine runs yet.','muted']]]);
@@ -3620,10 +3729,12 @@ function syncBackup(){
 function exportRecs(){
   S.lastExport=Date.now();S.expRuns=totalRuns();save();syncBackup();
   saveFile('stick-timing-records-'+stamp()+'.json','application/json',JSON.stringify(packRecs()));
+  $('recMsg').textContent='\u2713 Exported '+totalRuns()+(totalRuns()===1?' run':' runs')+'.';$('recMsg').classList.add('flash');
 }
 async function importRecs(file){
   if(!file)return;
-  if(file.size>5e6){$('recMsg').textContent='That file is too large.';return;}
+  const say=t=>{$('recMsg').textContent=t;$('recMsg').classList.add('flash');};   /* shown after the page redraws, so it is not overwritten by the run count */
+  if(file.size>5e6){say('\u26A0 That file is too large.');return;}
   try{
     const o=JSON.parse(await file.text());
     if(!o||!Array.isArray(o.runs))throw 0;
@@ -3634,8 +3745,9 @@ async function importRecs(file){
     Object.keys(u.names).forEach(k=>{if(!recs.names[k])recs.names[k]=u.names[k];});recs.nu=Math.max(recs.nu,u.nu);
     recs.runs.sort((a,b)=>a.t-b.t);
     saveRecs();renderProgress();
-    $('recMsg').textContent='Added '+add+(add===1?' run':' runs')+'. '+recs.runs.length+' stored.';
-  }catch(e){$('recMsg').textContent='That file is not a records export.';}
+    const dup=u.runs.length-add;
+    say(add||dup?'\u2713 Imported '+add+(add===1?' new run':' new runs')+(dup?' ('+dup+' already here)':'')+'. '+recs.runs.length+' in history.':'\u26A0 That file has no runs in it.');
+  }catch(e){say('\u26A0 That file is not a records export.');}
 }
 let clearArm=0;
 function clearRecs(){
@@ -3654,7 +3766,7 @@ function exerciseRows(r){
     rows.push({idx:sg.idx,key:patKey(sg.notes,sg.groupStart,sg.subs,sg.defSub,sg.sig),label:sg.label,seq:showPattern(sg.notes,sg.groupStart,sg.subs,sg.defSub,sg.sig,sg.src),bpm:sg.bpm,
       passes:Math.floor(Q.slots/sg.strokes),due:Q.slots,heard:Q.errs.length,
       pct:Q.within/Q.slots,avg:Q.errs.length?mean(Q.errs):NaN,spread:sd(Q.errs),miss:Q.miss,
-      L:Q.hand.L.length?mean(Q.hand.L):NaN,R:Q.hand.R.length?mean(Q.hand.R):NaN});
+      L:Q.hand.L.length?mean(Q.hand.L):NaN,R:Q.hand.R.length?mean(Q.hand.R):NaN,lvl:levelStats(Q.lv)});
   });
   return rows;
 }
@@ -3664,10 +3776,10 @@ function renderResults(r){
   const rows=exerciseRows(r),prevBest=lastRun?lastRun.prevBest:null;
   if(!rows.length){box.hidden=true;return;}
   box.hidden=false;
-  fillTable($('resTable'),['Exercise','Sticking','Passes','On time','Best before','Avg ms','Spread','Miss'],rows.map(x=>[
+  fillTable($('resTable'),['Exercise','Sticking','Passes','On time','Best before','Avg ms','Spread','Level','Miss'],rows.map(x=>[
     String(x.idx),[x.seq,'seq'],String(x.passes),accCell(x.pct),
     x.passes<1?'—':(prevBest&&prevBest.has(x.key)?(x.pct>prevBest.get(x.key)+1e-9?'new best':Math.round(prevBest.get(x.key)*100)+'%'):'first run'),
-    [fmtMs(x.avg,1),biasCls(x.avg)],isNaN(x.spread)?'—':x.spread.toFixed(1),String(x.miss)]));
+    [fmtMs(x.avg,1),biasCls(x.avg)],isNaN(x.spread)?'—':x.spread.toFixed(1),x.lvl?'±'+x.lvl.sd.toFixed(1)+' dB':'—',String(x.miss)]));
   const rated=rows.filter(x=>x.heard>=8&&!isNaN(x.avg));
   const parts=[];
   if(rated.length>=2){
