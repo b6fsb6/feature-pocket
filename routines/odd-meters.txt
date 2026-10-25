@@ -1,0 +1,11 @@
+title: Odd meters
+each: x8
+time: 7/8
+RLRLRLR
+RLRLRLRLRLRLRL
+7/8 (3+2+2): RLRLRLR
+time: 6/8
+RLRLRL
+RLRLRLRLRLRL
+time: 5/4
+RLRLR

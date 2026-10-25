@@ -1,0 +1,5 @@
+title: Triplets
+each: x8
+8t RLR LRL RLR LRL
+8t RLL RRL RLL RRL
+8t RRL LLR RRL LLR

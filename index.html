@@ -154,6 +154,10 @@ body[data-input="mic"] .kb-only{display:none}
 .g-needle{position:absolute;top:8px;width:4px;height:28px;margin-left:-2px;border-radius:2px;background:var(--accent)}
 .g-ticks{display:grid;grid-template-columns:repeat(5,1fr);font:11px var(--font-data);color:var(--muted)}
 .g-ticks span:nth-child(1){text-align:left}.g-ticks span:nth-child(5){text-align:right}.g-ticks span:nth-child(n+2):nth-child(-n+4){text-align:center}
+.wsteps{margin:0;padding-left:20px;display:grid;gap:10px}
+.wsteps li{padding-left:2px}
+.wsteps li>span:first-child{display:block;margin-bottom:6px}
+body[data-run="1"] #welcome{display:none}
 .hscw{position:relative;min-width:0}
 .hscroll{overflow-x:auto;overscroll-behavior-x:contain;height:170px}
 .hscroll.lv{height:56px}
@@ -883,7 +887,7 @@ LRLR LRLR LRLR LRLR  x8</pre>
 
     <section class="panel" id="help-library">
       <h3>Shared lists</h3>
-      <p>On the Library page you can point the app at a <b>shared list</b>: a web address that lists routine files. Press <b>Import</b>, put the address under <b>Shared list</b> and press <b>Load</b>. Each routine is tagged <b>New</b> or <b>In library</b>. Tap one to open it in the editor, look it over, then press <b>Save</b> to add it, or <b>Back</b> to leave it. The last list is remembered and shown without a request until you press Load again. <b>Forget this list</b> clears it. This app does not come with any routines. You choose the list.</p>
+      <p>On the Library page you can point the app at a <b>shared list</b>: a web address that lists routine files. Press <b>Import</b>, put the address under <b>Shared list</b> and press <b>Load</b>. Each routine is tagged <b>New</b> or <b>In library</b>. Tap one to open it in the editor, look it over, then press <b>Save</b> to add it, or <b>Back</b> to leave it. The last list is remembered and shown without a request until you press Load again. <b>Forget this list</b> clears it. The <b>Starter routines</b> button on the Play page, shown until you have saved or played something, loads a small list of plain practice routines that is hosted next to the app. Beyond that, this app does not come with any routines. You choose the list.</p>
       <h4>The list file</h4>
       <p>A plain text file with one routine per line. Put a title before a <b>|</b>, or leave it out and the file name is used. Lines starting with <b>#</b> are notes. An address can be a full web address or one relative to the list file, so a folder of routines can be moved without editing the list.</p>
       <pre># my routines
@@ -942,6 +946,15 @@ https://example.com/another-routine.txt</pre>
   </div>
 
   <div class="page" id="pagePlay" role="tabpanel" aria-labelledby="tabPlay" hidden>
+    <section class="panel" id="welcome" aria-label="Getting started" hidden>
+      <h3>Getting started</h3>
+      <ol class="wsteps">
+        <li><span>Set up the microphone so your strokes are heard.</span><button class="btn small" id="wMic" type="button">Open Settings</button></li>
+        <li><span>Get something to play. A starter pattern is loaded, or add routines.</span><span class="btns"><button class="btn small" id="wStarter" type="button">Starter routines</button><button class="btn small" id="wImport" type="button">Import your own</button></span></li>
+        <li><span>Press Start and play along with the click.</span></li>
+      </ol>
+      <div class="btns"><button class="btn small" id="wDone" type="button">Got it</button></div>
+    </section>
     <section class="panel cfg" aria-label="Exercises">
       <div class="rtname"><b id="playName"></b><button class="linkbtn" id="playChange" type="button">Change</button></div>
       <div class="patrow"><p class="patline single-only" id="playPat"></p><p class="hint routine-only" id="routineInfo"></p><button class="btn small" id="editPlay" type="button">Edit</button></div>
@@ -1042,6 +1055,22 @@ https://example.com/another-routine.txt</pre>
 
 
     <div class="page after" id="after">
+      <section class="panel mic-only" aria-label="Level">
+        <h3>Level</h3>
+        <div class="readout">
+          <div class="big"><span id="lvVal">—</span><small id="lvUnit">dB</small></div>
+          <div class="word" id="lvWord">Waiting for strokes</div>
+        </div>
+        <div class="hscw"><div class="hscroll lv" id="lvBox"><div class="hscin" id="lvIn"><canvas id="lvCv" role="img" aria-label="Loudness of every stroke in the run, newest at the right"></canvas></div></div><button class="btn small jump" id="lvJump" type="button" hidden>Newest &#9656;</button></div>
+        <div class="g-ends"><span>◀ older, scroll back</span><span>newest ▶</span></div>
+      </section>
+
+      <section class="panel" aria-label="Timing trace">
+        <h3>Timing trace</h3>
+        <div class="hscw"><div class="hscroll" id="trBox"><div class="hscin" id="trIn"><canvas id="trace" role="img" aria-label="Timing error of every heard stroke in the run, in milliseconds, newest at the right"></canvas></div></div><button class="btn small jump" id="trJump" type="button" hidden>Newest &#9656;</button></div>
+        <p class="cap">Up is late (dragging), down is early (leading). Ring is left stick, solid dot is right stick. The green band is your on-time window. Scroll sideways for earlier strokes.</p>
+      </section>
+
       <section class="panel" aria-label="Run numbers">
         <h3>Run numbers</h3>
         <div class="stats">
@@ -1057,22 +1086,6 @@ https://example.com/another-routine.txt</pre>
           <div class="stat mic-only"><div class="v" id="sLR">—</div><div class="k">Left vs right (dB)</div></div>
         </div>
         <p class="insight" id="insight"></p>
-      </section>
-
-      <section class="panel" aria-label="Timing trace">
-        <h3>Timing trace</h3>
-        <div class="hscw"><div class="hscroll" id="trBox"><div class="hscin" id="trIn"><canvas id="trace" role="img" aria-label="Timing error of every heard stroke in the run, in milliseconds, newest at the right"></canvas></div></div><button class="btn small jump" id="trJump" type="button" hidden>Newest &#9656;</button></div>
-        <p class="cap">Up is late (dragging), down is early (leading). Ring is left stick, solid dot is right stick. The green band is your on-time window. Scroll sideways for earlier strokes.</p>
-      </section>
-
-      <section class="panel mic-only" aria-label="Level">
-        <h3>Level</h3>
-        <div class="readout">
-          <div class="big"><span id="lvVal">—</span><small id="lvUnit">dB</small></div>
-          <div class="word" id="lvWord">Waiting for strokes</div>
-        </div>
-        <div class="hscw"><div class="hscroll lv" id="lvBox"><div class="hscin" id="lvIn"><canvas id="lvCv" role="img" aria-label="Loudness of every stroke in the run, newest at the right"></canvas></div></div><button class="btn small jump" id="lvJump" type="button" hidden>Newest &#9656;</button></div>
-        <div class="g-ends"><span>◀ older, scroll back</span><span>newest ▶</span></div>
       </section>
 
       <section class="panel" id="results" hidden aria-label="Results by exercise">
@@ -1987,7 +2000,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.22.2';                           /* shown beside the title */
+const VERSION='0.23.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2005,6 +2018,7 @@ try{
     if(o.cal&&Array.isArray(o.cal.L)&&Array.isArray(o.cal.R))cal=o.cal;
   }
 }catch(e){}
+S.welcomed=S.welcomed===true;                     /* the getting-started card is dismissed */
 S.theme=S.theme==='light'||S.theme==='dark'?S.theme:(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
 S.mode=S.mode==='routine'?'routine':'single';
 S.latCal=S.latCal===true;                          /* set once a calibration has run or a number was typed */
@@ -4470,8 +4484,11 @@ function setRunning(on){
 function playsFor(){return ' · plays for '+(S.eachUnit==='pass'?S.eachVal+(S.eachVal===1?' pass':' passes'):S.eachVal+(S.eachVal===1?' minute':' minutes'));}
 /* How long a run of these exercises takes: each exercise, the gaps between them and the opening count-in. */
 function playTime(list){let t=0;list.forEach(b=>{t+=b.secs;});return t+(list.length>1?list.length-1:0)*S.gap*(60/S.bpm)+4*(60/S.bpm);}
+/* The getting-started card shows only while there is nothing saved and nothing played. */
+const syncWelcome=()=>{$('welcome').hidden=S.welcomed||recs.lib.length>0||recs.runs.length>0;};
+const STARTER_LIST='routines/starter.list';
 function syncInfo(){
-  syncPlayName();syncEditorBar();
+  syncWelcome();syncPlayName();syncEditorBar();
   const exercises=currentExercises();
   if(S.mode==='single'){
     const e0=routineParsed.exercises[0],res=parseExerciseLine(e0&&e0.line!=null?bLines()[e0.line]:bGet()),ok=!!(res&&res.exercise);
@@ -4942,6 +4959,10 @@ function wire(){
   $('clearRoutine').addEventListener('click',()=>guard(()=>{bLine=0;setRoutineText('');openEditor('library');}));
   $('lsRecent').addEventListener('click',()=>{libSort='recent';renderLibraryPage();});
   $('lsName').addEventListener('click',()=>{libSort='name';renderLibraryPage();});
+  $('wMic').addEventListener('click',()=>{showTab('setup');setSview('dev');});
+  $('wImport').addEventListener('click',()=>openOpen());
+  $('wStarter').addEventListener('click',()=>{$('libraryUrl').value=new URL(STARTER_LIST,location.href).href;openOpen();loadLibrary();});
+  $('wDone').addEventListener('click',()=>{S.welcomed=true;save();syncWelcome();});
   $('edBack').addEventListener('click',()=>{showTab(editFrom==='play'?'play':'library');if(editFrom==='import')openOpen();window.scrollTo(0,0);});
   $('playChange').addEventListener('click',()=>showTab('library'));
   $('cfSave').addEventListener('click',()=>{if(saveToLibrary())closeConfirm(true);else $('cfText').textContent=$('saveMsg').textContent;});
