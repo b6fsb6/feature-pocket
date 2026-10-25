@@ -306,9 +306,6 @@ body[data-mode="routine"] .single-only{display:none}
 #editList .meta{display:none}
 .dots{border:0;background:transparent;color:var(--muted);font:700 22px/1 var(--font-data);min-height:36px;cursor:pointer;border-radius:8px}
 .dots:hover{color:var(--accent)}
-.nhtab{width:100%;border-collapse:collapse;font-size:14px}
-.nhtab td{padding:6px 4px;border-top:1px solid var(--line);vertical-align:top}
-.nhtab td:first-child{font:600 13px var(--font-data);white-space:nowrap;padding-right:12px}
 .bnote{display:flex;align-items:flex-start;gap:10px}
 .bnote .btn{flex:none}
 .bfields{flex:1;min-width:0}
@@ -323,17 +320,18 @@ body[data-mode="routine"] .single-only{display:none}
 .ln pre .bad{color:var(--late)}
 .ln textarea{display:block;border:0;border-radius:0;flex:1;min-width:0;white-space:pre;overflow:auto;background:transparent;outline:0}
 .mbox.scroll{overflow-y:auto}
+.totop{margin:0;text-align:right}
+body[data-edit=build] .typeonly{display:none}
+.nh{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+.nh code{font:700 13px var(--font-data);color:var(--accent);white-space:nowrap}
+.nh .full{grid-column:1/-1;margin:0}
+.nh .more{text-align:right}
 .hname{font:inherit;min-width:0;width:100%;padding:4px 8px;border:1px solid var(--accent);border-radius:6px;background:var(--surface);color:var(--ink)}
 .bacts2{gap:8px}
 body[data-edit=type] .buildonly{display:none}
 .osec{display:grid;gap:8px;padding-top:14px;border-top:1px solid var(--line)}
 .mbox .mhead+.osec{border-top:0;padding-top:0}
 .olbl{font:700 11px var(--font-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-#libBox{background:none;border-radius:0;border-width:1px 0 0 0}
-#libBox summary{padding:0;font:700 11px var(--font-body);letter-spacing:.1em}
-#libBox summary::after{margin:0 4px 0 0}
-#libBox[open]>summary{margin-bottom:8px}
-#libBox[open]>summary::after{margin-top:3px}
 .mhead{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .mhead h3{margin:0}
 .lsstaff{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 4px;max-height:58vh;overflow-y:auto;overflow-x:hidden}
@@ -556,7 +554,19 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         </div>
         <div class="bmeta">
   <div class="bmsg"><p class="err" id="patErr" role="alert"></p><p class="err" id="routineErr" role="alert"></p><p class="hint" id="bStatus" aria-live="polite"></p></div>
-          <div class="bbtns"><button class="btn small iconbtn" id="bHelp" type="button" aria-label="Notation help" title="Notation help">?</button><button class="btn small iconbtn" id="bListen" type="button" aria-label="Listen to this exercise as clicks" title="Listen"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18 6.5a7.5 7.5 0 0 1 0 11"/></svg></button></div>
+          <div class="bbtns"><button class="btn small iconbtn" id="bListen" type="button" aria-label="Listen to this exercise as clicks" title="Listen"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18 6.5a7.5 7.5 0 0 1 0 11"/></svg></button></div>
+        </div>
+        <div class="nh typeonly">
+          <code>R L</code><span>right and left strokes</span>
+          <code>q 8 16 32</code><span>quarter to thirty-second notes</span>
+          <code>8t 16t</code><span>triplets</span>
+          <code>5t 7t</code><span>quintuplets, septuplets</span>
+          <code>_</code><span>rest</span>
+          <code>space</code><span>starts a new group</span>
+          <code>7/8 (3+2+2):</code><span>time signature, at the start of a line</span>
+          <code>x6 90s @70</code><span>passes, time, tempo, at the end of a line</span>
+          <p class="full">One exercise per line. <code>title:</code> <code>time:</code> <code>strokes:</code> <code>each:</code> lines set defaults. <code>#</code> starts a note.</p>
+          <p class="full more"><button class="linkbtn" type="button" data-help="help-format">Full routine format help &rarr;</button></p>
         </div>
         <div class="b-single buildonly"><button class="btn small addbtn" id="bAddEx1" type="button">+ Add exercise</button> <span class="hint">A second exercise makes this a routine.</span></div>
       </div>
@@ -630,12 +640,11 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 
   <!-- ===== Help ===== -->
   <div class="page help" id="pageHelp" role="region" aria-label="Help" hidden>
-    <div class="btns"><button class="btn small" id="helpBack" type="button">← Back</button></div>
-
     <section class="panel" id="help-how">
       <h3>How it works</h3>
       <p>The app plays a click at your tempo and listens to your pad through the microphone. It matches each hit you play to the stroke that was due, then measures how many milliseconds early (<b>leading</b>) or late (<b>dragging</b>) it was. Nothing is uploaded. Everything stays in this browser.</p>
       <p>Pick a sticking, press Start on the Play page, and play along with the moving line. Your strokes light up as you play, and the numbers appear when you stop.</p>
+      <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
 
     <section class="panel" id="help-start">
@@ -646,6 +655,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         <li><b>Play:</b> set the tempo and click level, then press Start. <b>Plays for</b> sets how long each exercise plays, in minutes or passes. The page controls hide while you play. After a count-in, play on the moving line. Press Stop when you are done. The page stays in focus mode and shows your result first, with <b>Again</b>, <b>Next tempo</b> (when you cleared the target) and <b>Done</b>. The staff below it keeps its colours and numbers so you can see which strokes were off. Press Done to bring the controls back.</li>
       </ol>
       <p>No microphone? In Settings, under Device, change Input to "Keyboard or pads". Press <b>F</b> for left and <b>J</b> for right. This is a test mode, and its timing is rougher than a microphone on a pad.</p>
+      <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
 
     <section class="panel" id="help-pages">
@@ -656,6 +666,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         <li><b>Settings:</b> <b>Preferences</b> has the on-time window, visual pulse and click volume. <b>Device</b> has the input, microphone level, stick calibration and latency. <b>Data</b> has export, import and clear.</li>
         <li><b>Stats:</b> three views. <b>History</b> lists your last runs by exercise or routine, with Replay. <b>Scores</b> shows each pattern and routine, weakest first, with its best cleared tempo. <b>Achievements</b> shows your practice days for the last four weeks, a streak that forgives one rest day a week, and your badges.</li>
       </ul>
+      <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
 
     <section class="panel" id="help-play">
@@ -669,6 +680,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         <li><b>On narrow screens</b> a busy pass wraps onto two lines at the barline so the notes stay roomy.</li>
         <li><b>Pause</b> stops the click. Resume counts you in again from the start of that pass. Tapping the notation while playing also pauses, and tapping it again resumes. <b>Restart</b> goes back to your chosen start exercise.</li>
       </ul>
+      <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
 
     <section class="panel" id="help-patterns">
@@ -706,6 +718,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         <p>A rest takes up time but no hit is expected. A hit during a rest counts as an extra hit.</p>
         <button class="btn small" type="button" data-try="single" data-text="16 R _ L _ R L _ L">Try it</button>
       </div>
+      <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
 
     <section class="panel" id="help-format">
@@ -796,6 +809,7 @@ LRLR LRLR LRLR LRLR  x8</pre>
       <p><b>Visual pulse</b> (in Settings, under Preferences) makes the moving line swell on every click, bigger on the first beat of each pass, so you can see the click as well as hear it. Turn it off for a plain moving line.</p>
       <h4>Loading a routine</h4>
       <p>Use <b>Save</b> to keep the routine as a .txt you can open again later. <b>Open</b> takes a link to a routine, or a .txt, .json or .csv file. <b>New</b> starts again with an empty pattern. JSON also works: a list such as <b>["RLRR LRLL", {"sticking":"RLRL RLRL","passes":16}]</b>, or an object with <b>title</b>, <b>each</b> and <b>exercises</b>.</p>
+      <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
 
     <section class="panel" id="help-library">
@@ -814,6 +828,7 @@ https://example.com/another-routine.txt</pre>
         <li>Each routine file is a routine in the normal format, with its own <b>title:</b> line if you like. Without one, the title from the list is added.</li>
         <li>The host has to allow other sites to read the file. GitHub's raw addresses do. Many other sites do not, and the app will say it could not reach the address.</li>
       </ul>
+      <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
 
     <section class="panel" id="help-scores">
@@ -829,6 +844,7 @@ https://example.com/another-routine.txt</pre>
         <li><b>Records are saved in this browser only.</b> Use Export to keep a copy or move to another device, and Import to bring one back. The app asks the browser to keep your records and reminds you to export a copy if you never have, or if the last one is two weeks old. On iPhone and iPad, Safari can clear a site's data after about a week without use, so add the page to your Home Screen.</li>
         <li><b>History:</b> on the Stats page, switch to History to see your last 300 runs, grouped by exercise or routine with the most recent group first. Tap a group for its runs, and a run for its exercises. <b>Replay</b> loads the same pattern or routine, tempo, click level and settings on the Play page, ready to start. A routine without a title is called Untitled 1, Untitled 2 and so on. The pencil renames it everywhere, in History and Scores. A title typed in the Editor replaces that name. <b>Delete</b> removes the run from your records. Runs older than the last 300 are folded into your totals, streaks, achievements and cleared tempos, which are kept for good, but they can no longer be replayed.</li>
       </ul>
+      <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
 
     <section class="panel" id="help-setup">
@@ -841,6 +857,7 @@ https://example.com/another-routine.txt</pre>
         <li><b>Latency:</b> sound reaches the page late, and the click reaches your ears late. Press Auto calibrate once on each device. It plays clicks through the speakers and times when the mic hears them, so you don't play. Calibrate by playing is the second choice: hit right on each click and keep going until the number settles, then stop (80 hits or more). It assumes you were on the click on average. You can also type a number.</li>
         <li><b>Click level:</b> Easy clicks on every stroke (none on rests). Medium clicks on every beat. Hard clicks on beats 1 and 3, or every second beat from the start of the bar. Extreme clicks only on the first beat of each bar. Count-in only clicks just the count-in and is not scored in your stats. Every level is scored against the same grid, and each level is cleared on its own. Use headphones, or the click will be picked up as strokes.</li>
       </ul>
+      <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
 
     <section class="panel" id="help-trouble">
@@ -851,6 +868,7 @@ https://example.com/another-routine.txt</pre>
         <li><b>Extra hits show up:</b> raise the trigger line, or use headphones for the click.</li>
         <li><b>Wrong-hand tags look random:</b> calibrate both sticks again on the same spot of the pad.</li>
       </ul>
+      <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
   </div>
 
@@ -1010,10 +1028,9 @@ https://example.com/another-routine.txt</pre>
       </div>
       <p class="err" id="openErr" role="alert"></p>
     </div>
-    <details class="osec" id="libBox"><summary class="olbl">Library</summary>
+    <div class="osec" id="libBox"><div class="olbl">Library</div>
       <div class="field">
-        <label for="libraryUrl">Library address</label>
-        <input type="text" id="libraryUrl" inputmode="url" autocomplete="off" autocorrect="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" spellcheck="false" placeholder="https://example.com/routines.list">
+        <input type="text" id="libraryUrl" aria-label="Library address" inputmode="url" autocomplete="off" autocorrect="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" spellcheck="false" placeholder="https://example.com/routines.list">
         <div class="btns">
           <button class="btn small" id="libGo" type="button">Load list</button>
           <button class="btn small" id="libClear" type="button">Remove</button>
@@ -1023,25 +1040,7 @@ https://example.com/another-routine.txt</pre>
       </div>
       <div class="exercises" id="libList" role="list" aria-label="Routines in the library" hidden></div>
       <p class="hint">A library is a text file that lists routine files, one per line. <button class="btn small" id="openHelp" type="button" data-help="help-library">Library help</button></p>
-    </details>
-  </div>
-</div>
-
-<div class="modal" id="nhModal" role="dialog" aria-modal="true" aria-label="Notation help" hidden>
-  <div class="mbox">
-    <div class="mhead"><h3>Notation</h3><button class="btn small" id="nhClose" type="button">Close</button></div>
-    <table class="nhtab">
-      <tr><td>R L</td><td>Right and left strokes</td></tr>
-      <tr><td>q 8 16 32</td><td>Quarter to thirty-second notes</td></tr>
-      <tr><td>8t 16t</td><td>Triplets</td></tr>
-      <tr><td>5t 7t</td><td>Quintuplets and septuplets</td></tr>
-      <tr><td>_</td><td>Rest</td></tr>
-      <tr><td>space</td><td>Starts a new group</td></tr>
-      <tr><td>7/8 (3+2+2):</td><td>Time signature and grouping, at the start</td></tr>
-      <tr><td>16 RLRL 8t RLR</td><td>A code applies until the next one</td></tr>
-      <tr class="routine-only"><td>x16 90s @100</td><td>Routine lines: passes, time, tempo</td></tr>
-    </table>
-    <button class="btn small routine-only" id="nhMore" type="button" data-help="help-format">Full routine format help</button>
+    </div>
   </div>
 </div>
 
@@ -1872,7 +1871,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.11.4';                           /* shown beside the title */
+const VERSION='0.13.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const CAL_N=12;
@@ -3117,7 +3116,6 @@ function goExercise(i,animate){
 }
 const TABS=['play','pattern','setup','progress'];
 const tabEl=n=>$('tab'+n[0].toUpperCase()+n.slice(1));
-let helpFrom='play';
 /* Edit on the Play page opens the Editor on what is loaded. */
 function editFromPlayPage(){
   if(run&&!run.ended)return;
@@ -3126,7 +3124,6 @@ function editFromPlayPage(){
   window.scrollTo(0,0);
 }
 function showTab(t){
-  if(t==='help'&&curTab!=='help')helpFrom=curTab;
   curTab=t;
   closeListen();
   $('pageHelp').hidden=t!=='help';
@@ -4311,20 +4308,13 @@ function wireBuilder(){
   $('rowMenu').addEventListener('click',e=>{if(e.target.closest('.btn'))closeMenu();});
   openRowMenu=idx=>{const b=$('editList').querySelector('.erow[data-idx="'+idx+'"] .dots');if(b)openMenu($('rowMenu'),b);};
   const om=$('openModal');
-  openOpen=()=>{if(run&&!run.ended)return;$('openErr').textContent='';om.hidden=false;ensureLibrary();renderLibrary();$('libBox').open=!!S.library;$('routineUrl').focus();};
+  openOpen=()=>{if(run&&!run.ended)return;$('openErr').textContent='';om.hidden=false;ensureLibrary();renderLibrary();$('routineUrl').focus();};
   closeOpen=()=>{if(om.hidden)return;om.hidden=true;$('openBtn').focus({preventScroll:true});};
   $('openBtn').addEventListener('click',openOpen);
   $('openClose').addEventListener('click',closeOpen);
   $('openHelp').addEventListener('click',()=>{om.hidden=true;});
   om.addEventListener('click',e=>{if(e.target===om)closeOpen();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!om.hidden)closeOpen();});
-  /* notation help sheet */
-  const nh=$('nhModal'),nhShut=()=>{nh.hidden=true;$('bHelp').focus({preventScroll:true});};
-  $('bHelp').addEventListener('click',()=>{nh.hidden=false;$('nhClose').focus();});
-  $('nhClose').addEventListener('click',nhShut);
-  $('nhMore').addEventListener('click',()=>{nh.hidden=true;});
-  nh.addEventListener('click',e=>{if(e.target===nh)nhShut();});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!nh.hidden)nhShut();});
   /* + Add exercise: after the last one in a routine. On a single pattern it becomes the first exercise of a routine. */
   /* A new exercise starts with the first exercise's time signature and note code, so it plays the same way until you change it. */
   const seed=lines=>{
@@ -4454,7 +4444,7 @@ function wire(){
     showTab('help');
     $(b.dataset.help).scrollIntoView({behavior:'auto',block:'start'});
   }));
-  $('helpBack').addEventListener('click',()=>{showTab(helpFrom);window.scrollTo(0,0);});
+  document.querySelectorAll('.totop button').forEach(b=>b.addEventListener('click',()=>window.scrollTo(0,0)));
   document.querySelectorAll('[data-try]').forEach(b=>b.addEventListener('click',()=>{
     if(run&&!run.ended)return;
     setRoutineText(b.dataset.text);
