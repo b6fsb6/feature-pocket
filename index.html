@@ -321,7 +321,6 @@ body[data-mode="routine"] .single-only{display:none}
 .ln textarea{display:block;border:0;border-radius:0;flex:1;min-width:0;white-space:pre;overflow:auto;background:transparent;outline:0}
 .mbox.scroll{overflow-y:auto}
 .totop{margin:0;text-align:right}
-body[data-edit=build] .typeonly{display:none}
 .nh{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
 .nh code{font:700 13px var(--font-data);color:var(--accent);white-space:nowrap}
 .nh .full{grid-column:1/-1;margin:0}
@@ -556,18 +555,6 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
   <div class="bmsg"><p class="err" id="patErr" role="alert"></p><p class="err" id="routineErr" role="alert"></p><p class="hint" id="bStatus" aria-live="polite"></p></div>
           <div class="bbtns"><button class="btn small iconbtn" id="bListen" type="button" aria-label="Listen to this exercise as clicks" title="Listen"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18 6.5a7.5 7.5 0 0 1 0 11"/></svg></button></div>
         </div>
-        <div class="nh typeonly">
-          <code>R L</code><span>right and left strokes</span>
-          <code>q 8 16 32</code><span>quarter to thirty-second notes</span>
-          <code>8t 16t</code><span>triplets</span>
-          <code>5t 7t</code><span>quintuplets, septuplets</span>
-          <code>_</code><span>rest</span>
-          <code>space</code><span>starts a new group</span>
-          <code>7/8 (3+2+2):</code><span>time signature, at the start of a line</span>
-          <code>x6 90s @70</code><span>passes, time, tempo, at the end of a line</span>
-          <p class="full">One exercise per line. <code>title:</code> <code>time:</code> <code>strokes:</code> <code>each:</code> lines set defaults. <code>#</code> starts a note.</p>
-          <p class="full more"><button class="linkbtn" type="button" data-help="help-format">Full routine format help &rarr;</button></p>
-        </div>
         <div class="b-single buildonly"><button class="btn small addbtn" id="bAddEx1" type="button">+ Add exercise</button> <span class="hint">A second exercise makes this a routine.</span></div>
       </div>
 
@@ -591,6 +578,18 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
           <button class="bkey sm wide" type="button" data-k="clear" aria-label="Clear the strokes of this exercise">clear</button>
         </div>
       </div>
+      <div class="nh">
+          <code>R L</code><span>right and left strokes</span>
+          <code>q 8 16 32</code><span>quarter to thirty-second notes</span>
+          <code>8t 16t</code><span>triplets</span>
+          <code>5t 7t</code><span>quintuplets, septuplets</span>
+          <code>_</code><span>rest</span>
+          <code>space</code><span>starts a new group</span>
+          <code>7/8 (3+2+2):</code><span>time signature, at the start of a line</span>
+          <code>x6 90s @70</code><span>passes, time, tempo, at the end of a line</span>
+          <p class="full">One exercise per line. <code>title:</code> <code>time:</code> <code>strokes:</code> <code>each:</code> lines set defaults. <code>#</code> starts a note.</p>
+          <p class="full more"><button class="linkbtn" type="button" data-help="help-format">Full routine format help &rarr;</button></p>
+        </div>
     </section>
 
   </div>
@@ -1871,7 +1870,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.13.0';                           /* shown beside the title */
+const VERSION='0.13.2';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CHIPS=['RLRL RLRL RLRL RLRL','LRLR LRLR LRLR LRLR','RRLL RRLL RRLL RRLL','LLRR LLRR LLRR LLRR','RLRR LRLL RLRR LRLL'];
 const CAL_N=12;
