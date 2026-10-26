@@ -1971,7 +1971,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.28.0';                           /* shown beside the title */
+const VERSION='0.28.1';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2535,11 +2535,12 @@ function restartRun(){
   beginRun('play',r.only);
 }
 /* Starts a practice run. With a list of exercise numbers it plays only those exercises. */
-/* Starting from further down the page scrolls back to the top, where the staff sits in the run layout. It returns whether the page had to move. */
+/* Starting from further down the page goes back to the top, where the staff sits in the run layout. It returns whether the page was scrolled.
+   The run layout hides most of the page, and phone browsers then pull the scroll position back on their own and cancel a smooth scroll, so this jumps and jumps again once the page has settled. */
 function revealStaff(){
-  if(scrollY<=0)return false;
-  const reduce=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  scrollTo({top:0,behavior:reduce?'auto':'smooth'});
+  if(!(scrollY>0))return false;
+  const top=()=>{document.documentElement.scrollTop=0;document.body.scrollTop=0;scrollTo(0,0);};
+  top();requestAnimationFrame(()=>{top();requestAnimationFrame(top);});setTimeout(top,120);setTimeout(top,400);
   return true;
 }
 async function startPlay(only){
