@@ -246,8 +246,8 @@ svg.spark{display:block;overflow:visible}
 .hist h4{margin:10px 0 0;font-size:13px;color:var(--muted);font-weight:600}
 .hrow{border:1px solid var(--line);border-radius:10px;background:var(--surface)}
 .hrow summary,.hrow .sm{cursor:pointer;padding:10px 118px 10px 12px;display:grid;gap:2px;font:400 16px var(--font-body);letter-spacing:normal;text-transform:none;position:relative}
-.hrow summary::after{position:absolute;right:14px;top:14px;margin:0}
-.hrow[open]>summary::after{margin:0;top:19px}
+.hrow summary::after{position:absolute;right:14px;top:calc(50% - 8px);margin:0}
+.hrow[open]>summary::after{margin:0;top:calc(50% - 2px)}
 .hrow .hn{font:700 17px var(--font-data);letter-spacing:.06em;overflow-wrap:anywhere}
 .hrow .hs{font-size:13px;color:var(--muted)}
 .hrow.flat .sm{cursor:default;padding-right:92px}
@@ -2099,7 +2099,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.37.0';                           /* shown beside the title */
+const VERSION='0.37.1';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
