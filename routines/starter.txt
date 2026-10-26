@@ -1,6 +1,6 @@
 # Starter routines for Stick Timing Trainer. Routines are split by lines of dashes.
 ---
-title: Singles and doubles
+title: Starter - Singles and doubles
 each: x8
 RLRL RLRL RLRL RLRL
 LRLR LRLR LRLR LRLR
@@ -8,33 +8,33 @@ RRLL RRLL RRLL RRLL
 LLRR LLRR LLRR LLRR
 RRLL RLRL RRLL RLRL
 ---
-title: Paradiddles
+title: Starter - Paradiddles
 each: x8
 RLRR LRLL RLRR LRLL
 LRLL RLRR LRLL RLRR
 RLLR LRRL RLLR LRRL
 16t RLRRLL RLRRLL RLRRLL RLRRLL
 ---
-title: Triplets
+title: Starter - Triplets
 each: x8
 8t RLR LRL RLR LRL
 8t RLL RRL RLL RRL
 8t RRL LLR RRL LLR
 ---
-title: Sixteenths and triplets
+title: Starter - Sixteenths and triplets
 each: x6
 16 RLRL 16t RLR LRL 16 RLRL 16t RLR LRL
 16 RRLL 16t RLR LRL 16 RRLL 16t RLR LRL
 16 RLRR 16t RLR LRL 16 LRLL 16t LRL RLR
 ---
-title: Rests
+title: Starter - Rests
 each: x8
 16 R _ L _ R _ L _
 16 R L _ R L _ R L
 16 R _ _ L _ _ R L
 16 R R _ L L _ R L
 ---
-title: Odd meters
+title: Starter - Odd meters
 each: x8
 time: 7/8
 RLRLRLR
@@ -46,7 +46,7 @@ RLRLRLRLRLRL
 time: 5/4
 RLRLR
 ---
-title: Cut time
+title: Starter - Cut time
 each: x8
 time: 2/2
 strokes: 8
