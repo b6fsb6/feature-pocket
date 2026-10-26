@@ -1971,7 +1971,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.27.0';                           /* shown beside the title */
+const VERSION='0.27.1';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -4352,7 +4352,7 @@ let lib={items:[],loaded:false,busy:false,cur:''},libMode='';   /* libMode: '' |
 const itemKey=it=>textKey(setHeader(it.text,'title','').trim(),S.subdiv);
 const inLib=it=>{const k=itemKey(it);return !!k&&!!libFor(k);};
 const curList=()=>S.lists.find(l=>l.url===S.listSel)||null;
-const listName=l=>{if(l.name)return l.name;try{const u=new URL(l.url);return u.host+u.pathname.replace(/\/[^\/]*\.[a-z0-9]+$/i,'').replace(/\/$/,'');}catch(e){return l.url;}};
+const listName=l=>{if(l.name)return l.name;try{const u=new URL(l.url);let f=decodeURIComponent(u.pathname.split('/').filter(Boolean).pop()||'').replace(/\.[a-z0-9]+$/i,'');return f||u.host;}catch(e){return l.url;}};
 const addMode=()=>libMode==='add'||!S.lists.length;
 function renderLibrary(){
   const box=$('libList'),sel=$('libSel'),cl=curList(),add=addMode(),ren=libMode==='rename'&&!!cl;
