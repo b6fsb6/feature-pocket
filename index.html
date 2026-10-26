@@ -52,7 +52,7 @@ h3{font:600 12px var(--font-body);letter-spacing:.09em;text-transform:uppercase;
 .transport{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center}
 .status{font:400 13px/1.4 var(--font-data);color:var(--muted);margin:0}
 .status:empty{display:none}
-.btn{font:600 15px var(--font-body);border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 14px;cursor:pointer;min-height:44px}
+.btn{font:600 14px var(--font-body);border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer;min-height:40px}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .btn.small{min-height:40px;padding:6px 12px;font-size:14px}
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent;min-width:140px;min-height:58px;font:800 24px var(--font-display);letter-spacing:.07em;text-transform:uppercase}
@@ -68,7 +68,7 @@ input[type=range]{width:100%;accent-color:var(--accent);min-height:32px}
 #pattern{font:600 24px var(--font-data);letter-spacing:.1em;text-transform:uppercase}
 .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
 .tempo{display:grid;grid-template-columns:44px 1fr 44px;gap:8px;align-items:center}
-.tempo .btn{padding:0;font-size:22px}
+.tempo .btn{padding:0;font-size:22px;min-height:44px}
 .tc{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.6fr);gap:12px;align-items:end}
 .tc select{font-size:14px;padding-left:8px;padding-right:4px}
 .tc .tempo{grid-template-columns:36px 1fr 36px;gap:4px}
@@ -77,7 +77,7 @@ input[type=range]{width:100%;accent-color:var(--accent);min-height:32px}
 .panel>p:empty,.panel>ul:empty{display:none}   /* empty message slots would add a grid gap each */
 .hint{font-size:13px;color:var(--muted);margin:0}
 .notice{font-size:14px;margin:8px 0 0;padding:8px 12px;border:1px solid var(--accent);border-left-width:4px;border-radius:8px;background:var(--surface)}
-.linkbtn{font:inherit;font-weight:600;color:var(--accent);background:none;border:0;padding:6px 2px;text-decoration:underline;cursor:pointer;min-height:36px}
+.linkbtn{font:600 15px var(--font-body);color:var(--accent);background:none;border:0;padding:8px 2px;text-decoration:none;cursor:pointer;min-height:40px}
 body[data-run="1"] .notice{display:none}
 
 .hand{width:26px;height:26px;display:grid;place-items:center;border-radius:50%;font:800 20px/1 var(--font-display)}
@@ -237,7 +237,10 @@ svg.spark{display:block;overflow:visible}
 .pv[hidden]{display:none}
 #pvHist section{display:grid;gap:14px}
 #recMsg.flash{color:var(--ink);font-weight:700}
-.hfilter .pill.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.seg{display:inline-flex;width:fit-content;justify-self:start;align-self:flex-start;margin:4px 8px 10px 0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface);vertical-align:top}
+.seg button{background:none;border:0;border-left:1px solid var(--line);color:var(--muted);min-height:40px;padding:0 16px;font:700 13px var(--font-body);cursor:pointer}
+.seg button:first-child{border-left:0}
+.seg button.on{color:var(--ink);background:var(--bg);box-shadow:inset 0 -2px 0 var(--accent)}
 #pvHist section>*{margin:0}
 .hist{display:grid;gap:6px}
 .hist h4{margin:10px 0 0;font-size:13px;color:var(--muted);font-weight:600}
@@ -254,7 +257,7 @@ svg.spark{display:block;overflow:visible}
 .hrow .ha{position:absolute;right:38px;top:50%;transform:translateY(-50%);display:flex;gap:2px}
 .hrow.flat .ha{right:8px}
 .ib{border:0;background:transparent;color:var(--muted);min-width:40px;height:40px;border-radius:8px;display:grid;place-items:center;cursor:pointer;font:700 12px var(--font-body);padding:0 6px}
-.ib.replay{color:var(--accent)}
+.ib.replay,.ib.play{color:var(--accent)}
 .ib:disabled{opacity:.35;cursor:not-allowed}
 .btn.arm{color:var(--late);border-color:var(--late)}
 .ib.del.arm{color:var(--late);border:1px solid var(--late);padding:0 8px}
@@ -282,7 +285,8 @@ svg.spark{display:block;overflow:visible}
 .ac.ok{color:var(--ok)} .ac.late{color:var(--late)} .ac.muted{color:var(--muted)}
 .lrow .ar{color:var(--muted);font-size:22px;line-height:1}
 .rp{display:grid;gap:4px}
-.rp .back{justify-self:start;background:none;border:0;color:var(--accent);font:600 15px var(--font-body);padding:6px 0;cursor:pointer}
+
+.rp .back{justify-self:start;padding-left:0}
 .rp h2{margin:0;font-size:20px;line-height:1.25} .rp h2.seq{font-size:16px}
 .rp .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0 4px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 8px;text-align:center}
 .rp .stats .v{font:700 20px var(--font-data)} .rp .stats .k{font:600 11px var(--font-body);letter-spacing:.08em;color:var(--muted);margin-top:2px}
@@ -297,9 +301,8 @@ svg.spark{display:block;overflow:visible}
 .rp .exr .seq,.rp .wr .seq{font:700 13px/1.5 var(--font-data);letter-spacing:.05em}
 .rp .sn{display:flex;flex-wrap:wrap;gap:2px 14px;font:13px var(--font-data);font-variant-numeric:tabular-nums} .rp .sn small{color:var(--muted);font:11px var(--font-body);margin-left:3px}
 .rp .sn .ok{color:var(--ok)} .rp .sn .late{color:var(--late)} .rp .sn .early{color:var(--early)} .rp .sn .muted{color:var(--muted)}
-.rp .actions{margin-top:20px;display:grid;gap:10px}
-.rp .two{display:flex;gap:10px} .rp .two .btn{flex:1}
-.rp .del{background:none;border:0;color:var(--late);font:600 13px var(--font-body);padding:14px 0 4px;margin-top:6px;border-top:1px solid var(--line);cursor:pointer}
+.rp .btn.main{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:700}
+.rp .actions{margin-top:18px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .hint.hl{margin:2px 0 0}
 .srow .nt{font:12px var(--font-body);color:var(--muted)} .srow .nt.go{color:var(--ok)}
 .srow{gap:8px;padding:14px 2px}
@@ -448,7 +451,7 @@ td.seq{letter-spacing:.08em;font-weight:600}
 td.early{color:var(--early)} td.late{color:var(--late)} td.ok{color:var(--ok)} td.muted{color:var(--muted)}
 .headbtns{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto;justify-content:flex-end}
 #themeBtn{font-size:15px;line-height:1;padding:3px 9px}
-button.pill{cursor:pointer;color:var(--ink);font-weight:700}
+button.pill{cursor:pointer;color:var(--ink);font-weight:700;min-height:32px;padding:6px 12px}
 button.pill:disabled{opacity:.5;cursor:not-allowed}
 button.pill.on{color:var(--ok)}
 button.pill.warn{color:var(--accent);border-color:var(--accent)}
@@ -601,7 +604,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
     </section>
     <section class="panel" aria-label="Your routines">
       <h3>Your routines</h3>
-      <div class="btns hfilter" role="group" aria-label="Sort by"><button class="pill on" id="lsRecent" type="button" aria-pressed="true">Recent</button><button class="pill" id="lsName" type="button" aria-pressed="false">Name</button></div>
+      <div class="seg hfilter" role="group" aria-label="Sort by"><button class="on" id="lsRecent" type="button" aria-pressed="true">Recent</button><button id="lsName" type="button" aria-pressed="false">Name</button></div>
       <div class="hist" id="libPage"></div>
       <p class="hint" id="libEmpty" hidden>Nothing saved yet. New starts a routine. Import brings one in from a file, a link or a shared list.</p>
     </section>
@@ -759,21 +762,21 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <p class="hint hl"><b>ms</b> lead (&minus;) or drag (+), against your usual</p>
       <p class="hint hl"><b>dB</b> loudness spread, lower is more even</p>
     </section>
-    <section class="panel" aria-label="Rudiments">
+    <section class="panel" aria-label="Rudiments" id="scoreEx">
       <h3>Exercises</h3>
       <p class="hint" id="progHint"></p>
       <div class="hist" id="patGroups"></div>
     </section>
-    <section class="panel" aria-label="Routines">
+    <section class="panel" aria-label="Routines" id="scoreRt">
       <h3>Routines</h3>
       <div class="slist" id="rtList"></div>
     </section>
     </div>
     <div class="pv" id="pvHist">
       <section aria-label="History">
-        <div class="btns hfilter" role="group" aria-label="View"><button class="pill on" id="hvDay" type="button" aria-pressed="true">By day</button><button class="pill" id="hvEx" type="button" aria-pressed="false">By exercise</button></div>
+        <div class="seg hfilter" role="group" aria-label="View"><button class="on" id="hvDay" type="button" aria-pressed="true">By day</button><button id="hvEx" type="button" aria-pressed="false">By exercise</button></div>
         <p class="hint" id="histHint"></p>
-        <div class="btns hfilter" role="group" aria-label="Show"><button class="pill on" id="hfAll" type="button" aria-pressed="true">All</button><button class="pill" id="hfSaved" type="button" aria-pressed="false">Saved</button></div>
+        <div class="seg hfilter" role="group" aria-label="Show"><button class="on" id="hfAll" type="button" aria-pressed="true">All</button><button id="hfSaved" type="button" aria-pressed="false">Saved</button></div>
         <div class="hist" id="histList"></div>
         <div class="btns"><button class="btn small" id="histMore" type="button" hidden>Show more</button></div>
       </section>
@@ -805,7 +808,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <ul>
         <li><b>Play:</b> how long it plays, tempo, click level, Start, Pause, Restart and Stop, the notation, the lead/drag gauge and your results. With a routine loaded, scroll or swipe the rows (or press ↑ ↓) to choose which exercise to start at.</li>
         <li><b>Library:</b> your saved routines, each with Edit and Play. <b>New</b> starts a routine and <b>Import</b> adds one from a file, a link or a shared list. <b>Export</b> saves your whole library as one file, which Import reads back in one go and which can also be hosted as a shared list. What you are working on is the <b>scratch pad</b>: it is kept as you type, but a saved routine only changes when you press Save in the editor. The app asks before you open another routine and lose unsaved work. The editor opens full screen from Edit on the Play page or in the Library, and Back returns you.</li>
-        <li><b>Stats:</b> three views. <b>History</b> lists your last runs by exercise or routine, with Replay. <b>Scores</b> shows each exercise, weakest first, and each routine, with tempo, accuracy, trend, lead or drag and evenness. <b>Achievements</b> shows your practice days for the last four weeks, a streak that forgives one rest day a week, and your badges.</li>
+        <li><b>Stats:</b> three views. <b>History</b> lists your last runs by exercise or routine, with Play. <b>Scores</b> shows each exercise, weakest first, and each routine, with tempo, accuracy, trend, lead or drag and evenness. <b>Achievements</b> shows your practice days for the last four weeks, a streak that forgives one rest day a week, and your badges.</li>
         <li><b>Settings:</b> <b>Preferences</b> has the on-time window, visual pulse and click volume, and the colours. <b>Device</b> has the input, microphone level, stick calibration and latency. <b>Data</b> has export, import and clear.</li>
       </ul>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
@@ -978,11 +981,11 @@ RLRR LRLL RLRR LRLL</pre>
         <li><b>Exercise table:</b> after a routine run, each exercise gets its own accuracy, average error and spread, plus your earlier best at that tempo.</li>
         <li><b>The target is 90%.</b> An exercise is "cleared" at a tempo when it reaches 90% there. After a run the app says whether every exercise cleared, and suggests +4 BPM if so. Otherwise it names the weak exercises and suggests staying at the same tempo. These are only suggestions. Any tempo is always allowed.</li>
         <li><b>Discard this run</b> removes a run from your records, for example after a bad microphone read.</li>
-        <li><b>Stats page:</b> every exercise, weakest first, with accuracy at the tempo you last played, a trend and your lead/drag bias, grouped by click level. "Practise" loads that exercise. A routine counts as cleared at a tempo when one run covered every exercise and all reached 90%.</li>
+        <li><b>Stats page:</b> every exercise, weakest first, with accuracy at the tempo you last played, a trend and your lead/drag bias, grouped by click level. The play button loads that exercise. A routine counts as cleared at a tempo when one run covered every exercise and all reached 90%.</li>
         <li><b>Practise weak exercises.</b> After a routine run, a button plays only the exercises that were below the target. Restart repeats the same exercises. A run of only some exercises never counts as clearing the routine.</li>
         <li><b>Tempo guidance.</b> Each exercise in the start list shows the tempo it has cleared, or "new". The summary shows the tempo at which the whole routine has been cleared.</li>
         <li><b>Records are saved in this browser only.</b> Use Export to keep a copy or move to another device, and Import to bring one back. The app asks the browser to keep your records and reminds you to export a copy if you never have, or if the last one is two weeks old. On iPhone and iPad, Safari can clear a site's data after about a week without use, so add the page to your Home Screen.</li>
-        <li><b>History:</b> on the Stats page, switch to History to see your last 300 runs, grouped by exercise or routine with the most recent group first. Tap a group for its runs, and a run for its exercises. <b>Replay</b> loads the same pattern or routine, tempo, click level and settings on the Play page, ready to start. A routine without a title is called Untitled 1, Untitled 2 and so on. The pencil renames it everywhere, in History and Scores. A title typed in the Editor replaces that name. <b>Delete</b> removes the run from your records. Runs older than the last 300 are folded into your totals, streaks, achievements and cleared tempos, which are kept for good, but they can no longer be replayed.</li>
+        <li><b>History:</b> on the Stats page, switch to History to see your last 300 runs, grouped by exercise or routine with the most recent group first. Tap a group for its runs, and a run for its exercises. <b>Play</b> loads the same pattern or routine, tempo, click level and settings on the Play page, ready to start. A routine without a title is called Untitled 1, Untitled 2 and so on. The pencil renames it everywhere, in History and Scores. A title typed in the Editor replaces that name. <b>Delete</b> removes the run from your records. Runs older than the last 300 are folded into your totals, streaks, achievements and cleared tempos, which are kept for good, but they can no longer be replayed.</li>
       </ul>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
@@ -2096,7 +2099,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.35.2';                           /* shown beside the title */
+const VERSION='0.37.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -3834,25 +3837,46 @@ function syncData(){
   $('recMsg').textContent=recs.runs.length+(recs.runs.length===1?' run':' runs')+' in history, '+(recs.runs.length+recs.sum.runs)+' in all.';
   syncBackup();
 }
-/* Scores by click level, each level its own collapsible group. The first level with scores starts open, then your choices stick. */
-let scoreOpen=null;
+/* Scores by click level: one row per level, and a level opens to its own page of exercises, weakest first. */
+let scoreLevel=null;
 function renderScoreGroups(stats,practise,usual){
   const box=$('patGroups');box.textContent='';
-  if(!stats.length){const p=document.createElement('p');p.className='hint';p.textContent='No exercises scored yet.';box.appendChild(p);return;}
   const levels=LEVELS.map(l=>({v:l.v,n:l.n})).concat([...new Set(stats.map(x=>x.lv))].filter(v=>!LEVELS.some(l=>l.v===v)).map(v=>({v:v,n:levelName(v)})));
-  levels.forEach(l=>{
-    const rows=stats.filter(x=>x.lv===l.v);
-    if(!rows.length)return;
-    if(scoreOpen===null)scoreOpen=new Set([l.v]);
-    const det=document.createElement('details');det.className='hrow hgrp';det.open=scoreOpen.has(l.v);
-    det.addEventListener('toggle',()=>{if(det.open)scoreOpen.add(l.v);else scoreOpen.delete(l.v);});
-    const sm=document.createElement('summary');
-    const n=document.createElement('span');n.className='hn';n.textContent=l.n;
-    const st=document.createElement('span');st.className='hs';
-    st.textContent=rows.length+(rows.length===1?' exercise':' exercises');
-    sm.appendChild(n);sm.appendChild(st);det.appendChild(sm);
-    const body=document.createElement('div');body.className='hb hg';
-    const list=document.createElement('div');list.className='slist';
+  const cur=scoreLevel&&levels.find(l=>l.v===scoreLevel&&stats.some(x=>x.lv===l.v));
+  if(!cur)scoreLevel=null;
+  const page=!!cur;
+  ['scoreSumBox','scoreNextBox','scoreKey','scoreRt'].forEach(id=>{if(page)$(id).hidden=true;});
+  if(!page)$('scoreRt').hidden=false;
+  document.querySelector('#scoreEx>h3').hidden=page;
+  if(!stats.length){const p=document.createElement('p');p.className='hint';p.textContent='No exercises scored yet.';box.appendChild(p);return;}
+  const mean=a=>{a=a.filter(v=>!isNaN(v));return a.length?a.reduce((x,y)=>x+y,0)/a.length:NaN;};
+  const clearedN=rows=>rows.filter(x=>x.cleared&&x.cleared>=x.bpm).length;
+  if(!page){
+    const panel=document.createElement('div');panel.className='dayp';
+    levels.forEach(l=>{
+      const rows=stats.filter(x=>x.lv===l.v);
+      if(!rows.length)return;
+      const weakest=Math.min.apply(null,rows.map(x=>x.recent));
+      panel.appendChild(listRow(l.n,false,rows.length+(rows.length===1?' exercise':' exercises')+' \u00B7 '+clearedN(rows)+' cleared \u00B7 weakest '+Math.round(weakest*100)+'%','',mean(rows.map(x=>x.recent)),()=>{scoreLevel=l.v;renderProgress();scrollTo(0,0);}));
+    });
+    box.appendChild(panel);
+    return;
+  }
+  const rows=stats.filter(x=>x.lv===cur.v);
+  const wrap=document.createElement('div');wrap.className='rp';
+  const back=document.createElement('button');back.type='button';back.className='linkbtn back';back.textContent='\u2039 Scores';
+  back.addEventListener('click',()=>{scoreLevel=null;renderProgress();});wrap.appendChild(back);
+  const h=document.createElement('h2');h.textContent='Exercises \u00B7 '+cur.n;wrap.appendChild(h);
+  const sb=document.createElement('div');sb.className='sb';sb.textContent=rows.length+(rows.length===1?' exercise':' exercises')+' \u00B7 last 3 runs at the tempo you played most recently';wrap.appendChild(sb);
+  const acc=accHtml(mean(rows.map(x=>x.recent))),ms=mean(rows.map(x=>x.bias)),db=mean(rows.map(x=>x.even));
+  const stt=document.createElement('div');stt.className='stats';
+  stt.appendChild(statBox(acc[0].replace(' \u2713',''),'ACC',acc[1]));
+  stt.appendChild(statBox(clearedN(rows)+' / '+rows.length,'CLEARED'));
+  stt.appendChild(statBox(isNaN(ms)?'\u2014':fmtMs(ms,1),'ms',isNaN(ms)?'muted':biasCls(ms)));
+  stt.appendChild(statBox(isNaN(db)?'\u2014':'\u00B1'+db.toFixed(1),'dB'));
+  wrap.appendChild(stt);
+  const lb=document.createElement('div');lb.className='lbl';lb.textContent='Weakest first';wrap.appendChild(lb);
+  const list=document.createElement('div');list.className='slist';
     rows.forEach(x=>{
       const row=document.createElement('div');row.className='srow';
       const q=document.createElement('div');q.className='sq';
@@ -3877,24 +3901,20 @@ function renderScoreGroups(stats,practise,usual){
       const nt=document.createElement('div');nt.className='nt'+(done?' go':'');nt.textContent=bits.join(' \u00B7 ');row.appendChild(nt);
       list.appendChild(row);
     });
-    body.appendChild(list);det.appendChild(body);box.appendChild(det);
-  });
+  wrap.appendChild(list);box.appendChild(wrap);
 }
-/* A routine scores like an exercise: tempo, accuracy, trend, lead or drag and evenness, with when it was cleared underneath. */
+/* Routine rows: same figures as exercises, one row per routine and level. */
 function renderRoutineRows(routines,replay){
   const box=$('rtList');box.textContent='';
-  if(!routines.length){const p=document.createElement('p');p.className='hint';p.textContent='No routine runs yet.';box.appendChild(p);return;}
+  if(!routines.length){const p=document.createElement('p');p.className='hint';p.textContent='No routines scored yet.';box.appendChild(p);return;}
   routines.forEach(x=>{
     const row=document.createElement('div');row.className='srow';
     const q=document.createElement('div');q.className='sq';
-    const seq=document.createElement('span');seq.className='seq';seq.textContent=routineName(x.rk);
-    q.appendChild(seq);q.appendChild(replay(x));row.appendChild(q);
-    const sub=document.createElement('div');sub.className='hint';
-    sub.textContent=levelName(x.lv)+(x.dy?' \u00B7 '+dynText(x.dy):'')+' \u00B7 '+x.ne+(x.ne===1?' exercise':' exercises')+' \u00B7 '+x.runs+(x.runs===1?' run':' runs')+' \u00B7 '+(x.cleared?'cleared at '+x.cleared+' BPM':'not cleared yet')+' \u00B7 '+fmtDate(x.t);
-    row.appendChild(sub);
+    const t=document.createElement('span');t.className='seq';t.textContent=routineName(x.rk);
+    q.appendChild(t);q.appendChild(replay(x));row.appendChild(q);
     const n=document.createElement('div');n.className='sn';
     const stat=(txt,unit,cls)=>{const e=document.createElement('span');if(cls)e.className=cls;e.textContent=txt;if(unit){const u=document.createElement('small');u.textContent=unit;e.appendChild(u);}n.appendChild(e);};
-    if(x.bpm===null)stat('Older runs are kept as totals only.','','muted');
+    if(x.bpm===null){stat('\u2014','ACC','muted');}
     else{
       const acc=accCell(x.recent);
       stat(String(x.bpm),'BPM');stat(acc[0],'ACC',acc[1]);
@@ -3903,7 +3923,14 @@ function renderRoutineRows(routines,replay){
       stat(isNaN(x.bias)?'\u2014':fmtMs(x.bias,1),'ms',biasCls(x.bias));
       stat(isNaN(x.even)?'\u2014':'\u00B1'+x.even.toFixed(1),'dB');
     }
-    row.appendChild(n);box.appendChild(row);
+    row.appendChild(n);
+    const bits=[levelName(x.lv)];
+    if(x.dy)bits.push(dynText(x.dy));
+    bits.push(x.ne+(x.ne===1?' exercise':' exercises'));
+    bits.push(x.runs+(x.runs===1?' run':' runs'));
+    if(x.cleared)bits.push('Cleared at '+x.cleared+' BPM.');
+    const nt=document.createElement('div');nt.className='nt'+(x.cleared&&x.bpm!==null&&x.cleared>=x.bpm?' go':'');nt.textContent=bits.join(' \u00B7 ');row.appendChild(nt);
+    box.appendChild(row);
   });
 }
 /* Your usual lead or drag: the average bias over the exercises scored. Rows show their bias against it. */
@@ -3932,8 +3959,7 @@ function renderScoreSummary(stats){
     const a=document.createElement('div');a.className='seq';a.textContent=showKey(x.k)+(x.dy?' \u00B7 '+dynText(x.dy):'');
     const b=document.createElement('div');b.className='nt';b.textContent=Math.round(x.recent*100)+'% at '+x.bpm+' BPM'+(i===0?' \u00B7 weakest':'');
     t.appendChild(a);t.appendChild(b);r.appendChild(t);
-    const btn=document.createElement('button');btn.type='button';btn.className='btn small';btn.textContent='Practise';
-    btn.addEventListener('click',()=>practisePattern(x.k,x.lv,x.dy));r.appendChild(btn);box.appendChild(r);
+    r.appendChild(iconBtn('play','Play this exercise',()=>practisePattern(x.k,x.lv,x.dy)));box.appendChild(r);
   });
   nx.appendChild(box);
 }
@@ -3942,10 +3968,10 @@ function renderProgress(){
   const stats=patStats(recs.runs,recs.sum),routines=routineStats(recs.runs,recs.sum);
   $('progHint').textContent=stats.length?'':'Nothing yet. Play an exercise or a routine and each exercise\'s score shows up here, so you can see which rudiments need work.';
   $('scoreKey').hidden=!stats.length&&!routines.length;
-  const practise=(k,lv,dy)=>iconBtn('replay','Practise this exercise',()=>practisePattern(k,lv,dy));
+  const practise=(k,lv,dy)=>iconBtn('play','Play this exercise',()=>practisePattern(k,lv,dy));
   /* A routine is replayed from its newest run at that level, while that run's text is still kept. */
   const replayRoutine=x=>{const r=recs.runs.slice().reverse().find(q=>q.rk===x.rk&&q.lv===x.lv&&(q.dy||'')===(x.dy||''));
-    if(r)return replayBtn(r);const b=iconBtn('replay','Replay',()=>{});b.disabled=true;b.title='This routine was saved without its text.';return b;};
+    if(r)return replayBtn(r);const b=iconBtn('play','Play',()=>{});b.disabled=true;b.title='This routine was saved without its text.';return b;};
   renderScoreSummary(stats);
   renderScoreGroups(stats,practise,scoreUsual(stats));
   renderRoutineRows(routines,replayRoutine);
@@ -3979,7 +4005,7 @@ function iconBtn(kind,label,fn){
   const b=document.createElement('button');b.type='button';b.className='ib '+kind;b.innerHTML=ICON[kind];b.setAttribute('aria-label',label);b.title=label;
   b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();fn(b);});return b;
 }
-const replayBtn=r=>{const b=iconBtn('replay','Replay',()=>replayRun(r));if(!r.rp){b.disabled=true;b.title='This run was saved without its text.';}return b;};
+const replayBtn=r=>{const b=iconBtn('play','Play',()=>replayRun(r));if(!r.rp){b.disabled=true;b.title='This run was saved without its text.';}return b;};
 /* Renames a routine in place. One name is kept for the routine, so every run and score row shows it. */
 /* The bookmark on a History row: saved routines are filled. Tapping saves it (from its latest run's text) or removes it from the library. */
 function markBtn(key,text){
@@ -4050,7 +4076,7 @@ function runMeta(r,withTime){
   const bits=[];
   if(withTime)bits.push(new Date(r.t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}));
   bits.push(r.lv==='off'?'Count-in only':levelName(r.lv));
-  if(r.mode==='routine'&&r.ne>1)bits.push(r.ne+' exercises');
+  if(r.mode==='routine'&&r.ne>1){const n=r.exercises.length;bits.push((n<r.ne?n+' of '+r.ne:r.ne)+' exercises');}   /* a partial run says how many were played */
   bits.push(r.bpm+' BPM');
   const m=runMins(r);if(m)bits.push(m);
   return bits.join(' · ');
@@ -4119,12 +4145,12 @@ function renderHistoryDays(){
   $('histMore').hidden=days.length<=histDays;
 }
 function statBox(txt,unit,cls){const d=document.createElement('div');const v=document.createElement('div');v.className='v'+(cls?' '+cls:'');v.textContent=txt;const k=document.createElement('div');k.className='k';k.textContent=unit;d.appendChild(v);d.appendChild(k);return d;}
-function actBtn(label,fn,primary,icon){const b=document.createElement('button');b.type='button';b.className='btn'+(primary?' primary':'');if(icon){b.innerHTML=ICON[icon];}b.appendChild(document.createTextNode((icon?' ':'')+label));b.addEventListener('click',fn);return b;}
+function actBtn(label,fn,primary,icon){const b=document.createElement('button');b.type='button';b.className='btn small'+(primary?' main':'');if(icon){b.innerHTML=ICON[icon];}b.appendChild(document.createTextNode((icon?' ':'')+label));b.addEventListener('click',fn);return b;}
 /* The page of one run: overall figures, then for a routine the strip, the weakest and every exercise played. */
 function renderRunPage(r){
   const box=$('histList');box.textContent='';
   const page=document.createElement('div');page.className='rp';
-  const back=document.createElement('button');back.type='button';back.className='back';back.textContent='‹ '+(histStack.length>1?'Back':'History');
+  const back=document.createElement('button');back.type='button';back.className='linkbtn back';back.textContent='‹ '+(histStack.length>1?'Back':'History');
   back.addEventListener('click',backHist);page.appendChild(back);
   const t=runTitle(r),key=r.mode==='routine'?(r.rk||''):r.exercises[0].k,off=r.lv==='off';
   const h=document.createElement('h2');h.className=t.mono?'seq':'';h.textContent=t.text;page.appendChild(h);
@@ -4172,21 +4198,15 @@ function renderRunPage(r){
     if(sk){const e=document.createElement('div');e.className='sb';e.style.padding='8px 0';e.textContent=sk+(sk===1?' exercise was':' exercises were')+' not played and '+(sk===1?'is':'are')+' not listed.';page.appendChild(e);}
   }
   const acts=document.createElement('div');acts.className='actions';
-  acts.appendChild(actBtn('Replay',()=>replayRun(r),true,'replay'));
+  acts.appendChild(actBtn('Play',()=>replayRun(r),true));
   if(!r.rp)acts.lastChild.disabled=true;
-  const two=document.createElement('div');two.className='two';
+  const two=acts;
   if(!off){
     const e=libFor(key),mb=markBtn(key,r.rp&&r.rp.x);
-    const sv=actBtn(e?'Saved':'Save',()=>mb.click(),false,e?'marked':'mark');sv.disabled=mb.disabled;two.appendChild(sv);
+    const sv=actBtn(e?'Saved':'Save',()=>mb.click());sv.disabled=mb.disabled;two.appendChild(sv);
   }
-  if(r.mode==='routine'&&!plainRun(r)){const rb=renameBtn(h,r.rk);two.appendChild(actBtn('Rename',()=>rb.click(),false,'edit'));}
-  if(two.children.length)acts.appendChild(two);
-  const del=document.createElement('button');del.type='button';del.className='del';del.textContent='Delete this run';
-  del.addEventListener('click',()=>{
-    if(delArm!==r.id){delArm=r.id;del.textContent='Tap again to delete';setTimeout(()=>{if(delArm===r.id){delArm=null;del.textContent='Delete this run';}},4000);return;}
-    delArm=null;histStack=[];deleteRun(r.id);scrollTo(0,histScroll);
-  });
-  acts.appendChild(del);page.appendChild(acts);
+  if(r.mode==='routine'&&!plainRun(r)){const rb=renameBtn(h,r.rk);two.appendChild(actBtn('Rename',()=>rb.click()));}
+  acts.appendChild(armBtn('Delete',()=>{histStack=[];deleteRun(r.id);scrollTo(0,histScroll);}));page.appendChild(acts);
   box.appendChild(page);
 }
 /* A fold of repeats opens to its runs. */
@@ -4195,7 +4215,7 @@ function renderGroupPage(ids){
   const runs=ids.map(id=>recs.runs.find(x=>x.id===id)).filter(Boolean);
   if(!runs.length){histStack=[];renderHistory();return;}
   const page=document.createElement('div');page.className='rp';
-  const back=document.createElement('button');back.type='button';back.className='back';back.textContent='‹ History';back.addEventListener('click',backHist);page.appendChild(back);
+  const back=document.createElement('button');back.type='button';back.className='linkbtn back';back.textContent='‹ History';back.addEventListener('click',backHist);page.appendChild(back);
   const t=runTitle(runs[0]);
   const h=document.createElement('h2');h.className=t.mono?'seq':'';h.textContent=t.text;page.appendChild(h);
   const sb=document.createElement('div');sb.className='sb';sb.textContent=runs.length+' runs · '+dayWord(runs[0].t).replace(/^./,c=>c.toUpperCase());page.appendChild(sb);
