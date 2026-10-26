@@ -195,6 +195,7 @@ details[open]>summary::after{transform:rotate(-135deg);margin-top:10px}
 .meter{position:relative;height:16px;border-radius:8px;background:var(--bg);border:1px solid var(--line);overflow:hidden}
 .m-fill{height:100%;width:0;background:var(--accent)}
 .m-thr{position:absolute;top:0;bottom:0;width:2px;background:var(--ink)}
+.m-ghost{width:0;background:none;border-left:2px dashed var(--muted)}
 .btns{display:flex;flex-wrap:wrap;gap:8px}
 .heard{font:600 13px var(--font-data);color:var(--accent)}
 
@@ -484,16 +485,11 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 
     <section class="panel mic-only" aria-label="Microphone level">
       <h3>Microphone level</h3>
-      <div class="meter" aria-hidden="true"><div class="m-fill" id="mFill"></div><div class="m-thr" id="mThr"></div></div>
+      <div class="meter" aria-hidden="true"><div class="m-fill" id="mFill"></div><div class="m-thr" id="mThr"></div><div class="m-thr m-ghost" id="mGhost"></div></div>
       <div class="field">
         <label for="sens">Trigger line <output id="sensOut"></output></label>
         <input type="range" id="sens" min="-55" max="-8" step="1">
-        <p class="hint">Hit the pad. The bar should cross the line on every stroke and fall back under it between strokes. Raise the line if room noise triggers hits, lower it if soft strokes are missed.</p>
-      </div>
-      <div class="field">
-        <label for="ghostDb">Ghost floor <output id="ghostOut"></output></label>
-        <input type="range" id="ghostDb" min="-30" max="-3" step="1">
-        <p class="hint">Only used when Other strokes is Ghost. How far below the trigger line a soft stroke may sit and still count. Lower it if ghost notes are missed. Quiet hits only count on a ghost note, so room noise elsewhere is ignored.</p>
+        <p class="hint">Hit the pad. The bar should cross the line on every stroke and fall back under it between strokes. Raise the line if room noise triggers hits, lower it if soft strokes are missed. The dashed line is the ghost floor, always 14 dB below the trigger line and never closer than 6 dB to the room noise from your last Mic check. Ghost notes only count when Other strokes is Ghost on the Play page, and only on a stroke that should be a ghost note, so quiet room noise elsewhere is ignored.</p>
       </div>
       <div class="field">
         <label for="settle">Settle time <output id="settleOut"></output></label>
@@ -936,7 +932,7 @@ RLRR LRLL RLRR LRLL</pre>
         <li><b>Test left vs right:</b> after calibrating, press it and hit once with whichever hand is shown, 20 times in a shuffled order. It reports how often the app named the right stick, how each hand did, and how many hits would be tagged with the wrong hand in a run. Below 90% is worth recalibrating.</li>
         <li><b>Latency:</b> sound reaches the page late, and the click reaches your ears late. Press Auto calibrate once on each device. It plays clicks through the speakers and times when the mic hears them, so you don't play. Calibrate by playing is the second choice: hit right on each click and keep going until the number settles, then stop (80 hits or more). It assumes you were on the click on average. You can also type a number.</li>
         <li><b>Click level:</b> Easy clicks on every stroke (none on rests). Medium clicks on every beat. Hard clicks on beats 1 and 3, or every second beat from the start of the bar. Extreme clicks only on the first beat of each bar. Count-in only clicks just the count-in and is not scored in your stats. Every level is scored against the same grid, and each level is cleared on its own. Use headphones, or the click will be picked up as strokes.</li>
-        <li><b>Accent and Other strokes:</b> on the Play page, these lay accents and ghost (soft) notes over whatever exercise is loaded. Accent picks which strokes are loud: the first of each group, each beat, each bar, every 2nd to 7th stroke (counted across passes, so the accent drifts when the count does not divide the pass), or just the right or left hand. Rests are never accented. Other strokes can be Normal or Ghost. The staff shows accents with a &gt; and ghost notes in brackets. With the microphone, Results compares each accent with the strokes around it and each ghost note with its neighbours, and reports how many were clear: an accent needs to be about 4 dB louder, a ghost note about 6 dB quieter. Strokes less than 60 ms apart are not judged. <b>Ghost floor</b> in Settings is how far below the trigger line a soft stroke may sit and still count. It only counts on a ghost note, so room noise elsewhere is ignored. The rule is saved with each run, and an exercise played with a different rule has its own scores and its own History group. Keyboard input does not judge loudness.</li>
+        <li><b>Accent and Other strokes:</b> on the Play page, these lay accents and ghost (soft) notes over whatever exercise is loaded. Accent picks which strokes are loud: the first of each group, each beat, each bar, every 2nd to 7th stroke (counted across passes, so the accent drifts when the count does not divide the pass), or just the right or left hand. Rests are never accented. Other strokes can be Normal or Ghost. The staff shows accents with a &gt; and ghost notes in brackets. With the microphone, Results compares each accent with the strokes around it and each ghost note with its neighbours, and reports how many were clear: an accent needs to be about 4 dB louder, a ghost note about 6 dB quieter. Strokes less than 60 ms apart are not judged. Ghost notes are heard down to a floor 14 dB below the trigger line (the dashed line on the Settings meter), kept at least 6 dB above the room noise from your last Mic check. A quiet hit only counts on a ghost note, so room noise elsewhere is ignored. The rule is saved with each run, and an exercise played with a different rule has its own scores and its own History group. Keyboard input does not judge loudness.</li>
       </ul>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
@@ -1880,7 +1876,13 @@ function analyseCheck(noise,hits,settleMs){
   const lower=Math.max(noise*2,0.0018),upper=quiet/2;
   let thr=upper<lower?Math.max(upper,noise*1.5):cl(Math.sqrt(noise*quiet),lower,upper);
   out.sens=cl(Math.round(DB(thr)),-55,-8);
+  out.noiseDb=Math.round(DB(noise));
   out.lines.push('Trigger line set to '+out.sens+' dB.');
+  {
+    const floor=Math.min(out.sens,Math.max(out.sens-14,out.noiseDb+6)),reach=Math.round(DB(med)-floor);   /* how far below a typical stroke a ghost note is still heard */
+    out.lines.push('Ghost notes can be heard down to about '+reach+' dB below your normal strokes.');
+    if(reach<14){out.level=out.level==='bad'?'bad':'warn';out.lines.push('Room noise limits ghost notes. Move the microphone closer to the pad or cut the noise.');}
+  }
   const above=DB(quiet)-DB(noise);
   if(above<12){
     out.level='warn';
@@ -2016,7 +2018,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.29.0';                           /* shown beside the title */
+const VERSION='0.29.1';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2028,7 +2030,7 @@ const STARTER_LIST='routines/starter.txt';
 /* The starter list sits beside the page. A page opened from a preview or from disk has no web address to resolve it against. */
 const starterHref=()=>{try{return new URL(STARTER_LIST,location.href).href;}catch(e){return '';}};
 const S={mode:'single',routineText:STARTER,eachUnit:'min',eachVal:1,gap:0,pulse:true,startExercise:1,
-  bpm:60,subdiv:4,click:'beat',lastExport:0,expRuns:0,tol:20,sens:-30,settle:40,accent:'',others:'n',ghostDb:-12,vol:60,latency:null,latCal:false,input:'mic',editTab:'build',theme:'',palette:'std',libId:''};
+  bpm:60,subdiv:4,click:'beat',lastExport:0,expRuns:0,tol:20,sens:-30,settle:40,accent:'',others:'n',noise:null,vol:60,latency:null,latCal:false,input:'mic',editTab:'build',theme:'',palette:'std',libId:''};
 let cal={L:[],R:[]},model=null;
 try{
   const o=JSON.parse(localStorage.getItem(KEY)||'null');
@@ -2048,7 +2050,7 @@ S.tol=[10,15,20,30].includes(+S.tol)?+S.tol:20;
 S.sens=clamp(Math.round(+S.sens)||-30,-55,-8);
 S.accent=/^[gbm2-7RL]?$/.test(S.accent)?S.accent:'';   /* which strokes are accented */
 S.others=S.others==='g'?'g':'n';                          /* the other strokes: normal or ghost */
-S.ghostDb=clamp(Math.round(+S.ghostDb)||-12,-30,-3);      /* how far below the trigger line a ghost note may sit */
+S.noise=typeof S.noise==='number'&&isFinite(S.noise)?clamp(Math.round(S.noise),-90,-10):null;   /* room noise in dB from the last Mic check, on this device */
 S.settle=clamp(Math.round(+S.settle)||40,20,120);
 /* Saved shared lists: address, name, and the last loaded routines (kept for the three newest loads only). */
 S.lists=Array.isArray(S.lists)?S.lists.filter((l,i,a)=>l&&typeof l.url==='string'&&l.url.length<=500&&a.findIndex(q=>q&&q.url===l.url)===i).slice(0,20).map(l=>({url:l.url,name:typeof l.name==='string'?l.name.slice(0,60):'',t:+l.t||0,items:Array.isArray(l.items)?l.items.filter(i=>i&&typeof i.title==='string'&&typeof i.text==='string').slice(0,100).map(i=>({title:i.title.slice(0,80),text:i.text.slice(0,20000)})):undefined})):(starterHref()?[{url:starterHref(),name:'Starter routines',t:0}]:[]);
@@ -2350,6 +2352,7 @@ function chkFinish(){
   const res=analyseCheck(chk.noise,chk.hits,S.settle);
   chkStop('');
   if(res.sens!==null){
+    S.noise=clamp(res.noiseDb,-90,-10);
     S.sens=res.sens;$('sens').value=S.sens;$('sens').dispatchEvent(new Event('input'));
   }
   if(res.settle!==null&&res.settle!==S.settle){S.settle=res.settle;$('settle').value=S.settle;$('settle').dispatchEvent(new Event('input'));}
@@ -2371,9 +2374,12 @@ function settleSec(){
   }
   return v;
 }
+/* Ghost notes are listened for below the trigger line: 14 dB below it, but never closer than 6 dB to the room noise measured by the last Mic check. */
+function ghostFloor(){return Math.min(S.sens,Math.max(S.sens-14,S.noise===null?-90:S.noise+6));}
+function placeMeter(){$('mThr').style.left=((S.sens+60)/60*100)+'%';$('mGhost').style.left=(clamp(ghostFloor()+60,0,60)/60*100)+'%';}
 function pushDet(){
   if(!sendDet)return;
-  const thr=chk&&chk.phase==='hit'?chk.thr:(chk&&chk.phase==='quiet'?1:Math.pow(10,(S.sens+(S.others==='g'?S.ghostDb:0))/20));
+  const thr=chk&&chk.phase==='hit'?chk.thr:(chk&&chk.phase==='quiet'?1:Math.pow(10,(S.others==='g'?ghostFloor():S.sens)/20));
   sendDet({thr:thr,refrac:settleSec()});
 }
 function onNodeMsg(e){
@@ -4601,7 +4607,7 @@ function renameLibrary(ok){
 }
 
 /* ---------- controls ---------- */
-const LOCKED=['accent','others','ghostDb','pulse','bpm','bpmDown','bpmUp','subdiv','click','inputMode','routineText','fileBtn','openBtn','clearRoutine','playChange','libSel','libraryUrl','libName','libGo','libAll','libRen','libClear','eachVal','eachUnit','gap'];
+const LOCKED=['accent','others','pulse','bpm','bpmDown','bpmUp','subdiv','click','inputMode','routineText','fileBtn','openBtn','clearRoutine','playChange','libSel','libraryUrl','libName','libGo','libAll','libRen','libClear','eachVal','eachUnit','gap'];
 function syncRunUI(){
   const on=!!(run&&!run.ended),play=on&&run.mode==='play',paused=on&&!!run.paused;
   const b=$('startBtn');
@@ -5088,7 +5094,6 @@ function wire(){
   const dyChanged=()=>{save();pushDet();refreshPreview();};
   $('accent').addEventListener('change',e=>{S.accent=e.target.value;dyChanged();});
   $('others').addEventListener('change',e=>{S.others=e.target.value;dyChanged();});
-  $('ghostDb').addEventListener('input',e=>{S.ghostDb=+e.target.value;$('ghostOut').textContent=S.ghostDb+' dB';pushDet();save();});
   $('tol').addEventListener('change',e=>{S.tol=+e.target.value;save();renderAll();});
   $('inputMode').addEventListener('change',e=>{S.input=e.target.value;save();setInputMode();});
   $('routineText').addEventListener('input',e=>{const v=plainText(e.target.value);if(v!==e.target.value)e.target.value=v;S.routineText=v.slice(0,MAX_TEXT);S.startExercise=1;save();onRoutineChanged();});
@@ -5196,7 +5201,7 @@ function wire(){
   $('settle').addEventListener('input',e=>{S.settle=+e.target.value;$('settleOut').textContent=S.settle+' ms';pushDet();save();});
   $('micCheck').addEventListener('click',toggleCheck);
   $('calTest').addEventListener('click',startHandTest);
-  $('sens').addEventListener('input',e=>{S.sens=+e.target.value;$('sensOut').textContent=S.sens+' dB';$('mThr').style.left=((S.sens+60)/60*100)+'%';pushDet();save();});
+  $('sens').addEventListener('input',e=>{S.sens=+e.target.value;$('sensOut').textContent=S.sens+' dB';placeMeter();pushDet();save();});
   $('vol').addEventListener('input',e=>{S.vol=+e.target.value;$('volOut').textContent=S.vol+'%';save();});
   $('latency').addEventListener('change',e=>{const v=e.target.value;S.latency=v===''?null:clamp(Math.round(+v)||0,0,400);if(v!=='')S.latCal=true;save();syncNote();});
   $('themeBtn').addEventListener('click',()=>{S.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';applyTheme();save();});
@@ -5281,7 +5286,7 @@ function syncEach(){
 function init(){
   $('routineText').value=S.routineText;
   $('bpm').value=S.bpm;
-  $('click').value=S.click;$('accent').value=S.accent;$('others').value=S.others;$('ghostDb').value=S.ghostDb;$('ghostOut').textContent=S.ghostDb+' dB';
+  $('click').value=S.click;$('accent').value=S.accent;$('others').value=S.others;
   $('tol').value=String(S.tol);
   $('gap').value=String(S.gap);
   $('pulse').value=S.pulse?'on':'off';$('palette').value=S.palette;
@@ -5295,7 +5300,7 @@ function init(){
   placeVer();addEventListener('resize',placeVer);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(placeVer);
   renderLibrary();
   $('settle').value=S.settle;$('settleOut').textContent=S.settle+' ms';
-  $('sens').value=S.sens;$('sensOut').textContent=S.sens+' dB';$('mThr').style.left=((S.sens+60)/60*100)+'%';
+  $('sens').value=S.sens;$('sensOut').textContent=S.sens+' dB';placeMeter();
   $('vol').value=S.vol;$('volOut').textContent=S.vol+'%';
   $('latency').value=S.latency==null?'':S.latency;
   initStrips();wireBuilder();setInputMode();updateCalUI();
