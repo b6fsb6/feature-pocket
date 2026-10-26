@@ -188,6 +188,7 @@ details[open]>summary::after{transform:rotate(-135deg);margin-top:10px}
 .libitem:disabled{opacity:.5;cursor:default}
 .libitem.have b{font-weight:400;color:var(--muted)}
 .libitem span{color:var(--muted);font:12px var(--font-data);white-space:nowrap}
+.chkmsg{margin:0;padding:10px 12px;border-left:4px solid var(--accent);background:var(--surface);border-radius:6px;font:600 17px/1.35 var(--font-body);color:var(--ink)} .chkmsg:empty{display:none}
 .chkout{margin:0;padding-left:18px;font-size:13px;display:grid;gap:4px} .chkout:empty{display:none} .chkout .bad,.chkout .warn{color:var(--late)} .chkout .good{color:var(--ok)} .chkout .good::before{content:'\2713  '} .chkout .bad::before,.chkout .warn::before{content:'\26A0  '}
 .ctbox{display:grid;gap:6px;justify-items:center;text-align:center}
 .ctp{font:800 72px/1 var(--font-display);color:var(--accent);min-height:76px;display:flex;align-items:center}
@@ -498,7 +499,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       </div>
       <div class="btns"><button class="btn small" id="testMic" type="button">Turn microphone on</button><button class="btn small" id="micCheck" type="button">Mic check</button><span class="heard" id="heard" aria-live="off"></span></div>
       <p class="err" id="micMsg" role="alert"></p>
-      <p class="hint" id="chkMsg" aria-live="polite"></p>
+      <p class="chkmsg" id="chkMsg" aria-live="polite"></p>
       <ul class="chkout" id="chkOut"></ul>
       <p class="hint">Mic check listens to the room, then to ten strokes, and sets the trigger line and settle time for you. Echo cancellation and noise suppression are switched off for this page so stick attacks stay sharp.</p>
     </section>
@@ -703,7 +704,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
     </section>
     <section class="panel" aria-label="Routines">
       <h3>Routines</h3>
-      <div class="tablewrap"><table id="rtTable"></table></div>
+      <div class="slist" id="rtList"></div>
     </section>
     </div>
     <div class="pv" id="pvHist">
@@ -741,7 +742,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <ul>
         <li><b>Play:</b> how long it plays, tempo, click level, Start, Pause, Restart and Stop, the notation, the lead/drag gauge and your results. With a routine loaded, scroll or swipe the rows (or press ↑ ↓) to choose which exercise to start at.</li>
         <li><b>Library:</b> your saved routines, each with Edit and Play. <b>New</b> starts a routine and <b>Import</b> adds one from a file, a link or a shared list. <b>Export</b> saves your whole library as one file, which Import reads back in one go and which can also be hosted as a shared list. What you are working on is the <b>scratch pad</b>: it is kept as you type, but a saved routine only changes when you press Save in the editor. The app asks before you open another routine and lose unsaved work. The editor opens full screen from Edit on the Play page or in the Library, and Back returns you.</li>
-        <li><b>Stats:</b> three views. <b>History</b> lists your last runs by exercise or routine, with Replay. <b>Scores</b> shows each exercise and routine, weakest first, with its best cleared tempo. <b>Achievements</b> shows your practice days for the last four weeks, a streak that forgives one rest day a week, and your badges.</li>
+        <li><b>Stats:</b> three views. <b>History</b> lists your last runs by exercise or routine, with Replay. <b>Scores</b> shows each exercise, weakest first, and each routine, with tempo, accuracy, trend, lead or drag and evenness. <b>Achievements</b> shows your practice days for the last four weeks, a streak that forgives one rest day a week, and your badges.</li>
         <li><b>Settings:</b> <b>Preferences</b> has the on-time window, visual pulse and click volume, and the colours. <b>Device</b> has the input, microphone level, stick calibration and latency. <b>Data</b> has export, import and clear.</li>
       </ul>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
@@ -1653,15 +1654,26 @@ function routineStats(runs,sum){
   runs.forEach(run=>{
     if(!run.rk||run.lv==='off')return;
     const mk=run.rk+'|'+run.lv+(run.dy?'|'+run.dy:'');
-    let e=m.get(mk);if(!e){e={rk:run.rk,lv:run.lv,dy:run.dy||'',ne:run.ne,runs:0,t:0,cleared:0};m.set(mk,e);}
+    let e=m.get(mk);if(!e){e={rk:run.rk,lv:run.lv,dy:run.dy||'',ne:run.ne,runs:0,t:0,cleared:0,recs:[]};m.set(mk,e);}
     e.runs++;if(run.t>=e.t)e.t=run.t;
+    /* a run counts as one score: strokes on time over all its exercises, bias and loudness spread weighted by strokes */
+    {let w=0,d=0,ba=0,bn=0,la=0,ln=0;run.exercises.forEach(b=>{w+=b.within;d+=b.due;if(typeof b.avg==='number'&&!isNaN(b.avg)){ba+=b.avg*b.due;bn+=b.due;}if(typeof b.ls==='number'){la+=b.ls*b.due;ln+=b.due;}});
+      if(d>0)e.recs.push({t:run.t,bpm:run.bpm,pct:w/d,avg:bn?ba/bn:NaN,ls:ln?la/ln:NaN});}
     const ok=run.exercises.length>=run.ne&&run.exercises.every(b=>b.due>0&&b.within/b.due>=TARGET);
     if(ok)e.cleared=Math.max(e.cleared,run.bpm);
   });
   if(sum)Object.keys(sum.rt).forEach(key=>{
     const q=sum.rt[key],e=m.get(key);
-    if(!e)m.set(key,{rk:q.rk,lv:q.lv,dy:q.dy||'',ne:q.ne,runs:q.runs,t:q.t,cleared:q.cleared});
+    if(!e)m.set(key,{rk:q.rk,lv:q.lv,dy:q.dy||'',ne:q.ne,runs:q.runs,t:q.t,cleared:q.cleared,recs:[]});
     else{e.runs+=q.runs;e.cleared=Math.max(e.cleared,q.cleared);}
+  });
+  m.forEach(e=>{
+    e.recs.sort((a,b)=>a.t-b.t);
+    const last=e.recs[e.recs.length-1];
+    if(!last){e.bpm=null;e.recent=NaN;e.trend=[];e.bias=NaN;e.even=NaN;return;}
+    const at=e.recs.filter(x=>x.bpm===last.bpm),recent=at.slice(-3),mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:NaN;
+    e.bpm=last.bpm;e.recent=mean(recent.map(x=>x.pct));e.trend=at.slice(-12).map(x=>x.pct);
+    e.bias=mean(recent.map(x=>x.avg).filter(x=>!isNaN(x)));e.even=mean(recent.map(x=>x.ls).filter(x=>!isNaN(x)));
   });
   return [...m.values()].sort((a,b)=>b.t-a.t);
 }
@@ -2021,7 +2033,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.30.0';                           /* shown beside the title */
+const VERSION='0.30.2';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -3785,6 +3797,32 @@ function renderScoreGroups(stats,practise){
     body.appendChild(list);det.appendChild(body);box.appendChild(det);
   });
 }
+/* A routine scores like an exercise: tempo, accuracy, trend, lead or drag and evenness, with when it was cleared underneath. */
+function renderRoutineRows(routines,replay){
+  const box=$('rtList');box.textContent='';
+  if(!routines.length){const p=document.createElement('p');p.className='hint';p.textContent='No routine runs yet.';box.appendChild(p);return;}
+  routines.forEach(x=>{
+    const row=document.createElement('div');row.className='srow';
+    const q=document.createElement('div');q.className='sq';
+    const seq=document.createElement('span');seq.className='seq';seq.textContent=routineName(x.rk);
+    q.appendChild(seq);q.appendChild(replay(x));row.appendChild(q);
+    const sub=document.createElement('div');sub.className='hint';
+    sub.textContent=levelName(x.lv)+(x.dy?' \u00B7 '+dynText(x.dy):'')+' \u00B7 '+x.ne+(x.ne===1?' exercise':' exercises')+' \u00B7 '+x.runs+(x.runs===1?' run':' runs')+' \u00B7 '+(x.cleared?'cleared at '+x.cleared+' BPM':'not cleared yet')+' \u00B7 '+fmtDate(x.t);
+    row.appendChild(sub);
+    const n=document.createElement('div');n.className='sn';
+    const stat=(txt,unit,cls)=>{const e=document.createElement('span');if(cls)e.className=cls;e.textContent=txt;if(unit){const u=document.createElement('small');u.textContent=unit;e.appendChild(u);}n.appendChild(e);};
+    if(x.bpm===null)stat('Older runs are kept as totals only.','','muted');
+    else{
+      const acc=accCell(x.recent);
+      stat(String(x.bpm),'BPM');stat(acc[0],'ACC',acc[1]);
+      const sp=sparkline(x.trend);
+      if(Array.isArray(sp))stat(sp[0],'trend','muted');else n.appendChild(sp);
+      stat(isNaN(x.bias)?'\u2014':fmtMs(x.bias,1),'ms',biasCls(x.bias));
+      stat(isNaN(x.even)?'\u2014':'\u00B1'+x.even.toFixed(1),'dB');
+    }
+    row.appendChild(n);box.appendChild(row);
+  });
+}
 function renderProgress(){
   renderPractice();renderBadges();
   const stats=patStats(recs.runs,recs.sum),routines=routineStats(recs.runs,recs.sum);
@@ -3796,9 +3834,7 @@ function renderProgress(){
   const replayRoutine=x=>{const r=recs.runs.slice().reverse().find(q=>q.rk===x.rk&&q.lv===x.lv&&(q.dy||'')===(x.dy||''));
     if(r)return replayBtn(r);const b=iconBtn('replay','Replay',()=>{});b.disabled=true;b.title='This routine was saved without its text.';return b;};
   renderScoreGroups(stats,practise);
-  fillTable($('rtTable'),routines.length?['Routine','Level','Exercises','Runs','Cleared at','Last','']:[],
-    routines.length?routines.map(x=>[routineName(x.rk),levelName(x.lv)+(x.dy?' · '+dynText(x.dy):''),String(x.ne),String(x.runs),x.cleared?x.cleared+' BPM':'—',fmtDate(x.t),replayRoutine(x)])
-      :[[['No routine runs yet.','muted']]]);
+  renderRoutineRows(routines,replayRoutine);
   renderHistory();syncData();
 }
 let sview='pref';
