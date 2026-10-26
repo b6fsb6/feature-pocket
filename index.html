@@ -887,7 +887,7 @@ LRLR LRLR LRLR LRLR  x8</pre>
 
     <section class="panel" id="help-library">
       <h3>Shared lists</h3>
-      <p>On the Library page you can import from a web address. Press <b>Import</b>, choose <b>Add a link…</b> under <b>Link or shared list</b>, paste the address (and a name if you like) and press <b>Load</b>. If the file is one routine, it opens in the editor to look over, and then you press <b>Save</b> to add it or <b>Back</b> to leave it. If the file holds several routines, it becomes a <b>shared list</b> in the dropdown. The dropdown keeps every list you have loaded, up to 20, so you can switch between them. <b>Rename</b> and <b>Forget</b> change the chosen one, and Export saves your lists with your records. Each routine in a list is tagged <b>New</b> or <b>In library</b>, whatever its source. Tap one to open it in the editor, then press <b>Save</b> to add it. A list you loaded recently is shown without a request until you press Load again. The <b>Starter routines</b> button on the Play page, shown until you have saved or played something, loads a small list of plain practice routines that is hosted next to the app. Beyond that, this app does not come with any routines. You choose the list.</p>
+      <p>On the Library page you can import from a web address. Press <b>Import</b>, choose <b>Add a link…</b> under <b>Link or shared list</b>, paste the address (and a name if you like) and press <b>Load</b>. If the file is one routine, it opens in the editor to look over, and then you press <b>Save</b> to add it or <b>Back</b> to leave it. If the file holds several routines, it becomes a <b>shared list</b> in the dropdown. The dropdown keeps every list you have loaded, up to 20, so you can switch between them. <b>Rename</b> and <b>Forget</b> change the chosen one, and Export saves your lists with your records. Each routine in a list is tagged <b>New</b> or <b>In library</b>, whatever its source. Tap one to open it in the editor, then press <b>Save</b> to add it, or press <b>Import all</b> to add every routine that is not already in your library at once. Routines with errors are skipped. A list you loaded recently is shown without a request until you press Load again. The <b>Starter routines</b> button on the Play page, shown until you have saved or played something, loads a small list of plain practice routines that is hosted next to the app. Beyond that, this app does not come with any routines. You choose the list.</p>
       <h4>The list file</h4>
       <p>One plain text file. Write each routine as you would in the editor, with its own <b>title:</b> line, and put a line of three or more dashes (or an em dash) between routines. A routine without a title is named by its place in the file. Up to 100 routines are read.</p>
       <pre>title: Singles
@@ -1126,6 +1126,7 @@ RLRR LRLL RLRR LRLL</pre>
       <input type="text" id="libName" aria-label="Shared list name" autocomplete="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" maxlength="60" placeholder="Name (optional)" hidden>
       <p class="err" id="libErr" role="alert"></p>
       <p class="hint" id="libInfo"></p>
+      <button class="btn small" id="libAll" type="button" hidden>Import all</button>
       <div class="exercises" id="libList" role="list" aria-label="Routines in the list" hidden></div>
       <p class="hint">A shared list is one text file of routines split by lines of dashes. <button class="btn small" id="openHelp" type="button" data-help="help-library">Help</button> <button class="linkbtn" id="libRen" type="button" hidden>Rename</button> <button class="linkbtn" id="libClear" type="button" hidden>Forget</button></p>
     </div>
@@ -1969,7 +1970,7 @@ function parseLibrary(text){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.25.0';                           /* shown beside the title */
+const VERSION='0.26.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -4338,7 +4339,8 @@ function renderLibraryPage(){
 const exerciseCount=x=>parseRoutine(x).exercises.length;
 /* ---------- routine library (a list of routine files on the web) ---------- */
 let lib={items:[],loaded:false,busy:false,cur:''},libMode='';   /* libMode: '' | 'add' | 'rename' */
-const inLib=it=>{const k=textKey(setHeader(it.text,'title','').trim(),S.subdiv);return !!k&&!!libFor(k);};
+const itemKey=it=>textKey(setHeader(it.text,'title','').trim(),S.subdiv);
+const inLib=it=>{const k=itemKey(it);return !!k&&!!libFor(k);};
 const curList=()=>S.lists.find(l=>l.url===S.listSel)||null;
 const listName=l=>{if(l.name)return l.name;try{const u=new URL(l.url);return u.host+u.pathname.replace(/\/[^\/]*\.[a-z0-9]+$/i,'').replace(/\/$/,'');}catch(e){return l.url;}};
 const addMode=()=>libMode==='add'||!S.lists.length;
@@ -4364,6 +4366,7 @@ function renderLibrary(){
     box.appendChild(b);
   });
   box.hidden=!lib.items.length;
+  $('libAll').hidden=!lib.items.length;$('libAll').disabled=lib.busy||!!(run&&!run.ended)||!lib.items.some(it=>itemKey(it)&&!inLib(it));
   $('libGo').disabled=lib.busy||ren||(add?!$('libraryUrl').value.trim():!cl);
   if(!lib.busy){
     const have=lib.items.filter(inLib).length,n=lib.items.length;
@@ -4406,6 +4409,22 @@ async function loadLibrary(){
     $('libInfo').textContent='';
   }finally{lib.busy=false;renderLibrary();}
 }
+/* Adds every routine in the list that is not already in the library. Routines with errors are skipped, since they need fixing first. */
+function importAll(){
+  if(lib.busy||(run&&!run.ended))return;
+  let added=0,had=0,bad=0,full=false;
+  lib.items.forEach(it=>{
+    if(full)return;
+    const r=putEntry(getHeader(it.text,'title')?it.text:setHeader(it.text,'title',it.title),'',true);
+    if(r.err){if(r.fix)bad++;else full=true;}
+    else if(r.isNew)added++;else had++;
+  });
+  const pl=(n,w)=>n+' '+w+(n===1?'':'s');
+  const m='\u2713 Added '+pl(added,'routine')+(had?', '+had+' already in your library':'')+(bad?', '+bad+' skipped because of errors (open them to fix)':'')+'.';
+  $('libErr').textContent=full?'\u26A0 Your library is full ('+MAX_LIB+' routines). Added '+added+'.':'';
+  $('libMsg').textContent=m;renderLibraryPage();renderLibrary();
+  if(!full)$('libInfo').textContent=m;
+}
 function openLibraryItem(it){
   if(lib.busy||(run&&!run.ended))return;
   $('libErr').textContent='';
@@ -4430,7 +4449,7 @@ function renameLibrary(ok){
 }
 
 /* ---------- controls ---------- */
-const LOCKED=['pulse','bpm','bpmDown','bpmUp','subdiv','click','inputMode','routineText','fileBtn','openBtn','clearRoutine','playChange','libSel','libraryUrl','libName','libGo','libRen','libClear','eachVal','eachUnit','gap'];
+const LOCKED=['pulse','bpm','bpmDown','bpmUp','subdiv','click','inputMode','routineText','fileBtn','openBtn','clearRoutine','playChange','libSel','libraryUrl','libName','libGo','libAll','libRen','libClear','eachVal','eachUnit','gap'];
 function syncRunUI(){
   const on=!!(run&&!run.ended),play=on&&run.mode==='play',paused=on&&!!run.paused;
   const b=$('startBtn');
@@ -4929,6 +4948,7 @@ function wire(){
   $('routineFile').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];await loadFile(f);e.target.value='';});
   $('libGo').addEventListener('click',loadLibrary);
   $('libClear').addEventListener('click',clearLibrary);
+  $('libAll').addEventListener('click',importAll);
   $('libSel').addEventListener('change',()=>{const v=$('libSel').value;if(v==='+'){libMode='add';$('libErr').textContent='';lib={items:[],loaded:false,busy:false,cur:''};renderLibrary();$('libraryUrl').focus();}else pickList(v);});
   $('libRen').addEventListener('click',()=>{const l=curList();if(!l)return;libMode='rename';renderLibrary();$('libName').value=l.name;$('libName').focus();});
   $('libraryUrl').addEventListener('input',renderLibrary);
