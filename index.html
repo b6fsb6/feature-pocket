@@ -2096,7 +2096,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.35.1';                           /* shown beside the title */
+const VERSION='0.35.2';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -4029,7 +4029,7 @@ function exTable(r){
 function renderHistory(){
   $('hvDay').classList.toggle('on',hview==='day');$('hvDay').setAttribute('aria-pressed',String(hview==='day'));
   $('hvEx').classList.toggle('on',hview==='ex');$('hvEx').setAttribute('aria-pressed',String(hview==='ex'));
-  const pg=hview==='day'?histStack[histStack.length-1]:null;
+  const pg=histStack[histStack.length-1]||null;
   document.querySelectorAll('#pvHist .hfilter').forEach(e=>{e.hidden=!!pg;});
   $('histMore').hidden=true;
   if(pg){
@@ -4201,64 +4201,35 @@ function renderGroupPage(ids){
   const sb=document.createElement('div');sb.className='sb';sb.textContent=runs.length+' runs · '+dayWord(runs[0].t).replace(/^./,c=>c.toUpperCase());page.appendChild(sb);
   const dl=dyLine(runs[0]);if(dl){const d=document.createElement('div');d.className='sb dy';d.textContent=dl;page.appendChild(d);}
   const panel=document.createElement('div');panel.className='dayp';panel.style.marginTop='12px';
-  runs.forEach(r=>panel.appendChild(listRow(new Date(r.t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}),false,runMeta(r,false),'',runFigures(r).acc,()=>openHist({run:r.id}))));
+  runs.forEach(r=>panel.appendChild(listRow(dayWord(r.t).replace(/^./,c=>c.toUpperCase())+' \u00B7 '+new Date(r.t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}),false,runMeta(r,false),'',runFigures(r).acc,()=>openHist({run:r.id}))));
   page.appendChild(panel);box.appendChild(page);
 }
 /* Runs grouped by exercise or routine, newest group first. A group of one run looks the same as a larger one. */
 function renderHistoryGroups(){
   const box=$('histList');box.textContent='';
-  const groups=new Map();
-  recs.runs.slice().reverse().forEach(r=>{const k=runKey(r)+'|'+r.lv+'|'+(r.dy||'');if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r);});
   const gkey=r=>r.mode==='routine'?(r.rk||''):r.exercises[0].k;
+  const groups=new Map();
+  recs.runs.slice().sort((x,y)=>y.t-x.t).forEach(r=>{const k=runKey(r)+'|'+r.lv+'|'+(r.dy||'');if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r);});
   let list=[...groups.values()];
   const saved=histFilter==='saved';
   if(saved)list=list.filter(g=>libFor(gkey(g[0])));
   const played=new Set(recs.runs.map(gkey));
-  const unplayed=saved?recs.lib.filter(e=>!played.has(libKey(e))).sort((a,b)=>b.t-a.t):[];
+  const unplayed=saved?recs.lib.filter(e=>!played.has(libKey(e))).sort((x,y)=>y.t-x.t):[];
   $('hfAll').classList.toggle('on',!saved);$('hfAll').setAttribute('aria-pressed',String(!saved));
   $('hfSaved').classList.toggle('on',saved);$('hfSaved').setAttribute('aria-pressed',String(saved));
-  $('histHint').textContent=saved?(list.length||unplayed.length?'Routines you saved, with their runs. The bookmark removes one from your library. Its runs stay in History.':'Nothing saved yet. Tap the bookmark on a routine, or use Save in the editor.'):list.length?(recs.runs.length===1?'Your last run, grouped':'Your last '+recs.runs.length+' runs, grouped')+' by exercise or routine, most recent first. Tap one for its runs. Replay loads the same exercise or routine, tempo, click level and settings on the Play page.':'No runs yet. Each run you finish is listed here.';
+  $('histHint').textContent=saved?(list.length||unplayed.length?'Routines you saved, with their runs.':'Nothing saved yet. Tap the bookmark on a routine, or use Save in the editor.'):list.length?'Your runs grouped by exercise or routine, most recent first. Tap one to see its runs.':'No runs yet. Each run you finish is listed here.';
+  const panel=document.createElement('div');panel.className='dayp';
   list.slice(0,histShown).forEach(g=>{
-    const det=document.createElement('details');det.className='hrow hgrp';
-    const sm=document.createElement('summary');
-    const f=g[0],routine=f.mode==='routine',ranked=g.filter(r=>r.lv!=='off');
-    const best=ranked.reduce((m,r)=>!m||runPct(r)>runPct(m)||(runPct(r)===runPct(m)&&r.bpm>m.bpm)?r:m,null);
-    const n=document.createElement('span');n.className='hn';n.textContent=f.mode==='routine'?routineName(f.rk)+' · '+f.ne+(f.ne===1?' exercise':' exercises'):showKey(f.exercises[0].k);
-    const st=document.createElement('span');st.className='hs';
-    st.textContent=(f.lv==='off'?'Count-in only':levelName(f.lv))+(f.dy?' · '+dynText(f.dy):'')+' · '+g.length+(g.length===1?' run':' runs')+' · latest '+dayWord(f.t)+(best?' · best '+Math.round(runPct(best)*100)+'% at '+best.bpm+' BPM':'');
-    const ac=document.createElement('span');ac.className='ha';if(routine)ac.appendChild(renameBtn(n,f.rk));ac.appendChild(markBtn(gkey(f),f.rp&&f.rp.x));ac.appendChild(replayBtn(f));
-    sm.appendChild(n);sm.appendChild(st);sm.appendChild(ac);det.appendChild(sm);
-    const body=document.createElement('div');body.className='hb hg';
-    const tw=tableWrap(),wrap=tw.wrap,tb=tw.tb;
-    fillTable(tb,['Date','BPM','Accuracy','Bias','dB',''],g.map(r=>{
-      const off=r.lv==='off',pc=runPct(r);let hs=0,sw=0;r.exercises.forEach(b=>{hs+=b.heard||0;sw+=(b.avg||0)*(b.heard||0);});const bias=hs?sw/hs:NaN;
-      const lss=r.exercises.map(b=>b.ls).filter(v=>typeof v==='number'),row=[fmtDay(r.t),String(r.bpm),off?['—','muted']:accCell(pc),off||!hs?['—','muted']:[fmtMs(bias,1),biasCls(bias)],dbCell(lss.length?lss.reduce((a,v)=>a+v,0)/lss.length:null),deleteBtn(r)];
-      if(routine){const cv=document.createElement('button');cv.type='button';cv.className='ib cv';cv.setAttribute('aria-label','Show the exercises');cv.setAttribute('aria-expanded','false');cv.innerHTML='<span></span>';row.push(cv);}
-      return row;}));
-    if(routine){   /* each run opens to its own exercise table, in a row of its own under it */
-      tb.querySelector('thead tr').appendChild(document.createElement('th'));
-      [...tb.querySelectorAll('tbody tr')].forEach((tr,i)=>{
-        const dt=document.createElement('tr');dt.className='dt';dt.hidden=true;
-        const td=document.createElement('td');td.colSpan=7;td.appendChild(exTable(g[i]));dt.appendChild(td);tr.after(dt);
-        const cv=tr.querySelector('.cv');
-        const flip=()=>{dt.hidden=!dt.hidden;cv.setAttribute('aria-expanded',String(!dt.hidden));cv.classList.toggle('open',!dt.hidden);};
-        cv.addEventListener('click',flip);
-        tr.addEventListener('click',e=>{if(!e.target.closest('button'))flip();});
-      });
-    }
-    body.appendChild(wrap);det.appendChild(body);box.appendChild(det);
+    const f=g[0],t=runTitle(f),fig=runFigures(f);
+    const ranked=g.filter(r=>r.lv!=='off'),best=ranked.length?Math.max.apply(null,ranked.map(runPct)):null;
+    const sub=(f.lv==='off'?'Count-in only':levelName(f.lv))+' · '+g.length+(g.length===1?' run':' runs')+' · latest '+dayWord(f.t)+(best!==null&&g.length>1?' · best '+Math.round(best*100)+'%':'');
+    panel.appendChild(listRow(t.text,t.mono,sub,dyLine(f),fig.acc,()=>openHist(g.length===1?{run:f.id}:{group:g.map(x=>x.id)})));
   });
-  unplayed.forEach(e=>{   /* saved routines with no runs yet */
-    const row=document.createElement('div');row.className='hrow flat lib';
-    const sm=document.createElement('div');sm.className='sm';
-    const k=libKey(e),n=document.createElement('span');n.className='hn';n.textContent=entryName(e);
-    const c=exerciseCount(e.x),st=document.createElement('span');st.className='hs';st.textContent=c+(c===1?' exercise':' exercises')+' · no runs yet';
-    const ac=document.createElement('span');ac.className='ha';
-    if(isRoutineKey(k))ac.appendChild(renameBtn(n,k));
-    ac.appendChild(markBtn(k,e.x));
-    const op=iconBtn('play','Play',()=>playEntry(e));ac.appendChild(op);
-    sm.appendChild(n);sm.appendChild(st);sm.appendChild(ac);row.appendChild(sm);box.appendChild(row);
+  unplayed.forEach(e=>{
+    const k=libKey(e),c=exerciseCount(e.x);
+    panel.appendChild(listRow(entryName(e),false,c+(c===1?' exercise':' exercises')+' · no runs yet','',null,()=>playEntry(e)));
   });
+  if(panel.children.length)box.appendChild(panel);
   $('histMore').textContent='Show more';
   $('histMore').hidden=list.length<=histShown;
 }
