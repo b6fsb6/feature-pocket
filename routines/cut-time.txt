@@ -1,7 +1,0 @@
-title: Cut time
-each: x8
-time: 2/2
-strokes: 8
-RLRL RLRL RLRL RLRL
-LRLR LRLR LRLR LRLR
-RRLL RRLL RRLL RRLL

@@ -887,18 +887,17 @@ LRLR LRLR LRLR LRLR  x8</pre>
 
     <section class="panel" id="help-library">
       <h3>Shared lists</h3>
-      <p>On the Library page you can point the app at a <b>shared list</b>: a web address that lists routine files. Press <b>Import</b>, put the address under <b>Shared list</b> and press <b>Load</b>. Each routine is tagged <b>New</b> or <b>In library</b>. Tap one to open it in the editor, look it over, then press <b>Save</b> to add it, or <b>Back</b> to leave it. The last list is remembered and shown without a request until you press Load again. <b>Forget this list</b> clears it. The <b>Starter routines</b> button on the Play page, shown until you have saved or played something, loads a small list of plain practice routines that is hosted next to the app. Beyond that, this app does not come with any routines. You choose the list.</p>
+      <p>On the Library page you can import from a web address. Press <b>Import</b>, choose <b>Add a link…</b> under <b>Link or shared list</b>, paste the address (and a name if you like) and press <b>Load</b>. If the file is one routine, it opens in the editor to look over, and then you press <b>Save</b> to add it or <b>Back</b> to leave it. If the file holds several routines, it becomes a <b>shared list</b> in the dropdown. The dropdown keeps every list you have loaded, up to 20, so you can switch between them. <b>Rename</b> and <b>Forget</b> change the chosen one, and Export saves your lists with your records. Each routine in a list is tagged <b>New</b> or <b>In library</b>, whatever its source. Tap one to open it in the editor, then press <b>Save</b> to add it. A list you loaded recently is shown without a request until you press Load again. The <b>Starter routines</b> button on the Play page, shown until you have saved or played something, loads a small list of plain practice routines that is hosted next to the app. Beyond that, this app does not come with any routines. You choose the list.</p>
       <h4>The list file</h4>
-      <p>A plain text file with one routine per line. Put a title before a <b>|</b>, or leave it out and the file name is used. Lines starting with <b>#</b> are notes. An address can be a full web address or one relative to the list file, so a folder of routines can be moved without editing the list.</p>
-      <pre># my routines
-Stick Control page 5 | stick-control-page-5
-Stick Control page 6 | stick-control-page-6
-https://example.com/another-routine.txt</pre>
-      <p>JSON also works: <b>["file-one", {"title":"Page 6","url":"file-two"}]</b>, or an object with a <b>routines</b> list.</p>
-      <h4>Hosting one on GitHub</h4>
+      <p>One plain text file. Write each routine as you would in the editor, with its own <b>title:</b> line, and put a line of three or more dashes (or an em dash) between routines. A routine without a title is named by its place in the file. Up to 100 routines are read.</p>
+      <pre>title: Singles
+RLRL RLRL RLRL RLRL
+---
+title: Paradiddles
+RLRR LRLL RLRR LRLL</pre>
+      <h4>Hosting one</h4>
       <ul>
-        <li>Put the list and the routine files in a repository, then open each file and use the <b>Raw</b> button. The address that opens is the one to use, starting with <b>raw.githubusercontent.com</b>.</li>
-        <li>Each routine file is a routine in the normal format, with its own <b>title:</b> line if you like. Without one, the title from the list is added.</li>
+        <li>Put the file anywhere that serves plain text, such as a GitHub repository. Use the <b>Raw</b> button there, and paste the address that opens (it starts with <b>raw.githubusercontent.com</b>), or the address of the file on a site you host.</li>
         <li>The host has to allow other sites to read the file. GitHub's raw addresses do. Many other sites do not, and the app will say it could not reach the address.</li>
       </ul>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
@@ -1117,23 +1116,18 @@ https://example.com/another-routine.txt</pre>
       <button class="btn" id="fileBtn" type="button">Choose a file&hellip;</button>
       <input type="file" id="routineFile" accept=".txt,.json,.csv,text/plain,application/json" hidden>
     </div>
-    <div class="osec">
-      <label class="olbl" for="routineUrl">Link</label>
+    <p class="err" id="openErr" role="alert"></p>
+    <div class="osec" id="libBox"><div class="olbl">Link or shared list</div>
       <div class="urlrow">
-        <input type="text" id="routineUrl" inputmode="url" autocomplete="off" autocorrect="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" spellcheck="false" placeholder="https://example.com/my-routine.txt" aria-label="Link to a routine">
-        <button class="btn" id="urlGo" type="button">Load</button>
-      </div>
-      <p class="err" id="openErr" role="alert"></p>
-    </div>
-    <div class="osec" id="libBox"><div class="olbl">Shared list</div>
-      <div class="urlrow">
-        <input type="text" id="libraryUrl" aria-label="Shared list address" inputmode="url" autocomplete="off" autocorrect="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" spellcheck="false" placeholder="https://example.com/routines.txt">
+        <select id="libSel" aria-label="Shared list"></select>
         <button class="btn" id="libGo" type="button">Load</button>
       </div>
+      <input type="text" id="libraryUrl" aria-label="Link to a routine or a shared list" inputmode="url" autocomplete="off" autocorrect="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" spellcheck="false" placeholder="https://example.com/my-routines.txt" hidden>
+      <input type="text" id="libName" aria-label="Shared list name" autocomplete="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" maxlength="60" placeholder="Name (optional)" hidden>
       <p class="err" id="libErr" role="alert"></p>
       <p class="hint" id="libInfo"></p>
-      <div class="exercises" id="libList" role="list" aria-label="Routines in the shared list" hidden></div>
-      <p class="hint">A shared list is a text file that lists routine files, one per line. <button class="btn small" id="openHelp" type="button" data-help="help-library">Help</button> <button class="linkbtn" id="libClear" type="button" hidden>Forget this list</button></p>
+      <div class="exercises" id="libList" role="list" aria-label="Routines in the list" hidden></div>
+      <p class="hint">A shared list is one text file of routines split by lines of dashes. <button class="btn small" id="openHelp" type="button" data-help="help-library">Help</button> <button class="linkbtn" id="libRen" type="button" hidden>Rename</button> <button class="linkbtn" id="libClear" type="button" hidden>Forget</button></p>
     </div>
   </div>
 </div>
@@ -1951,47 +1945,22 @@ function loopResult(clicks,hits){
   return out;
 }
 /* ---------- routine library ---------- */
-/* A library list names routines. Text form: one per line, "Title | address" or just an address, # for notes. Addresses
-   may be relative to the list's own address. JSON also works: an array, or {routines:[...]}, of addresses or
-   {title,url} objects. Returns {items:[{title,url}], errors:[]}. */
-function libTitle(url){
-  let seg='';
-  try{seg=decodeURIComponent(new URL(url).pathname.split('/').filter(Boolean).pop()||'');}catch(e){}
-  seg=seg.replace(/\.(txt|json|routine|list)$/i,'').replace(/[-_]+/g,' ').trim();
-  return seg?seg.charAt(0).toUpperCase()+seg.slice(1):url;
-}
-function parseLibrary(text,base){
-  const out={items:[],errors:[]},seen=new Set();
-  const t=String(text||'').replace(/^\uFEFF/,'').trim();
-  const add=(title,addr,where)=>{
-    let u;
-    try{u=new URL(String(addr).trim(),base);if(!/^https?:$/.test(u.protocol))throw new Error('scheme');}
-    catch(e){out.errors.push(where+': "'+String(addr).trim().slice(0,60)+'" is not a web address');return;}
-    if(seen.has(u.href))return;
-    seen.add(u.href);
-    out.items.push({title:(String(title||'').trim().slice(0,80))||libTitle(u.href),url:u.href});
-  };
-  if(!t)return out;
-  if(t[0]==='['||t[0]==='{'){
-    const L=jsonList(t,'routines',out);
-    if(!L)return out;
-    const arr=L.arr;
-    arr.slice(0,200).forEach((it,i)=>{
-      const where='Entry '+(i+1);
-      if(typeof it==='string')return add('',it,where);
-      if(it&&typeof it==='object'){const a=it.url||it.file||it.path;if(a)return add(it.title||it.name,a,where);}
-      out.errors.push(where+': needs an address');
-    });
-  }else{
-    t.split(/\r?\n/).slice(0,400).forEach((raw,i)=>{
-      const line=raw.replace(/^\s*#.*$/,'').trim();
-      if(!line)return;
-      const k=line.lastIndexOf('|');
-      if(k>=0)add(line.slice(0,k),line.slice(k+1),'Line '+(i+1));
-      else add('',line,'Line '+(i+1));
-    });
-  }
-  if(out.items.length>200){out.items.length=200;out.errors.push('Only the first 200 routines are shown.');}
+/* A shared list is one text file of routines. A line of only dashes (---, or an em or en dash) starts the next routine. A file without
+   such a line is a single routine. Returns {items:[{title,text}], errors:[], bundle}. */
+const LIB_MAX=100;
+function parseLibrary(text){
+  const out={items:[],errors:[],bundle:false};
+  const t=String(text||'').replace(/^\uFEFF/,'');
+  const parts=[[]];
+  t.split(/\r?\n/).forEach(ln=>{if(/^\s*(-{3,}|[\u2014\u2013]+)\s*$/.test(ln)){out.bundle=true;parts.push([]);}else parts[parts.length-1].push(ln);});
+  parts.forEach(a=>{
+    const sec=a.join('\n').trim();
+    if(!sec)return;
+    const p=parseRoutine(sec);
+    if(!p.errors.length&&!p.exercises.length)return;
+    if(out.items.length>=LIB_MAX){if(!out.errors.length)out.errors.push('Only the first '+LIB_MAX+' routines are shown.');return;}
+    out.items.push({title:(getHeader(sec,'title')||'Routine '+(out.items.length+1)).slice(0,80),text:sec});
+  });
   return out;
 }
 </script>
@@ -2000,7 +1969,7 @@ function parseLibrary(text,base){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.23.0';                           /* shown beside the title */
+const VERSION='0.25.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2008,8 +1977,9 @@ const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const LOOKAHEAD=0.35;                            /* how far ahead clicks are scheduled, in seconds */
 
 const STARTER='RLRL RLRL RLRL RLRL';
+const STARTER_LIST='routines/starter.txt';
 const S={mode:'single',routineText:STARTER,eachUnit:'min',eachVal:1,gap:0,pulse:true,startExercise:1,
-  bpm:60,subdiv:4,click:'beat',lastExport:0,expRuns:0,tol:20,sens:-30,settle:40,library:'',vol:60,latency:null,latCal:false,input:'mic',editTab:'build',theme:'',palette:'std',libId:''};
+  bpm:60,subdiv:4,click:'beat',lastExport:0,expRuns:0,tol:20,sens:-30,settle:40,vol:60,latency:null,latCal:false,input:'mic',editTab:'build',theme:'',palette:'std',libId:''};
 let cal={L:[],R:[]},model=null;
 try{
   const o=JSON.parse(localStorage.getItem(KEY)||'null');
@@ -2028,8 +1998,10 @@ S.subdiv=4;                                        /* strokes with no note code 
 S.tol=[10,15,20,30].includes(+S.tol)?+S.tol:20;
 S.sens=clamp(Math.round(+S.sens)||-30,-55,-8);
 S.settle=clamp(Math.round(+S.settle)||40,20,120);
-S.library=typeof S.library==='string'&&S.library.length<=500?S.library.trim():'';
-S.libCache=(c=>S.library&&c&&Array.isArray(c.items)?{t:+c.t||0,items:c.items.filter(i=>i&&typeof i.title==='string'&&typeof i.url==='string').slice(0,200).map(i=>({title:i.title.slice(0,80),url:i.url.slice(0,500)}))}:null)(S.libCache);   /* the last shared list, so opening the dialog needs no request */
+/* Saved shared lists: address, name, and the last loaded routines (kept for the three newest loads only). */
+S.lists=Array.isArray(S.lists)?S.lists.filter((l,i,a)=>l&&typeof l.url==='string'&&l.url.length<=500&&a.findIndex(q=>q&&q.url===l.url)===i).slice(0,20).map(l=>({url:l.url,name:typeof l.name==='string'?l.name.slice(0,60):'',t:+l.t||0,items:Array.isArray(l.items)?l.items.filter(i=>i&&typeof i.title==='string'&&typeof i.text==='string').slice(0,100).map(i=>({title:i.title.slice(0,80),text:i.text.slice(0,20000)})):undefined})):[{url:new URL(STARTER_LIST,location.href).href,name:'Starter routines',t:0}];
+S.listSel=typeof S.listSel==='string'&&S.lists.some(l=>l.url===S.listSel)?S.listSel:'';
+S.lists.filter(l=>l.items).sort((x,y)=>y.t-x.t).slice(3).forEach(l=>{delete l.items;});
 S.vol=clamp(Math.round(+S.vol),0,100);if(isNaN(S.vol))S.vol=60;
 S.latency=(S.latency==null||isNaN(+S.latency))?null:clamp(Math.round(+S.latency),0,400);
 if(S.input!=='kb')S.input='mic';
@@ -2079,7 +2051,7 @@ function cleanRun(x){
   return o;
 }
 const MAX_LIB=500;
-const recs={runs:[],sum:newSum(),names:{},nu:1,lib:[]};   /* lib: saved routines {id,x,t,u}, u being the hash of the web address it was imported from. x is the text without its title, stored once in the same pool as the runs' text. */   /* names: one title per routine, by its key. nu: the next "Untitled" number. */
+const recs={runs:[],sum:newSum(),names:{},nu:1,lib:[]};   /* lib: saved routines {id,x,t}. x is the text without its title, stored once in the same pool as the runs' text. */   /* names: one title per routine, by its key. nu: the next "Untitled" number. */
 const num=v=>isFinite(+v)?+v:0;
 function cleanLib(list,items,v){
   const out=[],seen=new Set();
@@ -2087,7 +2059,7 @@ function cleanLib(list,items,v){
     if(!e||typeof e.id!=='string'||seen.has(e.id))return;
     const x=v>=2?items[e.x]:e.x;
     if(typeof x!=='string'||!x.trim()||x.length>MAX_SNAP)return;
-    seen.add(e.id);const q={id:e.id.slice(0,40),x:x,t:num(e.t)};if(typeof e.u==='string'&&e.u)q.u=e.u.slice(0,16);out.push(q);
+    seen.add(e.id);out.push({id:e.id.slice(0,40),x:x,t:num(e.t)});
   });
   return out;
 }
@@ -2121,7 +2093,7 @@ function packRecs(){
     return o;
   });
   const q=recs.sum;
-  return {v:2,items:items,names:recs.names,nu:recs.nu,lib:recs.lib.map(e=>({id:e.id,x:hk(e.x),t:e.t,u:e.u||undefined})),runs:runs,sum:{runs:q.runs,sec:q.sec,days:q.days,rt:q.rt,pat:Object.keys(q.pat).map(k=>Object.assign({},q.pat[k],{k:hk(q.pat[k].k)}))}};
+  return {v:2,lists:S.lists.map(l=>({url:l.url,name:l.name||undefined})),items:items,names:recs.names,nu:recs.nu,lib:recs.lib.map(e=>({id:e.id,x:hk(e.x),t:e.t})),runs:runs,sum:{runs:q.runs,sec:q.sec,days:q.days,rt:q.rt,pat:Object.keys(q.pat).map(k=>Object.assign({},q.pat[k],{k:hk(q.pat[k].k)}))}};
 }
 try{
   const o=JSON.parse(localStorage.getItem(RKEY)||'null');
@@ -3916,9 +3888,11 @@ async function importRecs(file){
     recs.runs.sort((a,b)=>a.t-b.t);
     let addL=0;
     u.lib.forEach(c=>{const k=textKey(c.x,S.subdiv);if(k&&!libFor(k)&&recs.lib.length<MAX_LIB){recs.lib.push({id:recs.lib.some(q=>q.id===c.id)?libId():c.id,x:c.x,t:c.t});addL++;}});
+    let addS=0;(Array.isArray(o.lists)?o.lists:[]).forEach(l=>{if(l&&typeof l.url==='string'&&l.url.length<=500&&httpUrl(l.url)&&S.lists.length<20&&!S.lists.some(q=>q.url===l.url)){S.lists.push({url:l.url,name:typeof l.name==='string'?l.name.slice(0,60):'',t:0});addS++;}});
+    if(addS)save();
     saveRecs();renderProgress();
     const dup=u.runs.length-add+u.lib.length-addL,pl=(n,w)=>n+' '+w+(n===1?'':'s');
-    say(add||addL||dup?'\u2713 Imported '+pl(add,'new run')+(u.lib.length?' and '+pl(addL,'routine'):'')+(dup?' ('+dup+' already here)':'')+'.':'\u26A0 That file has no runs or routines in it.');
+    say(add||addL||addS||dup?'\u2713 Imported '+pl(add,'new run')+(u.lib.length?' and '+pl(addL,'routine'):'')+(addS?' and '+pl(addS,'shared list'):'')+(dup?' ('+dup+' already here)':'')+'.':'\u26A0 That file has no runs or routines in it.');
   }catch(e){say('\u26A0 That file is not a records export.');}
 }
 let clearArm=0;
@@ -4040,8 +4014,6 @@ function frame(){
 
 /* ---------- routine loading ---------- */
 function reparse(){routineParsed=parseRoutine(S.routineText);}
-/* The hash of the web address a routine in the scratch pad was fetched from. Save keeps it on the library entry. */
-let pendingSrc='';
 /* JSON routines are turned into plain text as they arrive, so the editor only ever sees text. */
 function plainText(txt){
   const t=String(txt);
@@ -4050,7 +4022,6 @@ function plainText(txt){
   return c===null?t:c;
 }
 function setRoutineText(txt){
-  pendingSrc='';
   S.libId='';   /* text that arrives from a file, a link or History is not an open library entry */
   S.routineText=plainText(txt).slice(0,MAX_TEXT);
   $('routineText').value=S.routineText;
@@ -4177,24 +4148,11 @@ async function fetchText(href,max){
 }
 const URL_HINT='Enter a full web address starting with https://';
 function httpUrl(raw){try{const u=new URL(raw);return /^https?:$/.test(u.protocol)?u:null;}catch(e){return null;}}
-async function loadUrl(){
-  const raw=$('routineUrl').value.trim();
-  if(!raw)return;
-  $('openErr').textContent='';
-  const u=httpUrl(raw);
-  if(!u){$('openErr').textContent=URL_HINT;return;}
-  $('urlGo').disabled=true;
-  try{
-    reviewImport(await fetchText(u.href,MAX_TEXT),urlHash(u.href));
-  }catch(e){
-    $('openErr').textContent='Could not load that link ('+(e&&e.message?e.message:'blocked')+'). Download the file and choose it instead, or paste the text into the notation field.';
-  }finally{$('urlGo').disabled=false;}
-}
 /* ---------- your library: saved routines ---------- */
 const saySaved=t=>{$('saveMsg').textContent=t;};
 /* Puts routine text in the library: over entry `id` if it exists, else over the entry for the same routine, else as a new one.
    With keep, a routine already in the library is left as it is. Old runs keep their own text, so replacing is safe. */
-function putEntry(t,id,keep,src){
+function putEntry(t,id,keep){
   t=plainText(t);
   const p=parseRoutine(t);
   if(p.errors.length)return {err:p.errors[0],fix:true};
@@ -4209,7 +4167,6 @@ function putEntry(t,id,keep,src){
     if(recs.lib.length>=MAX_LIB)return {err:'Your library is full ('+MAX_LIB+' routines).'};
     e={id:libId(),x:x,t:Date.now()};recs.lib.push(e);
   }else{e.x=x;e.t=Date.now();}
-  if(src)e.u=src;
   e._k=key;
   recs.lib=recs.lib.filter(q=>q===e||libKey(q)!==key);   /* two entries for one routine would only confuse */
   if(isRoutineKey(key)){
@@ -4223,9 +4180,9 @@ function putEntry(t,id,keep,src){
 function saveToLibrary(){
   const t=$('routineText').value;
   if(!t.trim()){saySaved('⚠ Nothing to save yet.');return false;}
-  const r=putEntry(t,S.libId,false,pendingSrc);
+  const r=putEntry(t,S.libId,false);
   if(r.err){saySaved('⚠ '+r.err);return false;}
-  pendingSrc='';S.libId=r.e.id;save();
+  S.libId=r.e.id;save();
   saySaved('✓ Saved to your library as '+entryName(r.e)+'.');syncInfo();
   return true;
 }
@@ -4236,24 +4193,19 @@ function saveAsNew(){
   if(scratchState()==='dirty'){
     const nm=curName();   /* two routines with one name would be confusing */
     if(recs.lib.some(q=>entryName(q)===nm)){S.routineText=setHeader(t,'title',nm+' copy');$('routineText').value=S.routineText;}
-    const r=putEntry(S.routineText,'',false,pendingSrc);
+    const r=putEntry(S.routineText,'',false);
     if(r.err){saySaved('\u26A0 '+r.err);return;}
-    pendingSrc='';S.libId=r.e.id;save();saySaved('\u2713 Saved as new: '+entryName(r.e)+'.');syncInfo();
+    S.libId=r.e.id;save();saySaved('\u2713 Saved as new: '+entryName(r.e)+'.');syncInfo();
   }else if(S.libId){
     S.libId='';save();saySaved('This is now a separate copy. Change it, then Save as new.');syncInfo();
   }else saveToLibrary();
 }
-/* A web address as the short hash kept on a library entry. The part after # does not change what is fetched. */
-function urlHash(href){const u=new URL(href);u.hash='';return hashOf(u.href);}
-const withHash=it=>{let h='';try{h=urlHash(it.url);}catch(e){}return {title:it.title,url:it.url,h:h};};
-/* A routine fetched from a link or a shared list opens in the scratch pad to review. Save adds it to the library. */
-function reviewImport(txt,src){
+/* A routine from a link or a shared list opens in the scratch pad to review. Save adds it to the library. */
+function reviewImport(txt){
   txt=plainText(txt);
   guard(()=>{
     openText(txt,textKey(setHeader(txt,'title','').trim(),S.subdiv));
-    pendingSrc=src||'';
     const e=currentEntry();
-    if(e&&src&&!e.u){e.u=src;saveRecs();}
     S.editTab='type';
     closeOpen();openEditor('import');
     if(e)saySaved('Already in your library.');
@@ -4262,7 +4214,7 @@ function reviewImport(txt,src){
 /* Files go straight into the library, since you have just seen them. */
 const addToLibrary=(txt,name)=>putEntry(name&&!getHeader(txt,'title')?'title: '+name+'\n'+txt:txt,'',true);
 function importFile(r,txt){
-  if(r.fix){reviewImport(txt,'');return;}   /* text with errors opens in the scratch pad to fix */
+  if(r.fix){reviewImport(txt);return;}   /* text with errors opens in the scratch pad to fix */
   if(r.err){$('openErr').textContent=r.err;return;}
   $('openErr').textContent='';closeOpen();
   $('libMsg').textContent='✓ '+(r.isNew?'Added “'+entryName(r.e)+'” to your library.':'“'+entryName(r.e)+'” is already in your library.');
@@ -4275,7 +4227,7 @@ function scratchState(){
   const t=S.routineText;
   if(!t.trim()||t===STARTER)return 'empty';   /* the starter pattern is nothing to lose */
   const x=setHeader(t,'title','').trim(),title=(getHeader(t,'title')||'').trim(),e=currentEntry();
-  if(e)return x===e.x.trim()&&(!title||title===(recs.names[libKey(e)]||''))?'clean':'dirty';
+  if(e)return x===e.x.trim()&&(!title||!isRoutineKey(libKey(e))||title===(recs.names[libKey(e)]||''))?'clean':'dirty';
   const key=textKey(x,S.subdiv);
   return key&&libFor(key)?'clean':'scratch';
 }
@@ -4385,13 +4337,25 @@ function renderLibraryPage(){
 }
 const exerciseCount=x=>parseRoutine(x).exercises.length;
 /* ---------- routine library (a list of routine files on the web) ---------- */
-let lib={items:[],loaded:false,busy:false,cur:''};
+let lib={items:[],loaded:false,busy:false,cur:''},libMode='';   /* libMode: '' | 'add' | 'rename' */
+const inLib=it=>{const k=textKey(setHeader(it.text,'title','').trim(),S.subdiv);return !!k&&!!libFor(k);};
+const curList=()=>S.lists.find(l=>l.url===S.listSel)||null;
+const listName=l=>{if(l.name)return l.name;try{const u=new URL(l.url);return u.host+u.pathname.replace(/\/[^\/]*\.[a-z0-9]+$/i,'').replace(/\/$/,'');}catch(e){return l.url;}};
+const addMode=()=>libMode==='add'||!S.lists.length;
 function renderLibrary(){
-  const box=$('libList');box.textContent='';
+  const box=$('libList'),sel=$('libSel'),cl=curList(),add=addMode(),ren=libMode==='rename'&&!!cl;
+  sel.textContent='';
+  if(!cl&&S.lists.length){const o=document.createElement('option');o.value='';o.textContent='Choose a list…';o.disabled=true;sel.appendChild(o);}
+  S.lists.forEach(l=>{const o=document.createElement('option');o.value=l.url;o.textContent=listName(l);sel.appendChild(o);});
+  const o=document.createElement('option');o.value='+';o.textContent='Add a link…';sel.appendChild(o);
+  sel.value=add?'+':(cl?cl.url:'');
+  $('libraryUrl').hidden=!add;$('libName').hidden=!(add||ren);
+  $('libRen').hidden=!cl||add||ren;$('libClear').hidden=!cl||add;
+  box.textContent='';
   lib.items.forEach(it=>{
     const b=document.createElement('button');
-    const have=!!it.h&&recs.lib.some(e=>e.u===it.h);
-    b.type='button';b.className='libitem'+(have?' have':'')+(it.url===lib.cur?' cur':'');b.setAttribute('role','listitem');
+    const have=inLib(it);
+    b.type='button';b.className='libitem'+(have?' have':'')+(it===lib.cur?' cur':'');b.setAttribute('role','listitem');
     b.disabled=lib.busy||!!(run&&!run.ended);
     const n=document.createElement('b');n.textContent=it.title;
     const h=document.createElement('span');h.textContent=have?'In library':'New';
@@ -4400,59 +4364,73 @@ function renderLibrary(){
     box.appendChild(b);
   });
   box.hidden=!lib.items.length;
-  $('libGo').disabled=lib.busy||!$('libraryUrl').value.trim();
-  $('libClear').hidden=!S.library;
+  $('libGo').disabled=lib.busy||ren||(add?!$('libraryUrl').value.trim():!cl);
   if(!lib.busy){
-    const have=lib.items.filter(it=>it.h&&recs.lib.some(e=>e.u===it.h)).length,n=lib.items.length;
-    $('libInfo').textContent=n?(!lib.loaded&&S.libCache?'Last loaded '+dayWord(S.libCache.t)+'. ':'')+n+(n===1?' routine, ':' routines, ')+have+' in your library. Tap one to review it.':(lib.loaded?'The list has no routines in it.':'');
+    const have=lib.items.filter(inLib).length,n=lib.items.length;
+    $('libInfo').textContent=n?(!lib.loaded&&cl&&cl.items?'Last loaded '+dayWord(cl.t)+'. ':'')+n+(n===1?' routine, ':' routines, ')+have+' in your library. Tap one to review it.':(lib.loaded?'The list has no routines in it.':(cl&&!add?'Press Load to fetch this list.':''));
   }
 }
+function pickList(url){
+  S.listSel=url;libMode='';save();
+  lib={items:[],loaded:false,busy:false,cur:''};$('libErr').textContent='';
+  showCachedList();renderLibrary();
+}
 async function loadLibrary(){
-  const raw=$('libraryUrl').value.trim();
+  const add=addMode();
   $('libErr').textContent='';
-  if(!raw){return;}
-  const u=httpUrl(raw);
-  if(!u){$('libErr').textContent=URL_HINT;return;}
+  let href;
+  if(add){
+    const u=httpUrl($('libraryUrl').value.trim());
+    if(!u){$('libErr').textContent=URL_HINT;return;}
+    if(!S.lists.some(l=>l.url===u.href)&&S.lists.length>=20){$('libErr').textContent='You can keep 20 lists. Forget one first.';return;}
+    href=u.href;
+  }else{const l=curList();if(!l)return;href=l.url;}
   lib.busy=true;$('libInfo').textContent='Loading the list…';renderLibrary();
   try{
-    const res=parseLibrary(await fetchText(u.href,200000),u.href);
-    lib.items=res.items.map(withHash);lib.loaded=true;
-    S.library=u.href;S.libCache={t:Date.now(),items:res.items.slice(0,200).map(i=>({title:i.title,url:i.url}))};save();
-    $('libErr').textContent=res.errors.slice(0,3).join(' ')+(res.errors.length>3?' (+'+(res.errors.length-3)+' more)':'');
+    const raw=await fetchText(href,MAX_TEXT),res=parseLibrary(raw);
+    if(!res.bundle){   /* one routine: review it, and do not keep the address */
+      if(!res.items.length)throw new Error('there is no routine in it');
+      lib.busy=false;libMode='';$('libraryUrl').value='';$('libName').value='';renderLibrary();
+      reviewImport(raw);return;
+    }
+    let l=S.lists.find(q=>q.url===href);
+    if(!l){l={url:href,name:$('libName').value.trim().slice(0,60),t:0};S.lists.push(l);}
+    l.t=Date.now();l.items=res.items.map(i=>({title:i.title,text:i.text}));
+    S.listSel=href;libMode='';$('libraryUrl').value='';$('libName').value='';
+    S.lists.filter(q=>q.items).sort((x,y)=>y.t-x.t).slice(3).forEach(q=>{delete q.items;});save();
+    lib.items=l.items;lib.loaded=true;lib.cur='';
+    $('libErr').textContent=res.errors.join(' ');
   }catch(e){
     lib.items=[];lib.loaded=false;
     $('libErr').textContent='Could not load the list ('+(e&&e.message?e.message:'blocked')+').';
     $('libInfo').textContent='';
   }finally{lib.busy=false;renderLibrary();}
 }
-async function openLibraryItem(it){
+function openLibraryItem(it){
   if(lib.busy||(run&&!run.ended))return;
   $('libErr').textContent='';
-  lib.busy=true;$('libInfo').textContent='Loading '+it.title+'…';renderLibrary();
-  try{
-    let txt=plainText(await fetchText(it.url,MAX_TEXT));
-    if(!getHeader(txt,'title'))txt='title: '+it.title+'\n'+txt;
-    lib.cur=it.url;
-    $('libInfo').textContent='';
-    reviewImport(txt,it.h);
-  }catch(e){
-    $('libErr').textContent='Could not load '+it.title+' ('+(e&&e.message?e.message:'blocked')+').';
-    $('libInfo').textContent='';
-  }finally{lib.busy=false;renderLibrary();}
+  lib.cur=it;
+  reviewImport(getHeader(it.text,'title')?it.text:setHeader(it.text,'title',it.title));
+  renderLibrary();
 }
-/* The last shared list is shown from the browser, so opening the dialog makes no request. Load fetches it again. */
+/* A list loaded recently is shown from the browser, so opening the dialog makes no request. Load fetches it again. */
 function showCachedList(){
-  if(S.library&&S.libCache&&!lib.loaded&&!lib.busy&&!lib.items.length)lib.items=S.libCache.items.map(withHash);
+  const l=curList();
+  if(l&&l.items&&!lib.loaded&&!lib.busy&&!lib.items.length)lib.items=l.items;
 }
 function clearLibrary(){
-  S.library='';S.libCache=null;save();
-  lib={items:[],loaded:false,busy:false,cur:''};
-  $('libraryUrl').value='';$('libErr').textContent='';$('libInfo').textContent='';
+  S.lists=S.lists.filter(l=>l.url!==S.listSel);S.listSel='';libMode='';save();
+  lib={items:[],loaded:false,busy:false,cur:''};$('libErr').textContent='';
   renderLibrary();
+}
+function renameLibrary(ok){
+  const l=curList();if(libMode!=='rename'||!l)return;
+  if(ok){const v=$('libName').value.trim().slice(0,60);l.name=v;save();}
+  libMode='';$('libName').value='';renderLibrary();
 }
 
 /* ---------- controls ---------- */
-const LOCKED=['pulse','bpm','bpmDown','bpmUp','subdiv','click','inputMode','routineText','fileBtn','openBtn','urlGo','routineUrl','clearRoutine','playChange','libraryUrl','libGo','libClear','eachVal','eachUnit','gap'];
+const LOCKED=['pulse','bpm','bpmDown','bpmUp','subdiv','click','inputMode','routineText','fileBtn','openBtn','clearRoutine','playChange','libSel','libraryUrl','libName','libGo','libRen','libClear','eachVal','eachUnit','gap'];
 function syncRunUI(){
   const on=!!(run&&!run.ended),play=on&&run.mode==='play',paused=on&&!!run.paused;
   const b=$('startBtn');
@@ -4486,7 +4464,6 @@ function playsFor(){return ' · plays for '+(S.eachUnit==='pass'?S.eachVal+(S.ea
 function playTime(list){let t=0;list.forEach(b=>{t+=b.secs;});return t+(list.length>1?list.length-1:0)*S.gap*(60/S.bpm)+4*(60/S.bpm);}
 /* The getting-started card shows only while there is nothing saved and nothing played. */
 const syncWelcome=()=>{$('welcome').hidden=S.welcomed||recs.lib.length>0||recs.runs.length>0;};
-const STARTER_LIST='routines/starter.list';
 function syncInfo(){
   syncWelcome();syncPlayName();syncEditorBar();
   const exercises=currentExercises();
@@ -4827,7 +4804,7 @@ function wireBuilder(){
   $('saveMenu').addEventListener('click',e=>{if(e.target.closest('.btn'))closeMenu();});
   openRowMenu=idx=>{const b=$('editList').querySelector('.erow[data-idx="'+idx+'"] .dots');if(b)openMenu($('rowMenu'),b);};
   const om=$('openModal');
-  openOpen=()=>{if(run&&!run.ended)return;$('openErr').textContent='';om.hidden=false;showCachedList();renderLibrary();$('routineUrl').focus();};
+  openOpen=()=>{if(run&&!run.ended)return;$('openErr').textContent='';om.hidden=false;showCachedList();renderLibrary();$('fileBtn').focus();};
   closeOpen=()=>{if(om.hidden)return;om.hidden=true;$('openBtn').focus({preventScroll:true});};
   $('openBtn').addEventListener('click',openOpen);
   $('openClose').addEventListener('click',closeOpen);
@@ -4950,18 +4927,24 @@ function wire(){
     saveFile(name+'.txt','text/plain',t.endsWith('\n')?t:t+'\n');
   });
   $('routineFile').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];await loadFile(f);e.target.value='';});
-  $('urlGo').addEventListener('click',loadUrl);
   $('libGo').addEventListener('click',loadLibrary);
   $('libClear').addEventListener('click',clearLibrary);
+  $('libSel').addEventListener('change',()=>{const v=$('libSel').value;if(v==='+'){libMode='add';$('libErr').textContent='';lib={items:[],loaded:false,busy:false,cur:''};renderLibrary();$('libraryUrl').focus();}else pickList(v);});
+  $('libRen').addEventListener('click',()=>{const l=curList();if(!l)return;libMode='rename';renderLibrary();$('libName').value=l.name;$('libName').focus();});
   $('libraryUrl').addEventListener('input',renderLibrary);
   $('libraryUrl').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();loadLibrary();}});
-  $('routineUrl').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();loadUrl();}});
+  $('libName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(libMode==='rename')renameLibrary(true);else loadLibrary();}else if(e.key==='Escape'&&libMode==='rename'){e.stopPropagation();renameLibrary(false);}});
+  $('libName').addEventListener('blur',()=>{if(libMode==='rename')renameLibrary(true);});
   $('clearRoutine').addEventListener('click',()=>guard(()=>{bLine=0;setRoutineText('');openEditor('library');}));
   $('lsRecent').addEventListener('click',()=>{libSort='recent';renderLibraryPage();});
   $('lsName').addEventListener('click',()=>{libSort='name';renderLibraryPage();});
   $('wMic').addEventListener('click',()=>{showTab('setup');setSview('dev');});
   $('wImport').addEventListener('click',()=>openOpen());
-  $('wStarter').addEventListener('click',()=>{$('libraryUrl').value=new URL(STARTER_LIST,location.href).href;openOpen();loadLibrary();});
+  $('wStarter').addEventListener('click',()=>{
+    const href=new URL(STARTER_LIST,location.href).href;
+    if(!S.lists.some(l=>l.url===href)){if(S.lists.length>=20)S.lists.pop();S.lists.unshift({url:href,name:'Starter routines',t:0});}
+    openOpen();pickList(href);loadLibrary();
+  });
   $('wDone').addEventListener('click',()=>{S.welcomed=true;save();syncWelcome();});
   $('edBack').addEventListener('click',()=>{showTab(editFrom==='play'?'play':'library');if(editFrom==='import')openOpen();window.scrollTo(0,0);});
   $('playChange').addEventListener('click',()=>showTab('library'));
@@ -5132,7 +5115,7 @@ function init(){
     t.style.paddingRight='0';const w=t.getBoundingClientRect(),pad=Math.round(w.right-m);
     if(pad>0&&w.width-pad>=520)t.style.paddingRight=pad+'px';};
   placeVer();addEventListener('resize',placeVer);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(placeVer);
-  $('libraryUrl').value=S.library;renderLibrary();
+  renderLibrary();
   $('settle').value=S.settle;$('settleOut').textContent=S.settle+' ms';
   $('sens').value=S.sens;$('sensOut').textContent=S.sens+' dB';$('mThr').style.left=((S.sens+60)/60*100)+'%';
   $('vol').value=S.vol;$('volOut').textContent=S.vol+'%';

@@ -1,5 +1,0 @@
-title: Sixteenths and triplets
-each: x6
-16 RLRL 16t RLR LRL 16 RLRL 16t RLR LRL
-16 RRLL 16t RLR LRL 16 RRLL 16t RLR LRL
-16 RLRR 16t RLR LRL 16 LRLL 16t LRL RLR

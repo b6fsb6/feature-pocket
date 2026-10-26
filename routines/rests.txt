@@ -1,6 +1,0 @@
-title: Rests
-each: x8
-16 R _ L _ R _ L _
-16 R L _ R L _ R L
-16 R _ _ L _ _ R L
-16 R R _ L L _ R L
