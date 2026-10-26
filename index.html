@@ -1971,7 +1971,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.27.7';                           /* shown beside the title */
+const VERSION='0.27.8';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2415,6 +2415,8 @@ function beginRun(mode,only){
   startLoops();
   setRunning(true);
   lockScreen();
+  /* The run layout is in place, so the staff is where it will stay. If the page has to scroll to show it, the count-in waits a second for that. */
+  if(!lat&&revealStaff())r.t0+=1;
   setStatus(lat?'Latency calibration. Count in, then hit the pad on every click and keep going. Stop playing when the number settles.':'Count-in…');
 }
 function tick(){
@@ -2547,10 +2549,8 @@ async function startPlay(only){
   if(!(only||currentExercises()).length)return;
   showTab('play');
   setStatus('Starting…');
-  if(revealStaff())await new Promise(r=>setTimeout(r,1000));   /* scroll first, give it a second, then count in */
   if(!(await ensureAudio(S.input==='mic')))return;
   beginRun('play',only);
-  requestAnimationFrame(()=>requestAnimationFrame(revealStaff));   /* after the page has settled into the run layout */
 }
 function stopRun(){
   const r=run;if(!r||r.ended)return;
