@@ -1971,7 +1971,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.27.1';                           /* shown beside the title */
+const VERSION='0.27.3';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -4353,6 +4353,11 @@ const itemKey=it=>textKey(setHeader(it.text,'title','').trim(),S.subdiv);
 const inLib=it=>{const k=itemKey(it);return !!k&&!!libFor(k);};
 const curList=()=>S.lists.find(l=>l.url===S.listSel)||null;
 const listName=l=>{if(l.name)return l.name;try{const u=new URL(l.url);let f=decodeURIComponent(u.pathname.split('/').filter(Boolean).pop()||'').replace(/\.[a-z0-9]+$/i,'');return f||u.host;}catch(e){return l.url;}};
+/* The name field suggests a name from the address as its placeholder. Left empty, that name is used. */
+function suggestName(){
+  const u=httpUrl($('libraryUrl').value.trim());
+  $('libName').placeholder=u?listName({url:u.href,name:''}):'Name (optional)';
+}
 const addMode=()=>libMode==='add'||!S.lists.length;
 function renderLibrary(){
   const box=$('libList'),sel=$('libSel'),cl=curList(),add=addMode(),ren=libMode==='rename'&&!!cl;
@@ -4409,7 +4414,7 @@ async function loadLibrary(){
     let l=S.lists.find(q=>q.url===href);
     if(!l){l={url:href,name:$('libName').value.trim().slice(0,60),t:0};S.lists.push(l);}
     l.t=Date.now();l.items=res.items.map(i=>({title:i.title,text:i.text}));
-    S.listSel=href;libMode='';$('libraryUrl').value='';$('libName').value='';
+    S.listSel=href;libMode='';$('libraryUrl').value='';$('libName').value='';suggestName();
     S.lists.filter(q=>q.items).sort((x,y)=>y.t-x.t).slice(3).forEach(q=>{delete q.items;});save();
     lib.items=l.items;lib.loaded=true;lib.cur='';
     $('libErr').textContent=res.errors.join(' ');
@@ -4973,7 +4978,7 @@ function wire(){
   $('exportLib').addEventListener('click',exportLibrary);
   $('libSel').addEventListener('change',()=>{const v=$('libSel').value;if(v==='+'){libMode='add';$('libErr').textContent='';lib={items:[],loaded:false,busy:false,cur:''};renderLibrary();$('libraryUrl').focus();}else pickList(v);});
   $('libRen').addEventListener('click',()=>{const l=curList();if(!l)return;libMode='rename';renderLibrary();$('libName').value=l.name;$('libName').focus();});
-  $('libraryUrl').addEventListener('input',renderLibrary);
+  $('libraryUrl').addEventListener('input',()=>{suggestName();renderLibrary();});
   $('libraryUrl').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();loadLibrary();}});
   $('libName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(libMode==='rename')renameLibrary(true);else loadLibrary();}else if(e.key==='Escape'&&libMode==='rename'){e.stopPropagation();renameLibrary(false);}});
   $('libName').addEventListener('blur',()=>{if(libMode==='rename')renameLibrary(true);});
