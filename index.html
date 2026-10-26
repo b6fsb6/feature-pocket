@@ -130,6 +130,9 @@ body[data-run="1"] .notice{display:none}
 .cd.early .lt{font-style:italic}      /* a second cue beside colour: early leans, late is underlined */
 .cd.late .lt{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
 .cd.miss .lt{fill:var(--muted);opacity:.4}
+.staff .acc{stroke:var(--ink);stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.staff .gh{stroke:var(--muted);stroke-width:1.5;stroke-linecap:round;fill:none}
+.staff .lt.soft{font-size:17px;fill:var(--muted)}
 .staff .ph{stroke:var(--accent);stroke-width:3;stroke-linecap:round;pointer-events:none}
 @keyframes phpulse{from{stroke-width:var(--pw,10);opacity:.55}to{stroke-width:3;opacity:1}}
 @media (prefers-reduced-motion:no-preference){.staff .ph.pulse{animation:phpulse .14s ease-out}.staff .ph.pulse2{--pw:15;animation:phpulse .2s ease-out}}
@@ -488,6 +491,11 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         <p class="hint">Hit the pad. The bar should cross the line on every stroke and fall back under it between strokes. Raise the line if room noise triggers hits, lower it if soft strokes are missed.</p>
       </div>
       <div class="field">
+        <label for="ghostDb">Ghost floor <output id="ghostOut"></output></label>
+        <input type="range" id="ghostDb" min="-30" max="-3" step="1">
+        <p class="hint">Only used when Other strokes is Ghost. How far below the trigger line a soft stroke may sit and still count. Lower it if ghost notes are missed. Quiet hits only count on a ghost note, so room noise elsewhere is ignored.</p>
+      </div>
+      <div class="field">
         <label for="settle">Settle time <output id="settleOut"></output></label>
         <input type="range" id="settle" min="20" max="120" step="5">
         <p class="hint">How long the app ignores the pad after a hit. Raise it if one stroke counts twice. Fast playing lowers it automatically so real strokes are not skipped.</p>
@@ -770,7 +778,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         <button class="btn small" type="button" data-try="single" data-text="RLRL RLRL RLRL RLRL">Try it</button>
       </div>
       <div class="ex">
-        <h4>Accent patterns</h4>
+        <h4>Click levels</h4>
         <pre>RLRR LRLL RLRR LRLL</pre>
         <p>Choose the click level on the Play page: Easy clicks every stroke, Medium every beat, Hard on 1 and 3, Extreme on 1 only.</p>
         <button class="btn small" type="button" data-try="single" data-text="RLRR LRLL RLRR LRLL">Try it</button>
@@ -928,6 +936,7 @@ RLRR LRLL RLRR LRLL</pre>
         <li><b>Test left vs right:</b> after calibrating, press it and hit once with whichever hand is shown, 20 times in a shuffled order. It reports how often the app named the right stick, how each hand did, and how many hits would be tagged with the wrong hand in a run. Below 90% is worth recalibrating.</li>
         <li><b>Latency:</b> sound reaches the page late, and the click reaches your ears late. Press Auto calibrate once on each device. It plays clicks through the speakers and times when the mic hears them, so you don't play. Calibrate by playing is the second choice: hit right on each click and keep going until the number settles, then stop (80 hits or more). It assumes you were on the click on average. You can also type a number.</li>
         <li><b>Click level:</b> Easy clicks on every stroke (none on rests). Medium clicks on every beat. Hard clicks on beats 1 and 3, or every second beat from the start of the bar. Extreme clicks only on the first beat of each bar. Count-in only clicks just the count-in and is not scored in your stats. Every level is scored against the same grid, and each level is cleared on its own. Use headphones, or the click will be picked up as strokes.</li>
+        <li><b>Accent and Other strokes:</b> on the Play page, these lay accents and ghost (soft) notes over whatever exercise is loaded. Accent picks which strokes are loud: the first of each group, each beat, each bar, every 2nd to 7th stroke (counted across passes, so the accent drifts when the count does not divide the pass), or just the right or left hand. Rests are never accented. Other strokes can be Normal or Ghost. The staff shows accents with a &gt; and ghost notes in brackets. With the microphone, Results compares each accent with the strokes around it and each ghost note with its neighbours, and reports how many were clear: an accent needs to be about 4 dB louder, a ghost note about 6 dB quieter. Strokes less than 60 ms apart are not judged. <b>Ghost floor</b> in Settings is how far below the trigger line a soft stroke may sit and still count. It only counts on a ghost note, so room noise elsewhere is ignored. The rule is saved with each run, and an exercise played with a different rule has its own scores and its own History group. Keyboard input does not judge loudness.</li>
       </ul>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
@@ -990,6 +999,26 @@ RLRR LRLL RLRR LRLL</pre>
           <button class="btn" id="bpmUp" type="button" aria-label="Faster">+</button>
         </div>
       </div>
+    </section>
+
+    <section class="panel cfg tc" aria-label="Accents and ghost notes">
+      <div class="field"><label for="accent">Accent</label>
+        <select id="accent">
+          <option value="">Off</option>
+          <option value="g">Each group</option>
+          <option value="b">Each beat</option>
+          <option value="m">Each bar</option>
+          <option value="2">Every 2nd stroke</option>
+          <option value="R">Right hand</option>
+          <option value="L">Left hand</option>
+          <option value="3">Every 3rd stroke</option>
+          <option value="4">Every 4th stroke</option>
+          <option value="5">Every 5th stroke</option>
+          <option value="6">Every 6th stroke</option>
+          <option value="7">Every 7th stroke</option>
+        </select></div>
+      <div class="field"><label for="others">Other strokes</label>
+        <select id="others"><option value="n">Normal</option><option value="g">Ghost (soft)</option></select></div>
     </section>
 
     <div class="transport">
@@ -1060,6 +1089,7 @@ RLRR LRLL RLRR LRLL</pre>
           <div class="big"><span id="lvVal">—</span><small id="lvUnit">dB</small></div>
           <div class="word" id="lvWord">Waiting for strokes</div>
         </div>
+        <p class="hint" id="lvDyn" hidden></p>
         <div class="hscw"><div class="hscroll lv" id="lvBox"><div class="hscin" id="lvIn"><canvas id="lvCv" role="img" aria-label="Loudness of every stroke in the run, newest at the right"></canvas></div></div><button class="btn small jump" id="lvJump" type="button" hidden>Newest &#9656;</button></div>
         <div class="g-ends"><span>◀ older, scroll back</span><span>newest ▶</span></div>
       </section>
@@ -1489,6 +1519,7 @@ function buildPlan(exercises,o){
     const cin=sig?sig.n:4,leadBeats=si===0?cin:gap,leadStart=t,lead=leadBeats*beat;
     for(let j=0;j<leadBeats;j++)clicks.push({t:t+j*beat,a:j===0?2:(gst.indexOf(j)>=0?1:0)});
     const t0=t+lead,first=slots.length,cell0=cells.length,g0=gp;
+    const dyo=o.dyn||null;let ord=0;   /* dynamics: A accent, g ghost, n normal. The stroke count carries on across passes. */
     if(o.clickMode==='beat'){
       const nb=Math.ceil(totalBeats-1e-9);
       for(let j=0;j<nb;j++){
@@ -1504,8 +1535,19 @@ function buildPlan(exercises,o){
     /* cells are every position, rests included. slots are the strokes that are expected to sound. */
     for(let p=0;p<b.passes;p++)for(let i=0;i<N;i++){
       const st=t0+(p*passBeats+off[i])*beat,rest=b.notes[i]==='_';
-      cells.push({t:st,seg:si,pos:i,k:p*N+i,rest:rest,d:beat/b.subs[i],g:g0+p,slot:rest?-1:slots.length});
-      if(!rest)slots.push({t:st,seg:si,pos:i,k:p*N+i,w:Math.min(beat/b.subs[i]*0.5,0.15)});
+      let dy='';
+      if(dyo&&!rest){
+        const ru=dyo.acc;
+        const hit=ru==='g'?(grouped?b.groupStart[i]:i===0)
+          :ru==='b'?((sig&&sig.d===8)?b.groupStart[i]:isInt(off[i]))
+          :ru==='m'?(i===0||(sig&&isInt(off[i]/sig.n)))
+          :/^[2-7]$/.test(ru)?ord%(+ru)===0
+          :(ru==='R'||ru==='L')?b.notes[i]===ru:false;
+        dy=hit?'A':(dyo.oth==='g'?'g':'n');
+      }
+      if(!rest)ord++;
+      cells.push({t:st,seg:si,pos:i,k:p*N+i,rest:rest,d:beat/b.subs[i],g:g0+p,slot:rest?-1:slots.length,dy:dy});
+      if(!rest)slots.push({t:st,seg:si,pos:i,k:p*N+i,w:Math.min(beat/b.subs[i]*0.5,0.15),dy:dy});
       if(o.clickMode==='note'||(o.clickMode==='strokes'&&!rest)){
         /* Strong at the start of the bar, lighter at group starts. Inside triplets every beat start is lighter too,
            and inside sextuplets every half beat (1 2 3, 1 2 3), whatever the beaming. */
@@ -1518,6 +1560,8 @@ function buildPlan(exercises,o){
     t=t0+totalBeats*beat;gp+=b.passes;
     segs.push({idx:b.idx,src:b.src||'',notes:b.notes,groupStart:b.groupStart,subs:b.subs,defSub:b.defSub,sig:sig,cin:cin,gst:gst,bpm:b.bpm,N:N,strokes:b.notes.filter(x=>x!=='_').length,passes:b.passes,passBeats:passBeats,beat:beat,leadStart:leadStart,lead:lead,leadBeats:leadBeats,t0:t0,end:t,first:first,cell0:cell0,g0:g0});
   });
+  /* Strokes closer than 60 ms cannot be told apart by level, so they are not judged for dynamics. */
+  slots.forEach((q,i)=>{const a=slots[i-1],c=slots[i+1];q.tight=Math.min(a&&a.seg===q.seg?q.t-a.t:9,c&&c.seg===q.seg?c.t-q.t:9)<0.06;});
   return {slots:slots,cells:cells,clicks:clicks,segs:segs,end:t};
 }
 function nearestSlot(slots,t){
@@ -1578,8 +1622,8 @@ function patStats(runs,sum){
   const m=new Map();
   runs.forEach(run=>run.exercises.forEach(b=>{
     if(!(b.due>0)||run.lv==='off')return;
-    const mk=b.k+'|'+run.lv;
-    let e=m.get(mk);if(!e){e={k:b.k,lv:run.lv,recs:[]};m.set(mk,e);}
+    const mk=b.k+'|'+run.lv+(run.dy?'|'+run.dy:'');   /* the same sticking with a different accent rule is a different exercise */
+    let e=m.get(mk);if(!e){e={k:b.k,lv:run.lv,dy:run.dy||'',recs:[]};m.set(mk,e);}
     e.recs.push({t:run.t,bpm:b.bpm||run.bpm,pct:b.within/b.due,avg:b.avg,ls:b.ls});
   }));
   const out=[];
@@ -1590,14 +1634,14 @@ function patStats(runs,sum){
     const clearedT=cleared?e.recs.find(x=>x.pct>=TARGET&&x.bpm===cleared).t:0;
     const bias=recent.filter(x=>typeof x.avg==='number'&&!isNaN(x.avg));
     const ev=recent.filter(x=>typeof x.ls==='number');
-    out.push({k:e.k,lv:e.lv,bpm:last.bpm,recent:recent.reduce((a,x)=>a+x.pct,0)/recent.length,last:last.pct,cleared:cleared||null,clearedT:clearedT,
+    out.push({k:e.k,lv:e.lv,dy:e.dy,bpm:last.bpm,recent:recent.reduce((a,x)=>a+x.pct,0)/recent.length,last:last.pct,cleared:cleared||null,clearedT:clearedT,
       runs:e.recs.length,trend:at.slice(-12).map(x=>x.pct),t:last.t,bias:bias.length?bias.reduce((a,x)=>a+x.avg,0)/bias.length:NaN,even:ev.length?ev.reduce((a,x)=>a+x.ls,0)/ev.length:NaN});
   });
   if(sum){
-    const idx=new Map(out.map(e=>[e.k+'|'+e.lv,e]));
+    const idx=new Map(out.map(e=>[e.k+'|'+e.lv+(e.dy?'|'+e.dy:''),e]));
     Object.keys(sum.pat).forEach(key=>{
       const q=sum.pat[key],d=idx.get(key);
-      if(!d){const r=q.tr.slice(-3);out.push({k:q.k,lv:q.lv,bpm:q.bpm,recent:r.reduce((a,x)=>a+x,0)/r.length,last:q.tr[q.tr.length-1],cleared:q.cleared||null,clearedT:q.clearedT,runs:q.runs,trend:q.tr.slice(),t:q.t,bias:q.avg==null?NaN:q.avg,even:NaN});}
+      if(!d){const r=q.tr.slice(-3);out.push({k:q.k,lv:q.lv,dy:q.dy||'',bpm:q.bpm,recent:r.reduce((a,x)=>a+x,0)/r.length,last:q.tr[q.tr.length-1],cleared:q.cleared||null,clearedT:q.clearedT,runs:q.runs,trend:q.tr.slice(),t:q.t,bias:q.avg==null?NaN:q.avg,even:NaN});}
       else{d.runs+=q.runs;if(q.cleared&&(!d.cleared||q.cleared>d.cleared||(q.cleared===d.cleared&&q.clearedT<d.clearedT))){d.cleared=q.cleared;d.clearedT=q.clearedT;}}
     });
   }
@@ -1609,22 +1653,23 @@ function routineStats(runs,sum){
   const m=new Map();
   runs.forEach(run=>{
     if(!run.rk||run.lv==='off')return;
-    const mk=run.rk+'|'+run.lv;
-    let e=m.get(mk);if(!e){e={rk:run.rk,lv:run.lv,ne:run.ne,runs:0,t:0,cleared:0};m.set(mk,e);}
+    const mk=run.rk+'|'+run.lv+(run.dy?'|'+run.dy:'');
+    let e=m.get(mk);if(!e){e={rk:run.rk,lv:run.lv,dy:run.dy||'',ne:run.ne,runs:0,t:0,cleared:0};m.set(mk,e);}
     e.runs++;if(run.t>=e.t)e.t=run.t;
     const ok=run.exercises.length>=run.ne&&run.exercises.every(b=>b.due>0&&b.within/b.due>=TARGET);
     if(ok)e.cleared=Math.max(e.cleared,run.bpm);
   });
   if(sum)Object.keys(sum.rt).forEach(key=>{
     const q=sum.rt[key],e=m.get(key);
-    if(!e)m.set(key,{rk:q.rk,lv:q.lv,ne:q.ne,runs:q.runs,t:q.t,cleared:q.cleared});
+    if(!e)m.set(key,{rk:q.rk,lv:q.lv,dy:q.dy||'',ne:q.ne,runs:q.runs,t:q.t,cleared:q.cleared});
     else{e.runs+=q.runs;e.cleared=Math.max(e.cleared,q.cleared);}
   });
   return [...m.values()].sort((a,b)=>b.t-a.t);
 }
-function clearedBefore(runs,k,lv,sum){
-  let m=sum&&sum.pat[k+'|'+lv]?sum.pat[k+'|'+lv].cleared:0;
-  runs.forEach(run=>run.exercises.forEach(b=>{if(run.lv===lv&&b.k===k&&b.due>0&&b.within/b.due>=TARGET)m=Math.max(m,b.bpm||run.bpm);}));
+function clearedBefore(runs,k,lv,sum,dy){
+  dy=dy||'';const sk=k+'|'+lv+(dy?'|'+dy:'');
+  let m=sum&&sum.pat[sk]?sum.pat[sk].cleared:0;
+  runs.forEach(run=>run.exercises.forEach(b=>{if(run.lv===lv&&(run.dy||'')===dy&&b.k===k&&b.due>0&&b.within/b.due>=TARGET)m=Math.max(m,b.bpm||run.bpm);}));
   return m;
 }
 /* Runs that age out of the detail list are folded into a small permanent summary, so totals, streaks, badges and cleared tempos never shrink. */
@@ -1635,8 +1680,8 @@ function foldRun(sum,run){
   if(run.lv==='off')return;
   run.exercises.forEach(b=>{
     if(!(b.due>0))return;
-    const key=b.k+'|'+run.lv,bpm=b.bpm||run.bpm,pct=b.within/b.due;
-    let e=sum.pat[key];if(!e){e={k:b.k,lv:run.lv,runs:0,t:0,bpm:bpm,tr:[],cleared:0,clearedT:0,avg:null};sum.pat[key]=e;}
+    const key=b.k+'|'+run.lv+(run.dy?'|'+run.dy:''),bpm=b.bpm||run.bpm,pct=b.within/b.due;
+    let e=sum.pat[key];if(!e){e={k:b.k,lv:run.lv,dy:run.dy||'',runs:0,t:0,bpm:bpm,tr:[],cleared:0,clearedT:0,avg:null};sum.pat[key]=e;}
     e.runs++;e.t=run.t;
     if(bpm!==e.bpm){e.bpm=bpm;e.tr=[];}
     e.tr.push(Math.round(pct*1000)/1000);if(e.tr.length>12)e.tr.shift();
@@ -1644,8 +1689,8 @@ function foldRun(sum,run){
     if(pct>=TARGET&&bpm>e.cleared){e.cleared=bpm;e.clearedT=run.t;}
   });
   if(run.rk){
-    const key=run.rk+'|'+run.lv;
-    let e=sum.rt[key];if(!e){e={rk:run.rk,lv:run.lv,ne:run.ne,runs:0,t:0,cleared:0};sum.rt[key]=e;}
+    const key=run.rk+'|'+run.lv+(run.dy?'|'+run.dy:'');
+    let e=sum.rt[key];if(!e){e={rk:run.rk,lv:run.lv,dy:run.dy||'',ne:run.ne,runs:0,t:0,cleared:0};sum.rt[key]=e;}
     e.runs++;e.t=run.t;
     if(run.exercises.length>=run.ne&&run.exercises.every(b=>b.due>0&&b.within/b.due>=TARGET))e.cleared=Math.max(e.cleared,run.bpm);
   }
@@ -1682,9 +1727,9 @@ function badgeValues(runs,sum){
   o.all=[...per.values()].filter(n=>n>=LEVELS.length).length;
   return o;
 }
-function bestBefore(runs,k,bpm,lv){
-  let best=null;
-  runs.forEach(run=>{run.exercises.forEach(b=>{if(run.lv===lv&&b.k===k&&b.due>0&&(b.bpm||run.bpm)===bpm){const p=b.within/b.due;if(best===null||p>best)best=p;}});});
+function bestBefore(runs,k,bpm,lv,dy){
+  let best=null;dy=dy||'';
+  runs.forEach(run=>{run.exercises.forEach(b=>{if(run.lv===lv&&(run.dy||'')===dy&&b.k===k&&b.due>0&&(b.bpm||run.bpm)===bpm){const p=b.within/b.due;if(best===null||p>best)best=p;}});});
   return best;
 }
 function fft(re,im){
@@ -1971,7 +2016,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.28.1';                           /* shown beside the title */
+const VERSION='0.29.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -1983,7 +2028,7 @@ const STARTER_LIST='routines/starter.txt';
 /* The starter list sits beside the page. A page opened from a preview or from disk has no web address to resolve it against. */
 const starterHref=()=>{try{return new URL(STARTER_LIST,location.href).href;}catch(e){return '';}};
 const S={mode:'single',routineText:STARTER,eachUnit:'min',eachVal:1,gap:0,pulse:true,startExercise:1,
-  bpm:60,subdiv:4,click:'beat',lastExport:0,expRuns:0,tol:20,sens:-30,settle:40,vol:60,latency:null,latCal:false,input:'mic',editTab:'build',theme:'',palette:'std',libId:''};
+  bpm:60,subdiv:4,click:'beat',lastExport:0,expRuns:0,tol:20,sens:-30,settle:40,accent:'',others:'n',ghostDb:-12,vol:60,latency:null,latCal:false,input:'mic',editTab:'build',theme:'',palette:'std',libId:''};
 let cal={L:[],R:[]},model=null;
 try{
   const o=JSON.parse(localStorage.getItem(KEY)||'null');
@@ -2001,6 +2046,9 @@ S.bpm=clamp(Math.round(+S.bpm)||60,40,220);
 S.subdiv=4;                                        /* strokes with no note code are sixteenths */
 S.tol=[10,15,20,30].includes(+S.tol)?+S.tol:20;
 S.sens=clamp(Math.round(+S.sens)||-30,-55,-8);
+S.accent=/^[gbm2-7RL]?$/.test(S.accent)?S.accent:'';   /* which strokes are accented */
+S.others=S.others==='g'?'g':'n';                          /* the other strokes: normal or ghost */
+S.ghostDb=clamp(Math.round(+S.ghostDb)||-12,-30,-3);      /* how far below the trigger line a ghost note may sit */
 S.settle=clamp(Math.round(+S.settle)||40,20,120);
 /* Saved shared lists: address, name, and the last loaded routines (kept for the three newest loads only). */
 S.lists=Array.isArray(S.lists)?S.lists.filter((l,i,a)=>l&&typeof l.url==='string'&&l.url.length<=500&&a.findIndex(q=>q&&q.url===l.url)===i).slice(0,20).map(l=>({url:l.url,name:typeof l.name==='string'?l.name.slice(0,60):'',t:+l.t||0,items:Array.isArray(l.items)?l.items.filter(i=>i&&typeof i.title==='string'&&typeof i.text==='string').slice(0,100).map(i=>({title:i.title.slice(0,80),text:i.text.slice(0,20000)})):undefined})):(starterHref()?[{url:starterHref(),name:'Starter routines',t:0}]:[]);
@@ -2047,7 +2095,7 @@ function cleanRun(x){
   });
   if(!exercises.length)return null;
   const o={id:x.id.slice(0,40),t:+x.t,mode:x.mode==='routine'?'routine':'single',rk:typeof x.rk==='string'?x.rk.slice(0,40):null,
-    lv:x.lv,ne:Math.max(1,+x.ne||exercises.length),bpm:+x.bpm,tol:+x.tol||20,sec:Math.max(0,Math.min(14400,+x.sec||0)),exercises:exercises};
+    lv:x.lv,dy:/^[gbm2-7RL]?s?$/.test(x.dy)?x.dy:'',ne:Math.max(1,+x.ne||exercises.length),bpm:+x.bpm,tol:+x.tol||20,sec:Math.max(0,Math.min(14400,+x.sec||0)),exercises:exercises};
   if(Array.isArray(x.sk)){const sk=[];x.sk.forEach(b=>{if(b&&typeof b.k==='string'&&b.k.length<=400&&+b.i>=1&&+b.i<=200)sk.push({i:Math.round(+b.i),k:b.k});});if(sk.length)o.sk=sk;}
   const q=x.rp;
   if(q&&typeof q.x==='string'&&q.x.length<=MAX_SNAP)o.rp={x:q.x,st:Math.max(1,Math.round(+q.st)||1),ev:isFinite(+q.ev)&&+q.ev>0?+q.ev:1,eu:q.eu==='pass'?'pass':'min',gp:+q.gp===4?4:0,
@@ -2080,9 +2128,10 @@ function unpackRecs(o){
     Object.keys(q.days||{}).forEach(k=>{if(/^\d{4}-\d\d-\d\d$/.test(k))sum.days[k]=Math.max(0,num(q.days[k]));});
     (q.pat||[]).forEach(e=>{
       const k=items[e&&e.k];if(typeof k!=='string'||!Array.isArray(e.tr)||!e.tr.length||!LEVELS.some(l=>l.v===e.lv))return;
-      sum.pat[k+'|'+e.lv]={k:k,lv:e.lv,runs:num(e.runs),t:num(e.t),bpm:num(e.bpm),tr:e.tr.slice(-12).map(num),cleared:num(e.cleared),clearedT:num(e.clearedT),avg:e.avg==null?null:num(e.avg)};
+      const dy=/^[gbm2-7RL]?s?$/.test(e.dy)?e.dy:'';
+      sum.pat[k+'|'+e.lv+(dy?'|'+dy:'')]={k:k,lv:e.lv,dy:dy,runs:num(e.runs),t:num(e.t),bpm:num(e.bpm),tr:e.tr.slice(-12).map(num),cleared:num(e.cleared),clearedT:num(e.clearedT),avg:e.avg==null?null:num(e.avg)};
     });
-    Object.keys(q.rt||{}).forEach(key=>{const e=q.rt[key];if(e&&typeof e.rk==='string'&&LEVELS.some(l=>l.v===e.lv))sum.rt[e.rk+'|'+e.lv]={rk:e.rk.slice(0,40),lv:e.lv,ne:Math.max(1,num(e.ne)),runs:num(e.runs),t:num(e.t),cleared:num(e.cleared)};});
+    Object.keys(q.rt||{}).forEach(key=>{const e=q.rt[key];if(e&&typeof e.rk==='string'&&LEVELS.some(l=>l.v===e.lv))sum.rt[e.rk+'|'+e.lv+(/^[gbm2-7RL]?s?$/.test(e.dy)&&e.dy?'|'+e.dy:'')]={rk:e.rk.slice(0,40),lv:e.lv,dy:/^[gbm2-7RL]?s?$/.test(e.dy)?e.dy:'',ne:Math.max(1,num(e.ne)),runs:num(e.runs),t:num(e.t),cleared:num(e.cleared)};});
   }
   const names={};
   if(o.names&&typeof o.names==='object')Object.keys(o.names).forEach(k=>{if(typeof o.names[k]==='string'&&o.names[k].trim())names[k.slice(0,40)]=o.names[k].trim().slice(0,80);});
@@ -2324,7 +2373,7 @@ function settleSec(){
 }
 function pushDet(){
   if(!sendDet)return;
-  const thr=chk&&chk.phase==='hit'?chk.thr:(chk&&chk.phase==='quiet'?1:Math.pow(10,S.sens/20));
+  const thr=chk&&chk.phase==='hit'?chk.thr:(chk&&chk.phase==='quiet'?1:Math.pow(10,(S.sens+(S.others==='g'?S.ghostDb:0))/20));
   sendDet({thr:thr,refrac:settleSec()});
 }
 function onNodeMsg(e){
@@ -2396,12 +2445,12 @@ function beginRun(mode,only){
   const latNotes='RLRLRLRLRLRLRLRL'.split('');
   const exercises=lat?[{idx:1,notes:latNotes,groupStart:latNotes.map((_,i)=>i%4===0),subs:latNotes.map(()=>2),defSub:2,bpm:75,passBeats:8,passes:LAT.rounds,secs:6.4*LAT.rounds,passSecs:6.4,own:true}]:(only?allExercises().filter(b=>only.includes(b.idx)):currentExercises());
   if(!exercises.length)return;
-  const plan=buildPlan(exercises,{gapBeats:S.gap,clickMode:lat?'note':S.click});
+  const plan=buildPlan(exercises,{gapBeats:S.gap,clickMode:lat?'note':S.click,dyn:lat?null:dynOpt()});
   const r={
     mode:mode,plan:plan,w0:Date.now(),t0:ctx.currentTime+0.25,kb:S.input==='kb',
     nextClick:0,pulseIdx:-1,nextFin:0,pending:new Map(),cur:-1,showSeg:0,gridSeg:-1,
     errs:[],lv:[],seq:[],hand:{L:[],R:[]},within:0,slots:0,miss:0,extras:0,streak:0,best:0,checked:0,bad:0,trace:[],res:new Map(),showG:0,missRun:0,trail:[],live:'',
-    fin:new Set(),paused:false,ci:null,
+    fin:new Set(),paused:false,ci:null,dyc:lat?'':dynCode(),dyl:[],
     seg:plan.segs.map(sg=>({errs:[],lv:[],hand:{L:[],R:[]},within:0,slots:0,miss:0,extras:0,checked:0,bad:0,
       posSum:new Array(sg.N).fill(0),posCnt:new Array(sg.N).fill(0)})),
     dirty:true,ended:false,totalExercises:routineParsed.exercises.length,only:only||null,
@@ -2458,7 +2507,8 @@ function finalizeSlot(i){
     r.errs.push(ms);Q.errs.push(ms);r.hand[hand].push(ms);Q.hand[hand].push(ms);
     const db=h.kb?null:strokeDb(h.pk,h.raw);
     if(db!==null){r.lv.push({db:db,hand:hand});Q.lv.push({db:db,hand:hand});}
-    r.seq.push({db:db,hand:hand});if(r.seq.length>STRIP_MAX)r.seq.shift();   /* one entry per stroke due, so a miss leaves a gap in the level bars */
+    if(db!==null&&sl.dy&&!sl.tight)r.dyl.push({db:db,dy:sl.dy});
+    r.seq.push({db:db,hand:hand,dy:sl.dy||''});if(r.seq.length>STRIP_MAX)r.seq.shift();   /* one entry per stroke due, so a miss leaves a gap in the level bars */
     r.missRun=0;if(r.mode==='lat')latLive(r);
     if(Math.abs(ms)<=S.tol){r.within++;Q.within++;r.streak++;if(r.streak>r.best)r.best=r.streak;}else r.streak=0;
     Q.posSum[pos]+=ms;Q.posCnt[pos]++;
@@ -2609,6 +2659,8 @@ function handleHit(h){
   const plan=r.plan,tc=h.t-(r.kb?0:latencySec())-r.t0;
   if(r.ci&&tc<r.ci.ps-0.2)return;
   const i=nearestSlot(plan.slots,tc),sl=plan.slots[i],e=tc-sl.t;
+  /* The detector listens below the trigger line when ghost notes are on. A quiet hit only counts on a ghost note. */
+  if(!h.kb&&h.pk>0&&h.pk<Math.pow(10,S.sens/20)&&!(Math.abs(e)<=sl.w&&i>=r.nextFin&&sl.dy==='g'))return;
   if(Math.abs(e)>sl.w||i<r.nextFin){
     const outside=tc<plan.slots[0].t-sl.w||tc>plan.slots[plan.slots.length-1].t+sl.w;
     if(outside||inLead(plan,tc))return;
@@ -2900,8 +2952,15 @@ function staffLine(sg,opt){
     }else{
       g.appendChild(mk('ellipse',{class:'nh',cx:cx,cy:Y,rx:6.6,ry:4.7,transform:'rotate(-20 '+cx+' '+Y+')'}));
       g.appendChild(mk('line',{class:'stem',x1:cx+SX,x2:cx+SX,y1:Y-1,y2:TOP}));
+      const dyi=sg.dy&&sg.dy[i];
+      if(dyi==='A')g.appendChild(mk('path',{class:'acc',d:'M'+(cx-4.5)+','+(TOP-9)+' L'+(cx+4.5)+','+(TOP-5.5)+' L'+(cx-4.5)+','+(TOP-2)}));
+      else if(dyi==='g'){
+        g.appendChild(mk('path',{class:'gh',d:'M'+(cx-8.8)+','+(Y-6.5)+' Q'+(cx-12.5)+','+Y+' '+(cx-8.8)+','+(Y+6.5)}));
+        g.appendChild(mk('path',{class:'gh',d:'M'+(cx+9.2)+','+(Y-6.5)+' Q'+(cx+12.9)+','+Y+' '+(cx+9.2)+','+(Y+6.5)}));
+      }
     }
-    const lt=mk('text',{class:'lt',x:cx,y:84});lt.textContent=rest?'':h;g.appendChild(lt);
+    const soft=!rest&&sg.dy&&sg.dy[i]==='g';
+    const lt=mk('text',{class:soft?'lt soft':'lt',x:cx,y:84});lt.textContent=rest?'':h;g.appendChild(lt);
     const tg=mk('text',{class:'tg',x:cx+8,y:74});g.appendChild(tg);
     const ft=mk('text',{class:'ft',x:cx,y:97});g.appendChild(ft);
     g._sig='\u0000';g._now=false;g._ft=ft;g._tg=tg;g._cx=cx;g._w=xw(i);
@@ -2972,21 +3031,51 @@ function staffLine(sg,opt){
   return {svg:svg,cards:cards};
 }
 /* A pass as one or more lines. Cards come back in stroke order whichever line they sit on. */
-function buildStaff(sg,availW,cursor,strict){
+function buildStaff(sg,availW,cursor,strict,dy){
   const avail=availW||staffAvail(),pl=staffPlan(sg,avail,strict);
   const box=document.createElement('div');box.className='staffs';
   const cards=[];
   pl.lines.forEach((ln,li)=>{
     const part={N:ln[1]-ln[0],sig:sg.sig,notes:sg.notes.slice(ln[0],ln[1]),groupStart:sg.groupStart.slice(ln[0],ln[1]),
-      subs:sg.subs.slice(ln[0],ln[1]),defSub:sg.defSub};
+      subs:sg.subs.slice(ln[0],ln[1]),defSub:sg.defSub,dy:dy?dy.slice(ln[0],ln[1]):null};
     const st=staffLine(part,{avail:avail,beats:pl.beats,ext:pl.ext,dmin:pl.dmin,last:li===pl.lines.length-1,first:li===0,cursor:!!cursor&&li===pl.lines.length-1});
     box.appendChild(st.svg);st.cards.forEach(c=>cards.push(c));
   });
   return {svg:box,cards:cards,lines:pl.lines.length,plan:pl};
 }
+/* Accents and ghost notes. The Play page picks a rule that is laid over whatever exercise is loaded. */
+function dynOpt(){return (S.accent||S.others==='g')?{acc:S.accent,oth:S.others}:null;}
+function dynCode(){return (S.accent||S.others==='g')?S.accent+(S.others==='g'?'s':''):'';}
+const DY_NAMES={g:'each group',b:'each beat',m:'each bar',R:'right hand',L:'left hand'};
+const nth=n=>n+(n===2?'nd':n===3?'rd':'th');
+function dynText(code){
+  if(!code)return '';
+  const soft=/s$/.test(code),a=soft?code.slice(0,-1):code;
+  if(!a)return 'all ghost notes';
+  return 'accent '+(DY_NAMES[a]||'every '+nth(+a))+(soft?', other strokes ghost':'');
+}
+const ACC_MIN=4,GHOST_MIN=6;   /* dB an accent must sit above, and a ghost note below, the strokes around it */
+/* list: [{db,dy}] in order. An accent is compared with the median of the nearest strokes that are not accents, a ghost note with the nearest that are not ghost notes. */
+function dynStats(list){
+  const near=(i,use)=>{
+    const v=[];
+    for(let d=1;d<=6&&v.length<4;d++)for(const j of [i-d,i+d])if(list[j]&&use(list[j].dy)&&v.length<4)v.push(list[j].db);
+    return v.length>=2?median(v):null;
+  };
+  /* An accent is measured against the strokes that are not accents. A ghost note is measured against normal strokes if there are some nearby, so a loud accent does not inflate the gap. */
+  const ref=(i,dy)=>dy==='A'?near(i,d=>d!=='A'):(near(i,d=>d==='n')!==null?near(i,d=>d==='n'):near(i,d=>d!=='g'));
+  const o={a:{n:0,ok:0,sum:0},g:{n:0,ok:0,sum:0}};
+  list.forEach((x,i)=>{
+    const q=x.dy==='A'?o.a:(x.dy==='g'?o.g:null);if(!q)return;
+    const m=ref(i,x.dy);if(m===null)return;
+    const gap=x.db-m;q.n++;q.sum+=gap;
+    if(x.dy==='A'?gap>=ACC_MIN:gap<=-GHOST_MIN)q.ok++;
+  });
+  return o;
+}
 /* How tall a row is and how many passes fit, from the most lines any bar needs at this width. */
 const withPasses=(b,n)=>Object.assign({},b,{passes:n});
-function previewPlan(exercises){return exercises.length?buildPlan(exercises,{gapBeats:S.gap,clickMode:'off'}):null;}
+function previewPlan(exercises){return exercises.length?buildPlan(exercises,{gapBeats:S.gap,clickMode:'off',dyn:dynOpt()}):null;}
 const routinePlan=()=>previewPlan(allExercises().map(b=>withPasses(b,1)));
 function layoutPlan(plan){return S.mode==='routine'?(routinePlan()||plan):plan;}
 function applyLayout(plan){
@@ -3004,7 +3093,8 @@ function buildRow(plan,g){
   const pa=passAt(plan,g),sg=plan.segs[pa.si],N=sg.N;
   const el=document.createElement('div');el.className='prow';
   const lab=document.createElement('div');lab.className='rl';
-  const st=buildStaff(sg),cards=st.cards;
+  const dyn=[];for(let i=0;i<N;i++)dyn.push(plan.cells[sg.cell0+pa.p*N+i].dy||'');
+  const st=buildStaff(sg,undefined,undefined,undefined,dyn),cards=st.cards;
   cards.forEach((c,i)=>{c._slot=plan.cells[sg.cell0+pa.p*N+i].slot;});
   el.append(lab,st.svg);
   el.addEventListener('click',()=>{if(labelMode==='preview')goExercise(sg.idx,true);});
@@ -3279,6 +3369,15 @@ function updateLevel(r){
   const done=!!(r&&r.ended),st=levelStats(done?r.lv:(r?r.seq.slice(-32):[]).filter(x=>x.db!==null));   /* the last 32 while playing, the whole run once it is over */
   $('lvUnit').textContent=done?'dB, whole run':'dB, last 32';
   if(lvStrip)lvStrip.draw();
+  {
+    const ln=$('lvDyn'),ds=done&&r.dyc?dynStats(r.dyl):null,t=[];
+    if(ds){
+      if(ds.a.n)t.push('Accents: '+ds.a.ok+' of '+ds.a.n+' clear, '+(ds.a.sum/ds.a.n>=0?'+':'')+(ds.a.sum/ds.a.n).toFixed(0)+' dB against the strokes around them.');
+      if(ds.g.n)t.push('Ghost notes: '+ds.g.ok+' of '+ds.g.n+' clear, '+(ds.g.sum/ds.g.n).toFixed(0)+' dB against the strokes around them.');
+      if(!t.length)t.push('Not enough strokes to compare accents and ghost notes.');
+    }
+    ln.hidden=!t.length;ln.textContent=t.join(' ');
+  }
   if(!st){$('lvVal').textContent='—';$('lvWord').textContent='Waiting for strokes';return;}
   $('lvVal').textContent='±'+st.sd.toFixed(1);
   const w=st.sd<=2?'Even':(st.sd<=4?'A little uneven':'Uneven');
@@ -3387,6 +3486,8 @@ function initStrips(){
         const bh=(8+clamp((x.db-st.med)/12*0.5+0.5,0,1)*92)/100*(h-1);
         g.fillStyle=x.hand==='L'?css('--early'):css('--accent');
         g.fillRect(i*10-x0,h-1-bh,8,bh);
+        if(x.dy==='A'){g.fillStyle=css('--ink');g.fillRect(i*10-x0,0,8,3);}   /* an accent was due here */
+        else if(x.dy==='g'){g.fillStyle=css('--muted');g.fillRect(i*10-x0+2,0,4,2);}   /* a ghost note was due */
       }
       g.globalAlpha=1;
     }});
@@ -3435,14 +3536,14 @@ function guide(){
   const n=recs.runs.length,sig=n+':'+(n?recs.runs[n-1].id:'');
   if(guideMemo.sig!==sig){
     guideMemo={sig:sig,pat:new Map(),rt:new Map()};
-    patStats(recs.runs,recs.sum).forEach(e=>guideMemo.pat.set(e.k+'|'+e.lv,e));
-    routineStats(recs.runs,recs.sum).forEach(e=>guideMemo.rt.set(e.rk+'|'+e.lv,e));
+    patStats(recs.runs,recs.sum).forEach(e=>guideMemo.pat.set(e.k+'|'+e.lv+(e.dy?'|'+e.dy:''),e));
+    routineStats(recs.runs,recs.sum).forEach(e=>guideMemo.rt.set(e.rk+'|'+e.lv+(e.dy?'|'+e.dy:''),e));
   }
   return guideMemo;
 }
 function exerciseGuide(sg){
   if(S.click==='off')return 'not scored';
-  const e=guide().pat.get(patKey(sg.notes,sg.groupStart,sg.subs,sg.defSub,sg.sig)+'|'+S.click);
+  const e=guide().pat.get(patKey(sg.notes,sg.groupStart,sg.subs,sg.defSub,sg.sig)+'|'+S.click+(dynCode()?'|'+dynCode():''));
   if(!e)return 'new';
   return e.cleared?'cleared at '+e.cleared:'not cleared yet';
 }
@@ -3463,7 +3564,7 @@ function recordRun(r){
     else if(!recs.names[rk])recs.names[rk]='Untitled '+(recs.nu++);
   }
   const run={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t:Date.now(),mode:S.mode,
-    rk:all?routineKeyOf(all):null,ne:all?all.length:1,bpm:S.bpm,tol:S.tol,lv:S.click,rp:replaySnap(r),sec:Math.max(0,Math.min(14400,Math.round((Date.now()-(r.w0||Date.now()))/1000))),
+    rk:all?routineKeyOf(all):null,ne:all?all.length:1,bpm:S.bpm,tol:S.tol,lv:S.click,dy:r.dyc||'',rp:replaySnap(r),sec:Math.max(0,Math.min(14400,Math.round((Date.now()-(r.w0||Date.now()))/1000))),
     exercises:rows.map(x=>({k:x.key,bpm:x.bpm,due:x.due,within:Math.round(x.pct*x.due),heard:x.heard,
       avg:isNaN(x.avg)?null:x.avg,sd:isNaN(x.spread)?null:x.spread,miss:x.miss,i:x.idx,
       ls:x.lvl?Math.round(x.lvl.sd*10)/10:null,ld:x.lvl&&x.lvl.diff!==null?Math.round(x.lvl.diff*10)/10:null}))};
@@ -3472,8 +3573,8 @@ function recordRun(r){
     run.sk=all.map((k,i)=>({i:i+1,k:k})).filter(b=>!played.has(b.i));
   }
   const prevBest=new Map();
-  rows.forEach(x=>{const b=bestBefore(recs.runs,x.key,x.bpm,S.click);if(b!==null)prevBest.set(x.key,b);});
-  const newTempo=rows.filter(x=>x.pct>=TARGET&&x.bpm>clearedBefore(recs.runs,x.key,S.click,recs.sum)&&S.click!=='off');
+  rows.forEach(x=>{const b=bestBefore(recs.runs,x.key,x.bpm,S.click,r.dyc);if(b!==null)prevBest.set(x.key,b);});
+  const newTempo=rows.filter(x=>x.pct>=TARGET&&x.bpm>clearedBefore(recs.runs,x.key,S.click,recs.sum,r.dyc)&&S.click!=='off');
   const bv0=badgeValues(recs.runs,recs.sum);
   recs.runs.push(run);
   const bv1=badgeValues(recs.runs,recs.sum),won=[];
@@ -3652,8 +3753,8 @@ function renderScoreGroups(stats,practise){
     rows.forEach(x=>{
       const row=document.createElement('div');row.className='srow';
       const q=document.createElement('div');q.className='sq';
-      const seq=document.createElement('span');seq.className='seq';seq.textContent=showKey(x.k);
-      q.appendChild(seq);q.appendChild(practise(x.k,x.lv));row.appendChild(q);
+      const seq=document.createElement('span');seq.className='seq';seq.textContent=showKey(x.k)+(x.dy?' · '+dynText(x.dy):'');
+      q.appendChild(seq);q.appendChild(practise(x.k,x.lv,x.dy));row.appendChild(q);
       const n=document.createElement('div');n.className='sn';
       const stat=(txt,unit,cls)=>{const e=document.createElement('span');if(cls)e.className=cls;e.textContent=txt;if(unit){const u=document.createElement('small');u.textContent=unit;e.appendChild(u);}n.appendChild(e);};
       const acc=accCell(x.recent);
@@ -3674,13 +3775,13 @@ function renderProgress(){
   $('progHint').textContent=stats.length
     ?'Accuracy (ACC) is the share of strokes inside your timing window over your last three runs at the tempo you played most recently. Trend plots each run at that tempo (up to 12), with the dotted line at the target. EVEN is how much your stroke loudness varies, in dB. Smaller is more even.'
     :'Nothing yet. Play an exercise or a routine and each exercise\'s score shows up here, so you can see which rudiments need work.';
-  const practise=(k,lv)=>iconBtn('replay','Practise this exercise',()=>practisePattern(k,lv));
+  const practise=(k,lv,dy)=>iconBtn('replay','Practise this exercise',()=>practisePattern(k,lv,dy));
   /* A routine is replayed from its newest run at that level, while that run's text is still kept. */
-  const replayRoutine=x=>{const r=recs.runs.slice().reverse().find(q=>q.rk===x.rk&&q.lv===x.lv);
+  const replayRoutine=x=>{const r=recs.runs.slice().reverse().find(q=>q.rk===x.rk&&q.lv===x.lv&&(q.dy||'')===(x.dy||''));
     if(r)return replayBtn(r);const b=iconBtn('replay','Replay',()=>{});b.disabled=true;b.title='This routine was saved without its text.';return b;};
   renderScoreGroups(stats,practise);
   fillTable($('rtTable'),routines.length?['Routine','Level','Exercises','Runs','Cleared at','Last','']:[],
-    routines.length?routines.map(x=>[routineName(x.rk),levelName(x.lv),String(x.ne),String(x.runs),x.cleared?x.cleared+' BPM':'—',fmtDate(x.t),replayRoutine(x)])
+    routines.length?routines.map(x=>[routineName(x.rk),levelName(x.lv)+(x.dy?' · '+dynText(x.dy):''),String(x.ne),String(x.runs),x.cleared?x.cleared+' BPM':'—',fmtDate(x.t),replayRoutine(x)])
       :[[['No routine runs yet.','muted']]]);
   renderHistory();syncData();
 }
@@ -3762,7 +3863,7 @@ function exTable(r){
 function renderHistory(){
   const box=$('histList');box.textContent='';
   const groups=new Map();
-  recs.runs.slice().reverse().forEach(r=>{const k=runKey(r)+'|'+r.lv;if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r);});
+  recs.runs.slice().reverse().forEach(r=>{const k=runKey(r)+'|'+r.lv+'|'+(r.dy||'');if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r);});
   const gkey=r=>r.mode==='routine'?(r.rk||''):r.exercises[0].k;
   let list=[...groups.values()];
   const saved=histFilter==='saved';
@@ -3779,7 +3880,7 @@ function renderHistory(){
     const best=ranked.reduce((m,r)=>!m||runPct(r)>runPct(m)||(runPct(r)===runPct(m)&&r.bpm>m.bpm)?r:m,null);
     const n=document.createElement('span');n.className='hn';n.textContent=f.mode==='routine'?routineName(f.rk)+' · '+f.ne+(f.ne===1?' exercise':' exercises'):showKey(f.exercises[0].k);
     const st=document.createElement('span');st.className='hs';
-    st.textContent=(f.lv==='off'?'Count-in only':levelName(f.lv))+' · '+g.length+(g.length===1?' run':' runs')+' · latest '+dayWord(f.t)+(best?' · best '+Math.round(runPct(best)*100)+'% at '+best.bpm+' BPM':'');
+    st.textContent=(f.lv==='off'?'Count-in only':levelName(f.lv))+(f.dy?' · '+dynText(f.dy):'')+' · '+g.length+(g.length===1?' run':' runs')+' · latest '+dayWord(f.t)+(best?' · best '+Math.round(runPct(best)*100)+'% at '+best.bpm+' BPM':'');
     const ac=document.createElement('span');ac.className='ha';if(routine)ac.appendChild(renameBtn(n,f.rk));ac.appendChild(markBtn(gkey(f),f.rp&&f.rp.x));ac.appendChild(replayBtn(f));
     sm.appendChild(n);sm.appendChild(st);sm.appendChild(ac);det.appendChild(sm);
     const body=document.createElement('div');body.className='hb hg';
@@ -3826,6 +3927,7 @@ const replayRun=r=>{if(!(run&&!run.ended))guard(()=>loadRun(r));};
 function loadRun(r){
   const q=r.rp;if(!q)return;
   S.click=r.lv;$('click').value=r.lv;
+  applyDy(r.dy);
   S.tol=r.tol;$('tol').value=String(r.tol);
   S.bpm=clamp(Math.round(r.bpm),40,220);$('bpm').value=S.bpm;
   S.eachVal=q.ev;S.eachUnit=q.eu;S.gap=q.gp;
@@ -3836,13 +3938,21 @@ function loadRun(r){
   setStatus('Loaded from history. Press Start to play it again.');
   showTab('play');
 }
-function practisePattern(k,lv){
+function practisePattern(k,lv,dy){
   if(run&&!run.ended)return;
   guard(()=>{
     if(lv){S.click=lv;$('click').value=lv;}
+    applyDy(dy);
     openText(keyToText(k),k);
     showTab('play');
   });
+}
+/* Sets the Accent and Other strokes settings from a rule code, as saved with a run. */
+function applyDy(code){
+  code=code||'';
+  const soft=/s$/.test(code);
+  S.accent=soft?code.slice(0,-1):code;S.others=soft?'g':'n';
+  $('accent').value=S.accent;$('others').value=S.others;save();pushDet();
 }
 /* Hands text to the browser as a download. */
 function saveFile(name,type,text){
@@ -4491,7 +4601,7 @@ function renameLibrary(ok){
 }
 
 /* ---------- controls ---------- */
-const LOCKED=['pulse','bpm','bpmDown','bpmUp','subdiv','click','inputMode','routineText','fileBtn','openBtn','clearRoutine','playChange','libSel','libraryUrl','libName','libGo','libAll','libRen','libClear','eachVal','eachUnit','gap'];
+const LOCKED=['accent','others','ghostDb','pulse','bpm','bpmDown','bpmUp','subdiv','click','inputMode','routineText','fileBtn','openBtn','clearRoutine','playChange','libSel','libraryUrl','libName','libGo','libAll','libRen','libClear','eachVal','eachUnit','gap'];
 function syncRunUI(){
   const on=!!(run&&!run.ended),play=on&&run.mode==='play',paused=on&&!!run.paused;
   const b=$('startBtn');
@@ -4560,7 +4670,7 @@ function pulseNote(exercises){
   return exercises.some(b=>b.sig&&b.sig.d===8)?' (per eighth note)':(exercises.some(b=>b.sig&&b.sig.d===2)?' (per half note)':'');
 }
 function routineGuide(){
-  const e=guide().rt.get(routineKeyOf(allExercises().map(b=>patKey(b.notes,b.groupStart,b.subs,b.defSub,b.sig)))+'|'+S.click);
+  const e=guide().rt.get(routineKeyOf(allExercises().map(b=>patKey(b.notes,b.groupStart,b.subs,b.defSub,b.sig)))+'|'+S.click+(dynCode()?'|'+dynCode():''));
   return e&&e.cleared?' · routine cleared at '+e.cleared+' BPM':'';
 }
 function refreshPreview(){
@@ -4975,6 +5085,10 @@ function wire(){
   $('bpmDown').addEventListener('click',()=>setBpm(S.bpm-1));
   $('bpmUp').addEventListener('click',()=>setBpm(S.bpm+1));
   $('click').addEventListener('change',e=>{S.click=e.target.value;save();if(S.mode==='routine')buildExerciseList();syncInfo();});
+  const dyChanged=()=>{save();pushDet();refreshPreview();};
+  $('accent').addEventListener('change',e=>{S.accent=e.target.value;dyChanged();});
+  $('others').addEventListener('change',e=>{S.others=e.target.value;dyChanged();});
+  $('ghostDb').addEventListener('input',e=>{S.ghostDb=+e.target.value;$('ghostOut').textContent=S.ghostDb+' dB';pushDet();save();});
   $('tol').addEventListener('change',e=>{S.tol=+e.target.value;save();renderAll();});
   $('inputMode').addEventListener('change',e=>{S.input=e.target.value;save();setInputMode();});
   $('routineText').addEventListener('input',e=>{const v=plainText(e.target.value);if(v!==e.target.value)e.target.value=v;S.routineText=v.slice(0,MAX_TEXT);S.startExercise=1;save();onRoutineChanged();});
@@ -5167,7 +5281,7 @@ function syncEach(){
 function init(){
   $('routineText').value=S.routineText;
   $('bpm').value=S.bpm;
-  $('click').value=S.click;
+  $('click').value=S.click;$('accent').value=S.accent;$('others').value=S.others;$('ghostDb').value=S.ghostDb;$('ghostOut').textContent=S.ghostDb+' dB';
   $('tol').value=String(S.tol);
   $('gap').value=String(S.gap);
   $('pulse').value=S.pulse?'on':'off';$('palette').value=S.palette;
