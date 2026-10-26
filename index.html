@@ -437,7 +437,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
     <button type="button" role="tab" id="tabSetup" aria-controls="pageSetup" aria-selected="false">Settings</button>
   </nav>
 
-  <p class="status" id="status" role="status" aria-live="polite"></p>
+  <div id="stTop"><p class="status" id="status" role="status" aria-live="polite"></p></div>
 
   <!-- ===== Setup: on-time window, microphone, calibration ===== -->
   <div class="page" id="pageSetup" role="tabpanel" aria-labelledby="tabSetup" hidden>
@@ -1031,20 +1031,6 @@ RLRR LRLL RLRR LRLL</pre>
       <div class="runline"><span id="timeLeft"></span></div>
     </div>
 
-    <section id="advice" hidden aria-label="Score and tempo">
-      <h3>This run</h3>
-      <p class="insight" id="advHead"></p>
-      <p class="hint" id="advBody"></p>
-      <div class="btns advmain">
-        <button class="btn primary" id="advAgain" type="button">Again</button>
-        <button class="btn" id="advUse" type="button" hidden></button>
-        <button class="btn" id="advDone" type="button" hidden>Done</button>
-      </div>
-      <div class="btns" style="margin-top:8px">
-        <button class="btn small" id="advWeak" type="button" hidden></button>
-        <button class="btn small" id="advDiscard" type="button">Discard this run</button>
-      </div>
-    </section>
 
     <section aria-label="Strokes">
       <p class="hint routine-only cfg exnav">Scroll, swipe or tap an exercise to choose where to start.</p>
@@ -1057,6 +1043,23 @@ RLRR LRLL RLRR LRLL</pre>
       <div class="pads kb-only">
         <button class="pad" type="button" data-hand="L" aria-label="Left stick pad">L</button>
         <button class="pad" type="button" data-hand="R" aria-label="Right stick pad">R</button>
+      </div>
+    </section>
+
+    <div id="stPlay"></div>
+
+    <section id="advice" hidden aria-label="Score and tempo">
+      <h3>This run</h3>
+      <p class="insight" id="advHead"></p>
+      <p class="hint" id="advBody"></p>
+      <div class="btns advmain">
+        <button class="btn primary" id="advAgain" type="button">Again</button>
+        <button class="btn" id="advUse" type="button" hidden></button>
+        <button class="btn" id="advDone" type="button" hidden>Done</button>
+      </div>
+      <div class="btns" style="margin-top:8px">
+        <button class="btn small" id="advWeak" type="button" hidden></button>
+        <button class="btn small" id="advDiscard" type="button">Discard this run</button>
       </div>
     </section>
 
@@ -2018,7 +2021,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.29.1';                           /* shown beside the title */
+const VERSION='0.30.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2647,6 +2650,7 @@ function endRun(){
     roleRows();
     paintRows(view,null);
     if(lastRun&&!lastRun.discarded)setReview(true);
+    showResult();
   }
   syncInfo();
 }
@@ -3363,6 +3367,7 @@ function showTab(t){
     b.tabIndex=(n===t||((t==='help'||t==='pattern')&&n===TABS[0]))?0:-1;
   });
   document.body.dataset.tab=t;
+  ($(t==='play'?'stPlay':'stTop')).appendChild($('status'));   /* on Play the message sits under the staff, so the staff never moves */
   if(t==='play'){drawTrace();winKey='';syncWindow(lastCur);}
   if(t==='progress')renderProgress();
   if(t==='setup')syncData();
@@ -3588,6 +3593,11 @@ function recordRun(r){
   const saved=saveRecs();
   askPersist();
   lastRun={run:run,only:r.only||null,prevBest:prevBest,newTempo:newTempo,won:won,rows:rows,skipped:skipped,saved:saved,discarded:false};
+}
+/* After a run the score is brought into view. The run layout is still being undone, so the jump repeats once the page has settled. */
+function showResult(){
+  const go=()=>{const b=$('advice');if(b.hidden||curTab!=='play')return;const r=b.getBoundingClientRect();if(r.bottom>innerHeight||r.top<0)scrollBy(0,r.top-12);};
+  go();requestAnimationFrame(()=>{go();});setTimeout(go,150);setTimeout(go,450);
 }
 function renderAdvice(){
   const box=$('advice');
