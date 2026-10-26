@@ -1971,7 +1971,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.27.3';                           /* shown beside the title */
+const VERSION='0.27.4';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -3124,12 +3124,18 @@ function setRows(plan,g,animate){
     return;
   }
   /* Playing in a window keeps the pass before as well, so the lines can scroll on smoothly. */
-  const lo=winWanted()&&playing()&&g>0?g-1:g;
+  const win=winWanted()&&playing(),lo=win&&g>0?g-1:g;
   tr.textContent='';rowMap.clear();rowTop=g;winKey='';
-  if(plan)for(let k=lo;k<Math.min(total,g+rowsShown);k++)makeRow(plan,k);
+  if(plan){
+    let k=lo,after=0;
+    const lines=o=>o.el.querySelectorAll('svg.staff').length;
+    for(;k<Math.min(total,g+rowsShown);k++){const o=makeRow(plan,k);if(k>g)after+=lines(o);}
+    /* The window shows four lines from the one before the cursor, so two lines must wait below the last line of this pass. Rows of different heights can leave fewer, so more rows are drawn out of sight until there are enough. */
+    if(win)for(;k<total&&after<2;k++)after+=lines(makeRow(plan,k));
+  }
   roleRows();
   tr.style.transition='none';syncWindow(null);void tr.offsetWidth;tr.style.transition='';
-  if(plan)prebuildNext(plan,g+rowsShown);
+  if(plan)prebuildNext(plan,Math.max(g+rowsShown,Math.max(...rowMap.keys())+1));
 }
 /* Colours come from the result of each row's own pass; the cursor is the card being played now. */
 let phCur=null;
