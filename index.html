@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <title>Stick Timing Trainer</title>
+<div class="pgov" id="pg" role="dialog" aria-modal="true" hidden><div class="pghd"><button type="button" class="linkbtn" id="pgBack"></button><span class="ttl" id="pgTtl"></span></div><div class="pgbd" id="pgBody"></div><div class="pgft" id="pgFoot" hidden></div></div>
 <script>(function(){var t='',c='';try{var o=JSON.parse(localStorage.getItem('stick-timing-trainer.v1')).settings;t=o.theme;c=o.palette}catch(e){}
 if(c==='cb')document.documentElement.dataset.palette=c;
 if(t!=='light'&&t!=='dark')t=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t})()</script>
@@ -287,6 +288,18 @@ svg.spark{display:block;overflow:visible}
 .rp{display:grid;gap:4px}
 
 .rp .back{justify-self:start;padding-left:0}
+.pgov{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column}
+.pgov[hidden]{display:none}
+.pghd{flex:none;display:flex;align-items:center;gap:12px;min-height:52px;padding:env(safe-area-inset-top) 16px 0;border-bottom:1px solid var(--line);background:var(--surface)}
+.pghd .linkbtn{padding-left:0;white-space:nowrap}
+.pghd .ttl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 14px var(--font-body)}
+.pghd .ttl.seq{font:700 13px var(--font-data);letter-spacing:.04em}
+.pgbd{flex:1;overflow:auto;overscroll-behavior:contain;padding:14px 16px 28px}
+.pgbd>.rp{max-width:720px;margin:0 auto}
+.pgft{flex:none;display:flex;gap:8px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--bg)}
+.pgft .btn{flex:1;margin:0}
+.pgft[hidden]{display:none}
+html.pgopen{overflow:hidden}
 .rp h2{margin:0;font-size:20px;line-height:1.25} .rp h2.seq{font-size:16px}
 .rp .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0 4px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 8px;text-align:center}
 .rp .stats .v{font:700 20px var(--font-data)} .rp .stats .k{font:600 11px var(--font-body);letter-spacing:.08em;color:var(--muted);margin-top:2px}
@@ -2099,7 +2112,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.38.2';                           /* shown beside the title */
+const VERSION='0.39.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -3451,6 +3464,7 @@ function editFromPlayPage(){
 }
 function showTab(t){
   curTab=t;
+  closePages();
   closeListen();
   $('pageHelp').hidden=t!=='help';
   $('pagePattern').hidden=t!=='pattern';
@@ -3860,29 +3874,21 @@ function renderScoreGroups(stats,practise,usual){
   const box=$('patGroups');box.textContent='';
   const levels=LEVELS.map(l=>({v:l.v,n:l.n})).concat([...new Set(stats.map(x=>x.lv))].filter(v=>!LEVELS.some(l=>l.v===v)).map(v=>({v:v,n:levelName(v)})));
   const cur=scoreLevel&&levels.find(l=>l.v===scoreLevel&&stats.some(x=>x.lv===l.v));
-  if(!cur)scoreLevel=null;
-  const page=!!cur;
-  ['scoreSumBox','scoreNextBox','scoreKey','scoreRt'].forEach(id=>{if(page)$(id).hidden=true;});
-  if(!page)$('scoreRt').hidden=false;
-  document.querySelector('#scoreEx>h3').hidden=page;
+  if(!cur){scoreLevel=null;hidePage('score');}
   if(!stats.length){const p=document.createElement('p');p.className='hint';p.textContent='No exercises scored yet.';box.appendChild(p);return;}
   const mean=a=>{a=a.filter(v=>!isNaN(v));return a.length?a.reduce((x,y)=>x+y,0)/a.length:NaN;};
   const clearedN=rows=>rows.filter(x=>x.cleared&&x.cleared>=x.bpm).length;
-  if(!page){
-    const panel=document.createElement('div');panel.className='dayp';
-    levels.forEach(l=>{
-      const rows=stats.filter(x=>x.lv===l.v);
-      if(!rows.length)return;
-      const weakest=Math.min.apply(null,rows.map(x=>x.recent));
-      panel.appendChild(listRow(l.n,false,rows.length+(rows.length===1?' exercise':' exercises')+' \u00B7 '+clearedN(rows)+' cleared \u00B7 weakest '+Math.round(weakest*100)+'%','',mean(rows.map(x=>x.recent)),()=>{scoreLevel=l.v;renderProgress();scrollTo(0,0);}));
-    });
-    box.appendChild(panel);
-    return;
-  }
+  const panel=document.createElement('div');panel.className='dayp';
+  levels.forEach(l=>{
+    const rows=stats.filter(x=>x.lv===l.v);
+    if(!rows.length)return;
+    const weakest=Math.min.apply(null,rows.map(x=>x.recent));
+    panel.appendChild(listRow(l.n,false,rows.length+(rows.length===1?' exercise':' exercises')+' \u00B7 '+clearedN(rows)+' cleared \u00B7 weakest '+Math.round(weakest*100)+'%','',mean(rows.map(x=>x.recent)),()=>{scoreLevel=l.v;pgPush();renderProgress();}));
+  });
+  box.appendChild(panel);
+  if(!cur)return;
   const rows=stats.filter(x=>x.lv===cur.v);
   const wrap=document.createElement('div');wrap.className='rp';
-  const back=document.createElement('button');back.type='button';back.className='linkbtn back';back.textContent='\u2039 Scores';
-  back.addEventListener('click',()=>{scoreLevel=null;renderProgress();});wrap.appendChild(back);
   const h=document.createElement('h2');h.textContent='Exercises \u00B7 '+cur.n;wrap.appendChild(h);
   const sb=document.createElement('div');sb.className='sb';sb.textContent=rows.length+(rows.length===1?' exercise':' exercises')+' \u00B7 last 3 runs at the tempo you played most recently';wrap.appendChild(sb);
   const acc=accHtml(mean(rows.map(x=>x.recent))),ms=mean(rows.map(x=>x.bias)),db=mean(rows.map(x=>x.even));
@@ -3919,7 +3925,8 @@ function renderScoreGroups(stats,practise,usual){
       const nt=document.createElement('div');nt.className='nt'+(done?' go':'');nt.textContent=bits.join(' \u00B7 ');row.appendChild(nt);
       list.appendChild(row);
     });
-  wrap.appendChild(list);box.appendChild(wrap);
+  wrap.appendChild(list);
+  showPage({owner:'score',key:'lv'+cur.v,back:'\u2039 Scores',title:'Exercises \u00B7 '+cur.n,body:wrap});
 }
 /* Routine rows: same figures as exercises, one row per routine and level. */
 function renderRoutineRows(routines,replay){
@@ -4070,21 +4077,55 @@ function exTable(r){
   return wrap;
 }
 /* Runs are grouped by exercise or routine, newest group first. A group of one run looks the same as a larger one. */
+/* A record or a level opens as a full-screen page with its own fixed header and, for a run, fixed actions. The list underneath is left alone, so Back returns to the same place. The phone's Back gesture closes it too. */
+let pgOwner='',pgKey='',pgN=0;
+function showPage(o){
+  $('pgBack').textContent=o.back;$('pgBack').onclick=pageBack;
+  const t=$('pgTtl');t.textContent=o.title;t.className='ttl'+(o.mono?' seq':'');
+  const bd=$('pgBody'),keep=o.key===pgKey&&!$('pg').hidden,y=bd.scrollTop;
+  bd.textContent='';bd.appendChild(o.body);
+  const ft=$('pgFoot');ft.textContent='';
+  if(o.foot){[...o.foot.children].forEach(c=>ft.appendChild(c));}
+  ft.hidden=!o.foot;
+  pgOwner=o.owner;pgKey=o.key;
+  $('pg').hidden=false;document.documentElement.classList.add('pgopen');
+  bd.scrollTop=keep?y:0;
+}
+function hidePage(owner){
+  if(owner&&pgOwner!==owner)return;
+  $('pg').hidden=true;document.documentElement.classList.remove('pgopen');pgOwner='';pgKey='';
+}
+function pgPush(){try{history.pushState({pg:1},'');pgN++;}catch(e){}}
+function popPage(){
+  if(pgOwner==='score'){scoreLevel=null;renderProgress();}
+  else{histStack.pop();renderHistory();}
+}
+function pageBack(){
+  if(pgN>0){try{history.back();return;}catch(e){}}
+  popPage();
+}
+function closePages(){
+  if($('pg').hidden)return;
+  const n=pgN;pgN=0;histStack=[];scoreLevel=null;hidePage();
+  if(n){try{history.go(-n);}catch(e){}}
+}
+window.addEventListener('popstate',()=>{if(pgN>0&&!$('pg').hidden){pgN--;popPage();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('pg').hidden&&!document.querySelector('.pgov input:focus'))pageBack();});
 function renderHistory(){
   $('hvDay').classList.toggle('on',hview==='day');$('hvDay').setAttribute('aria-pressed',String(hview==='day'));
   $('hvEx').classList.toggle('on',hview==='ex');$('hvEx').setAttribute('aria-pressed',String(hview==='ex'));
   const pg=histStack[histStack.length-1]||null;
-  document.querySelectorAll('#pvHist .hfilter').forEach(e=>{e.hidden=!!pg;});
-  $('histMore').hidden=true;
+  document.querySelectorAll('#pvHist .hfilter').forEach(e=>{e.hidden=false;});
   if(pg){
-    $('histHint').textContent='';
     if(pg.run){const r=recs.runs.find(x=>x.id===pg.run);if(r){renderRunPage(r);return;}histStack.pop();return renderHistory();}
     if(pg.group){renderGroupPage(pg.group);return;}
   }
+  hidePage('hist');
+  $('histMore').hidden=true;
   if(hview==='ex')renderHistoryGroups();else renderHistoryDays();
 }
 /* The log: runs by day, newest first. A run opens to its exercises, and holds Delete. */
-let histStack=[],histScroll=0;   /* pages opened from the list: a group of repeats, then a run */
+let histStack=[];   /* pages opened from the list: a group of repeats, then a run */
 const isUntitled=rk=>/^Untitled \d+$/.test(routineName(rk));
 /* A routine of one exercise with no title of its own reads as the exercise. */
 const plainRun=r=>r.mode!=='routine'||(r.ne===1&&isUntitled(r.rk));
@@ -4122,8 +4163,7 @@ function listRow(title,mono,sub,dy,pc,onOpen){
   row.addEventListener('click',onOpen);
   return row;
 }
-function openHist(page){histScroll=scrollY;histStack.push(page);renderHistory();scrollTo(0,0);}
-function backHist(){histStack.pop();renderHistory();if(!histStack.length)scrollTo(0,histScroll);else scrollTo(0,0);}
+function openHist(page){histStack.push(page);pgPush();renderHistory();}
 /* The log: runs by day, newest first. Consecutive identical runs in a day fold into one row. */
 function renderHistoryDays(){
   const box=$('histList');box.textContent='';
@@ -4184,10 +4224,7 @@ function runStrokes(page,r){
   const g=n('o'),d=b.st.length,e=document.createElement('div');e.className='sb';e.style.padding='8px 0';e.textContent=g+' of '+d+' strokes were on time and played as written.';page.appendChild(e);
 }
 function renderRunPage(r){
-  const box=$('histList');box.textContent='';
   const page=document.createElement('div');page.className='rp';
-  const back=document.createElement('button');back.type='button';back.className='linkbtn back';back.textContent='‹ '+(histStack.length>1?'Back':'History');
-  back.addEventListener('click',backHist);page.appendChild(back);
   const t=runTitle(r),key=r.mode==='routine'?(r.rk||''):r.exercises[0].k,off=r.lv==='off';
   const h=document.createElement('h2');h.className=t.mono?'seq':'';h.textContent=t.text;page.appendChild(h);
   const sb=document.createElement('div');sb.className='sb';sb.textContent=dayWord(r.t).replace(/^./,c=>c.toUpperCase())+' · '+runMeta(r,true);page.appendChild(sb);
@@ -4243,23 +4280,22 @@ function renderRunPage(r){
     const sv=actBtn(e?'Saved':'Save',()=>mb.click());sv.disabled=mb.disabled;two.appendChild(sv);
   }
   if(r.mode==='routine'&&!plainRun(r)){const rb=renameBtn(h,r.rk);two.appendChild(actBtn('Rename',()=>rb.click()));}
-  acts.appendChild(armBtn('Delete',()=>{histStack=[];deleteRun(r.id);scrollTo(0,histScroll);}));page.appendChild(acts);
-  box.appendChild(page);
+  acts.appendChild(armBtn('Delete',()=>{closePages();deleteRun(r.id);}));
+  showPage({owner:'hist',key:'run'+r.id,back:'\u2039 '+(histStack.length>1?'Back':'History'),title:t.text,mono:t.mono,body:page,foot:acts});
 }
 /* A fold of repeats opens to its runs. */
 function renderGroupPage(ids){
-  const box=$('histList');box.textContent='';
   const runs=ids.map(id=>recs.runs.find(x=>x.id===id)).filter(Boolean);
-  if(!runs.length){histStack=[];renderHistory();return;}
+  if(!runs.length){closePages();renderHistory();return;}
   const page=document.createElement('div');page.className='rp';
-  const back=document.createElement('button');back.type='button';back.className='linkbtn back';back.textContent='‹ History';back.addEventListener('click',backHist);page.appendChild(back);
   const t=runTitle(runs[0]);
   const h=document.createElement('h2');h.className=t.mono?'seq':'';h.textContent=t.text;page.appendChild(h);
   const sb=document.createElement('div');sb.className='sb';sb.textContent=runs.length+' runs · '+dayWord(runs[0].t).replace(/^./,c=>c.toUpperCase());page.appendChild(sb);
   const dl=dyLine(runs[0]);if(dl){const d=document.createElement('div');d.className='sb dy';d.textContent=dl;page.appendChild(d);}
   const panel=document.createElement('div');panel.className='dayp';panel.style.marginTop='12px';
   runs.forEach(r=>panel.appendChild(listRow(dayWord(r.t).replace(/^./,c=>c.toUpperCase())+' \u00B7 '+new Date(r.t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}),false,runMeta(r,false),'',runFigures(r).acc,()=>openHist({run:r.id}))));
-  page.appendChild(panel);box.appendChild(page);
+  page.appendChild(panel);
+  showPage({owner:'hist',key:'grp'+ids.join(),back:'\u2039 History',title:t.text,mono:t.mono,body:page});
 }
 /* Runs grouped by exercise or routine, newest group first. A group of one run looks the same as a larger one. */
 function renderHistoryGroups(){
