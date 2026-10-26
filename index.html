@@ -546,7 +546,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
   <!-- ===== Library: your saved routines, and where routines come from ===== -->
   <div class="page" id="pageLibrary" role="tabpanel" aria-labelledby="tabLibrary" hidden>
     <section class="panel" aria-label="Add a routine">
-      <div class="btns"><button class="btn small" id="clearRoutine" type="button">New</button><button class="btn small" id="openBtn" type="button">Import</button></div>
+      <div class="btns"><button class="btn small" id="clearRoutine" type="button">New</button><button class="btn small" id="openBtn" type="button">Import</button><button class="btn small" id="exportLib" type="button">Export</button></div>
       <p class="hint" id="libMsg" aria-live="polite"></p>
     </section>
     <section class="panel" aria-label="Your routines">
@@ -736,7 +736,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <h3>The four pages and the editor</h3>
       <ul>
         <li><b>Play:</b> how long it plays, tempo, click level, Start, Pause, Restart and Stop, the notation, the lead/drag gauge and your results. With a routine loaded, scroll or swipe the rows (or press ↑ ↓) to choose which exercise to start at.</li>
-        <li><b>Library:</b> your saved routines, each with Edit and Play. <b>New</b> starts a routine and <b>Import</b> adds one from a file, a link or a shared list. What you are working on is the <b>scratch pad</b>: it is kept as you type, but a saved routine only changes when you press Save in the editor. The app asks before you open another routine and lose unsaved work. The editor opens full screen from Edit on the Play page or in the Library, and Back returns you.</li>
+        <li><b>Library:</b> your saved routines, each with Edit and Play. <b>New</b> starts a routine and <b>Import</b> adds one from a file, a link or a shared list. <b>Export</b> saves your whole library as one file, which Import reads back in one go and which can also be hosted as a shared list. What you are working on is the <b>scratch pad</b>: it is kept as you type, but a saved routine only changes when you press Save in the editor. The app asks before you open another routine and lose unsaved work. The editor opens full screen from Edit on the Play page or in the Library, and Back returns you.</li>
         <li><b>Stats:</b> three views. <b>History</b> lists your last runs by exercise or routine, with Replay. <b>Scores</b> shows each exercise and routine, weakest first, with its best cleared tempo. <b>Achievements</b> shows your practice days for the last four weeks, a streak that forgives one rest day a week, and your badges.</li>
         <li><b>Settings:</b> <b>Preferences</b> has the on-time window, visual pulse and click volume, and the colours. <b>Device</b> has the input, microphone level, stick calibration and latency. <b>Data</b> has export, import and clear.</li>
       </ul>
@@ -1949,7 +1949,8 @@ function loopResult(clicks,hits){
 /* A shared list is one text file of routines. A line of only dashes (---, or an em or en dash) starts the next routine. A file without
    such a line is a single routine. Returns {items:[{title,text}], errors:[], bundle}. */
 const LIB_MAX=100;
-function parseLibrary(text){
+function parseLibrary(text,max){
+  max=max||LIB_MAX;
   const out={items:[],errors:[],bundle:false};
   const t=String(text||'').replace(/^\uFEFF/,'');
   const parts=[[]];
@@ -1959,7 +1960,7 @@ function parseLibrary(text){
     if(!sec)return;
     const p=parseRoutine(sec);
     if(!p.errors.length&&!p.exercises.length)return;
-    if(out.items.length>=LIB_MAX){if(!out.errors.length)out.errors.push('Only the first '+LIB_MAX+' routines are shown.');return;}
+    if(out.items.length>=max){if(!out.errors.length)out.errors.push('Only the first '+max+' routines are shown.');return;}
     out.items.push({title:(getHeader(sec,'title')||'Routine '+(out.items.length+1)).slice(0,80),text:sec});
   });
   return out;
@@ -1970,7 +1971,7 @@ function parseLibrary(text){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.26.0';                           /* shown beside the title */
+const VERSION='0.27.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -4129,7 +4130,15 @@ async function loadFile(file){
   if(!file)return;
   $('openErr').textContent='';
   if(file.size>MAX_TEXT){$('openErr').textContent='That file is too large for a routine.';return;}
-  try{const txt=await file.text();importFile(addToLibrary(txt),txt);}
+  try{
+    const txt=await file.text(),res=parseLibrary(txt,MAX_LIB);
+    if(res.bundle){   /* a file of several routines, such as an exported library: added in one go */
+      const o=addItems(res.items);
+      if(o.err){$('openErr').textContent=o.err;}else closeOpen();
+      $('libMsg').textContent=o.msg;renderLibraryPage();return;
+    }
+    importFile(addToLibrary(txt),txt);
+  }
   catch(e){$('openErr').textContent='Could not read that file.';}
 }
 /* Fetches text from a web address, with a time limit and a size limit. */
@@ -4335,6 +4344,7 @@ function renderLibraryPage(){
     body.appendChild(acts);det.appendChild(body);box.appendChild(det);
   });
   $('libEmpty').hidden=!!(list.length||st==='scratch');
+  $('exportLib').disabled=!recs.lib.length;
 }
 const exerciseCount=x=>parseRoutine(x).exercises.length;
 /* ---------- routine library (a list of routine files on the web) ---------- */
@@ -4410,20 +4420,31 @@ async function loadLibrary(){
   }finally{lib.busy=false;renderLibrary();}
 }
 /* Adds every routine in the list that is not already in the library. Routines with errors are skipped, since they need fixing first. */
-function importAll(){
-  if(lib.busy||(run&&!run.ended))return;
-  let added=0,had=0,bad=0,full=false;
-  lib.items.forEach(it=>{
-    if(full)return;
+/* The whole library as one shared-list file: routines split by lines of dashes. Importing it again adds only what is missing. */
+function exportLibrary(){
+  if(!recs.lib.length)return;
+  const all=recs.lib.slice().sort((a,b)=>entryName(a).localeCompare(entryName(b),undefined,{sensitivity:'base'}));
+  saveFile('stick-timing-library-'+stamp()+'.txt','text/plain',all.map(e=>entryText(e).trim()).join('\n---\n')+'\n');
+  $('libMsg').textContent='\u2713 Exported '+all.length+(all.length===1?' routine':' routines')+'. Import it as a file, or host it as a shared list.';
+}
+function addItems(items){
+  const o={added:0,had:0,bad:0,full:false};
+  items.forEach(it=>{
+    if(o.full)return;
     const r=putEntry(getHeader(it.text,'title')?it.text:setHeader(it.text,'title',it.title),'',true);
-    if(r.err){if(r.fix)bad++;else full=true;}
-    else if(r.isNew)added++;else had++;
+    if(r.err){if(r.fix)o.bad++;else o.full=true;}
+    else if(r.isNew)o.added++;else o.had++;
   });
   const pl=(n,w)=>n+' '+w+(n===1?'':'s');
-  const m='\u2713 Added '+pl(added,'routine')+(had?', '+had+' already in your library':'')+(bad?', '+bad+' skipped because of errors (open them to fix)':'')+'.';
-  $('libErr').textContent=full?'\u26A0 Your library is full ('+MAX_LIB+' routines). Added '+added+'.':'';
-  $('libMsg').textContent=m;renderLibraryPage();renderLibrary();
-  if(!full)$('libInfo').textContent=m;
+  o.msg='\u2713 Added '+pl(o.added,'routine')+(o.had?', '+o.had+' already in your library':'')+(o.bad?', '+o.bad+' skipped because of errors (open them to fix)':'')+'.';
+  o.err=o.full?'\u26A0 Your library is full ('+MAX_LIB+' routines). Added '+o.added+'.':'';
+  return o;
+}
+function importAll(){
+  if(lib.busy||(run&&!run.ended))return;
+  const o=addItems(lib.items);
+  $('libErr').textContent=o.err;$('libMsg').textContent=o.msg;renderLibraryPage();renderLibrary();
+  if(!o.full)$('libInfo').textContent=o.msg;
 }
 function openLibraryItem(it){
   if(lib.busy||(run&&!run.ended))return;
@@ -4949,6 +4970,7 @@ function wire(){
   $('libGo').addEventListener('click',loadLibrary);
   $('libClear').addEventListener('click',clearLibrary);
   $('libAll').addEventListener('click',importAll);
+  $('exportLib').addEventListener('click',exportLibrary);
   $('libSel').addEventListener('change',()=>{const v=$('libSel').value;if(v==='+'){libMode='add';$('libErr').textContent='';lib={items:[],loaded:false,busy:false,cur:''};renderLibrary();$('libraryUrl').focus();}else pickList(v);});
   $('libRen').addEventListener('click',()=>{const l=curList();if(!l)return;libMode='rename';renderLibrary();$('libName').value=l.name;$('libName').focus();});
   $('libraryUrl').addEventListener('input',renderLibrary);
