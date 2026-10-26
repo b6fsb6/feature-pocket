@@ -288,15 +288,17 @@ svg.spark{display:block;overflow:visible}
 .rp{display:grid;gap:4px}
 
 .rp .back{justify-self:start;padding-left:0}
-.pgov{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column}
+.pgov{--pgx:max(16px,calc((100% - 760px)/2));position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column}
 .pgov[hidden]{display:none}
-.pghd{flex:none;display:flex;align-items:center;gap:12px;min-height:52px;padding:env(safe-area-inset-top) 16px 0;border-bottom:1px solid var(--line);background:var(--surface)}
+.pghd{flex:none;display:flex;align-items:center;gap:12px;min-height:52px;padding:env(safe-area-inset-top) var(--pgx) 0;position:relative}
+.pghd::after,.pgft::before{content:"";position:absolute;left:var(--pgx);right:var(--pgx);height:1px;background:var(--line)}
+.pghd::after{bottom:0}
+.pgft::before{top:0}
 .pghd .linkbtn{padding-left:0;white-space:nowrap}
 .pghd .ttl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 14px var(--font-body)}
 .pghd .ttl.seq{font:700 13px var(--font-data);letter-spacing:.04em}
-.pgbd{flex:1;overflow:auto;overscroll-behavior:contain;padding:14px 16px 28px}
-.pgbd>.rp{max-width:720px;margin:0 auto}
-.pgft{flex:none;display:flex;gap:8px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--bg)}
+.pgbd{flex:1;overflow:auto;overscroll-behavior:contain;padding:14px var(--pgx) 28px}
+.pgft{flex:none;display:flex;gap:8px;padding:10px var(--pgx) calc(10px + env(safe-area-inset-bottom));position:relative}
 .pgft .btn{flex:1;margin:0}
 .pgft[hidden]{display:none}
 html.pgopen{overflow:hidden}
@@ -2112,7 +2114,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.39.0';                           /* shown beside the title */
+const VERSION='0.39.3';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
