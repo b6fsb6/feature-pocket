@@ -1971,7 +1971,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.27.10';                           /* shown beside the title */
+const VERSION='0.28.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2417,7 +2417,7 @@ function beginRun(mode,only){
   startLoops();
   setRunning(true);
   lockScreen();
-  /* The run layout is in place, so the staff is where it will stay. If the page has to scroll to show it, the count-in waits a second for that. */
+  /* The run layout is in place, so the staff is where it will stay. If the page is scrolled down, it goes back to the top and the count-in waits a second for that. */
   if(!lat&&revealStaff())r.t0+=1;
   setStatus(lat?'Latency calibration. Count in, then hit the pad on every click and keep going. Stop playing when the number settles.':'Count-in…');
 }
@@ -2535,15 +2535,11 @@ function restartRun(){
   beginRun('play',r.only);
 }
 /* Starts a practice run. With a list of exercise numbers it plays only those exercises. */
-/* Starting from further down the page brings the staff back into view. It returns whether the page had to move. */
+/* Starting from further down the page scrolls back to the top, where the staff sits in the run layout. It returns whether the page had to move. */
 function revealStaff(){
-  const w=document.querySelector('.rowswrap');if(!w)return false;
-  /* Phone browsers draw the status bar over the top of the page and the address pill over the bottom, so the staff must clear both. */
-  const TOP=72,BOT=104,r=w.getBoundingClientRect(),room=innerHeight-TOP-BOT;
-  if(r.top>=TOP&&r.bottom<=innerHeight-BOT)return false;
-  const dy=r.top<TOP||r.height>room?r.top-TOP:r.bottom-(innerHeight-BOT);
+  if(scrollY<=0)return false;
   const reduce=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  scrollBy({top:dy,behavior:reduce?'auto':'smooth'});
+  scrollTo({top:0,behavior:reduce?'auto':'smooth'});
   return true;
 }
 async function startPlay(only){
