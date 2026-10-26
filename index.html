@@ -1971,7 +1971,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.27.5';                           /* shown beside the title */
+const VERSION='0.27.7';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2531,6 +2531,15 @@ function restartRun(){
   beginRun('play',r.only);
 }
 /* Starts a practice run. With a list of exercise numbers it plays only those exercises. */
+/* Starting from further down the page brings the staff back into view. It returns whether the page had to move. */
+function revealStaff(){
+  const w=document.querySelector('.rowswrap');if(!w)return;
+  const r=w.getBoundingClientRect();
+  if(r.top>=0&&r.bottom<=innerHeight)return false;
+  const reduce=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  w.scrollIntoView({block:'nearest',behavior:reduce?'auto':'smooth'});
+  return true;
+}
 async function startPlay(only){
   if(loop)endLoop('Auto calibrate cancelled.');
   if(calTest)endHandTest('');
@@ -2538,8 +2547,10 @@ async function startPlay(only){
   if(!(only||currentExercises()).length)return;
   showTab('play');
   setStatus('Starting…');
+  if(revealStaff())await new Promise(r=>setTimeout(r,1000));   /* scroll first, give it a second, then count in */
   if(!(await ensureAudio(S.input==='mic')))return;
   beginRun('play',only);
+  requestAnimationFrame(()=>requestAnimationFrame(revealStaff));   /* after the page has settled into the run layout */
 }
 function stopRun(){
   const r=run;if(!r||r.ended)return;
