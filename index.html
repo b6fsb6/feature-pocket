@@ -261,6 +261,48 @@ svg.spark{display:block;overflow:visible}
 .hrow .hb{padding:0 12px 12px;display:grid;gap:8px}
 .hgrp>.hg{padding:0 8px 8px}
 .slist{display:grid}
+.sum{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.sum .big{font:700 22px var(--font-data)} .sum small{font:12px var(--font-body);color:var(--muted);margin-left:4px}
+.sum .big.early{color:var(--early)} .sum .big.late{color:var(--late)} .sum .big.ok{color:var(--ok)}
+.sum p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.nextp .nr{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+.nextp .nr:first-child{border-top:0}
+.nextp .seq{font:700 14px var(--font-data);letter-spacing:.06em;overflow-wrap:normal}
+.nextp .nt{font:12px var(--font-body);color:var(--muted)}
+.hint b{color:var(--ink);font-weight:600}
+.dayh{display:flex;justify-content:space-between;align-items:baseline;margin:20px 0 8px;color:var(--muted);font:600 12px var(--font-body);letter-spacing:.1em;text-transform:uppercase}
+.dayh span:last-child{font-weight:400;letter-spacing:0;text-transform:none}
+.dayp{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 14px}
+.lrow{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line);cursor:pointer;background:none;border-left:0;border-right:0;border-bottom:0;width:100%;text-align:left;color:inherit;font:inherit}
+.dayp .lrow:first-child{border-top:0}
+.lrow .l{flex:1;min-width:0}
+.lrow .nm,.rp h2{font-weight:600;overflow-wrap:anywhere}.lrow .nm.seq,.rp h2.seq{font:700 14px/1.5 var(--font-data);letter-spacing:.05em}
+.lrow .sb,.rp .sb{font-size:12px;color:var(--muted)} .lrow .sb.dy,.rp .sb.dy{color:var(--accent)}
+.lrow .ac{font:700 16px var(--font-data);white-space:nowrap} .lrow .ac small{font:600 11px var(--font-body);letter-spacing:.06em;color:var(--muted);margin-left:3px}
+.ac.ok{color:var(--ok)} .ac.late{color:var(--late)} .ac.muted{color:var(--muted)}
+.lrow .ar{color:var(--muted);font-size:22px;line-height:1}
+.rp{display:grid;gap:4px}
+.rp .back{justify-self:start;background:none;border:0;color:var(--accent);font:600 15px var(--font-body);padding:6px 0;cursor:pointer}
+.rp h2{margin:0;font-size:20px;line-height:1.25} .rp h2.seq{font-size:16px}
+.rp .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0 4px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 8px;text-align:center}
+.rp .stats .v{font:700 20px var(--font-data)} .rp .stats .k{font:600 11px var(--font-body);letter-spacing:.08em;color:var(--muted);margin-top:2px}
+.rp .stats .v.ok{color:var(--ok)} .rp .stats .v.late{color:var(--late)} .rp .stats .v.muted{color:var(--muted)}
+.rp .lbl{font:600 11px var(--font-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px}
+.rp .strip{display:grid;grid-template-columns:repeat(12,1fr);gap:4px}
+.rp .cell{aspect-ratio:1;border-radius:4px;background:var(--line)} .rp .cell.ok{background:var(--ok)} .rp .cell.late{background:var(--late)} .rp .cell.skip{background:transparent;border:1px dashed var(--line)}
+.rp .key{font-size:12px;color:var(--muted);margin-top:8px}
+.rp .wr .ac{font:700 16px var(--font-data);white-space:nowrap} .rp .wr .ac small{font:600 11px var(--font-body);letter-spacing:.06em;color:var(--muted);margin-left:3px}
+.rp .wr{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.rp .exr{display:flex;gap:10px;padding:9px 0;border-top:1px solid var(--line)} .rp .exr .en{width:22px;flex:none;color:var(--muted);font:12px var(--font-data);padding-top:3px}
+.rp .exr .seq,.rp .wr .seq{font:700 13px/1.5 var(--font-data);letter-spacing:.05em}
+.rp .sn{display:flex;flex-wrap:wrap;gap:2px 14px;font:13px var(--font-data);font-variant-numeric:tabular-nums} .rp .sn small{color:var(--muted);font:11px var(--font-body);margin-left:3px}
+.rp .sn .ok{color:var(--ok)} .rp .sn .late{color:var(--late)} .rp .sn .early{color:var(--early)} .rp .sn .muted{color:var(--muted)}
+.rp .actions{margin-top:20px;display:grid;gap:10px}
+.rp .two{display:flex;gap:10px} .rp .two .btn{flex:1}
+.rp .del{background:none;border:0;color:var(--late);font:600 13px var(--font-body);padding:14px 0 4px;margin-top:6px;border-top:1px solid var(--line);cursor:pointer}
+.hint.hl{margin:2px 0 0}
+.srow .nt{font:12px var(--font-body);color:var(--muted)} .srow .nt.go{color:var(--ok)}
+.srow{gap:8px;padding:14px 2px}
 .srow{display:grid;gap:3px;padding:9px 2px;border-top:1px solid var(--line)}
 .srow:first-child{border-top:0}
 .srow .sq{display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -461,6 +503,9 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         <div class="field"><label for="pulse">Visual pulse</label>
           <select id="pulse"><option value="on">On</option><option value="off">Off</option></select></div>
       </div>
+      <div class="field"><label for="step">Speed-up step</label>
+        <select id="step"><option value="2">2 BPM</option><option value="4">4 BPM</option><option value="5">5 BPM</option><option value="8">8 BPM</option></select>
+        <p class="hint">How far the Next tempo button after a cleared run goes up. Scores never suggest a tempo.</p></div>
       <div class="field"><label for="vol">Click volume <output id="volOut"></output></label><input type="range" id="vol" min="0" max="100" step="1"></div>
       <p class="hint mic-only">Use headphones for the click. A click from the speakers is picked up by the microphone and counted as a stroke.</p>
     </section>
@@ -697,8 +742,25 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
     <div class="badges" id="badges"></div>
     </div>
     <div class="pv" id="pvStats" hidden>
+    <section class="panel" aria-label="Summary" id="scoreSumBox" hidden>
+      <h3>Summary</h3>
+      <div id="scoreSum" class="sum"></div>
+    </section>
+    <section class="panel" aria-label="Practise next" id="scoreNextBox" hidden>
+      <h3>Practise next</h3>
+      <div id="scoreNext"></div>
+    </section>
+    <section class="panel" aria-label="Reading the figures" id="scoreKey" hidden>
+      <h3>Reading the figures</h3>
+      <p class="hint">The exercises and routines below show figures averaged over your last 3 runs at the tempo you played most recently.</p>
+      <p class="hint hl"><b>BPM</b> the tempo of your latest run</p>
+      <p class="hint hl"><b>ACC</b> strokes on time (accuracy)</p>
+      <p class="hint hl"><b>Trend</b> each run at that tempo, with the dotted line at the target</p>
+      <p class="hint hl"><b>ms</b> lead (&minus;) or drag (+), against your usual</p>
+      <p class="hint hl"><b>dB</b> loudness spread, lower is more even</p>
+    </section>
     <section class="panel" aria-label="Rudiments">
-      <h3>Exercises, weakest first</h3>
+      <h3>Exercises</h3>
       <p class="hint" id="progHint"></p>
       <div class="hist" id="patGroups"></div>
     </section>
@@ -709,6 +771,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
     </div>
     <div class="pv" id="pvHist">
       <section aria-label="History">
+        <div class="btns hfilter" role="group" aria-label="View"><button class="pill on" id="hvDay" type="button" aria-pressed="true">By day</button><button class="pill" id="hvEx" type="button" aria-pressed="false">By exercise</button></div>
         <p class="hint" id="histHint"></p>
         <div class="btns hfilter" role="group" aria-label="Show"><button class="pill on" id="hfAll" type="button" aria-pressed="true">All</button><button class="pill" id="hfSaved" type="button" aria-pressed="false">Saved</button></div>
         <div class="hist" id="histList"></div>
@@ -1611,11 +1674,11 @@ function textKey(x,subdiv){
 }
 const isRoutineKey=k=>/^p[0-9a-z]+$/.test(k||'');
 /* What to suggest after a run. exercises: [{idx,pct,passes}] for the exercises that were played. */
-function adviceFor(exercises,bpm){
+function adviceFor(exercises,bpm,step){
   const played=exercises.filter(b=>b.passes>=1);
   if(!played.length)return null;
   const weak=played.filter(b=>b.pct<TARGET);
-  return {played:played.length,weak:weak,cleared:!weak.length,next:Math.min(220,bpm+4)};
+  return {played:played.length,weak:weak,cleared:!weak.length,next:Math.min(220,bpm+(step||4))};
 }
 /* Per pattern: how it is going at the tempo you played it at most recently. */
 function patStats(runs,sum){
@@ -1635,13 +1698,13 @@ function patStats(runs,sum){
     const bias=recent.filter(x=>typeof x.avg==='number'&&!isNaN(x.avg));
     const ev=recent.filter(x=>typeof x.ls==='number');
     out.push({k:e.k,lv:e.lv,dy:e.dy,bpm:last.bpm,recent:recent.reduce((a,x)=>a+x.pct,0)/recent.length,last:last.pct,cleared:cleared||null,clearedT:clearedT,
-      runs:e.recs.length,trend:at.slice(-12).map(x=>x.pct),t:last.t,bias:bias.length?bias.reduce((a,x)=>a+x.avg,0)/bias.length:NaN,even:ev.length?ev.reduce((a,x)=>a+x.ls,0)/ev.length:NaN});
+      runs:e.recs.length,used:recent.length,trend:at.slice(-12).map(x=>x.pct),t:last.t,bias:bias.length?bias.reduce((a,x)=>a+x.avg,0)/bias.length:NaN,even:ev.length?ev.reduce((a,x)=>a+x.ls,0)/ev.length:NaN});
   });
   if(sum){
     const idx=new Map(out.map(e=>[e.k+'|'+e.lv+(e.dy?'|'+e.dy:''),e]));
     Object.keys(sum.pat).forEach(key=>{
       const q=sum.pat[key],d=idx.get(key);
-      if(!d){const r=q.tr.slice(-3);out.push({k:q.k,lv:q.lv,dy:q.dy||'',bpm:q.bpm,recent:r.reduce((a,x)=>a+x,0)/r.length,last:q.tr[q.tr.length-1],cleared:q.cleared||null,clearedT:q.clearedT,runs:q.runs,trend:q.tr.slice(),t:q.t,bias:q.avg==null?NaN:q.avg,even:NaN});}
+      if(!d){const r=q.tr.slice(-3);out.push({k:q.k,lv:q.lv,dy:q.dy||'',bpm:q.bpm,recent:r.reduce((a,x)=>a+x,0)/r.length,last:q.tr[q.tr.length-1],cleared:q.cleared||null,clearedT:q.clearedT,runs:q.runs,used:r.length,trend:q.tr.slice(),t:q.t,bias:q.avg==null?NaN:q.avg,even:NaN});}
       else{d.runs+=q.runs;if(q.cleared&&(!d.cleared||q.cleared>d.cleared||(q.cleared===d.cleared&&q.clearedT<d.clearedT))){d.cleared=q.cleared;d.clearedT=q.clearedT;}}
     });
   }
@@ -2033,7 +2096,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.30.2';                           /* shown beside the title */
+const VERSION='0.35.1';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2062,6 +2125,7 @@ S.editTab=S.editTab==='type'?'type':'build';       /* Build or Type, remembered 
 S.bpm=clamp(Math.round(+S.bpm)||60,40,220);
 S.subdiv=4;                                        /* strokes with no note code are sixteenths */
 S.tol=[10,15,20,30].includes(+S.tol)?+S.tol:20;
+S.step=[2,4,5,8].includes(+S.step)?+S.step:4;   /* BPM added by the next-tempo button */
 S.sens=clamp(Math.round(+S.sens)||-30,-55,-8);
 S.accent=/^[gbm2-7RL]?$/.test(S.accent)?S.accent:'';   /* which strokes are accented */
 S.others=S.others==='g'?'g':'n';                          /* the other strokes: normal or ghost */
@@ -3615,7 +3679,7 @@ function renderAdvice(){
   const box=$('advice');
   if(!lastRun){box.hidden=true;return;}
   box.hidden=false;
-  const L=lastRun,adv=adviceFor(L.rows.map(x=>({idx:x.idx,pct:x.pct,passes:x.passes})),S.bpm);
+  const L=lastRun,adv=adviceFor(L.rows.map(x=>({idx:x.idx,pct:x.pct,passes:x.passes})),S.bpm,S.step);
   const use=$('advUse'),disc=$('advDiscard');
   const tgt=Math.round(TARGET*100)+'%';
   if(L.discarded){
@@ -3664,9 +3728,20 @@ function keyToText(k){
   const m=/^(\d+)\/(\d+) \([\d+]+\): /.exec(k);
   return m?k.slice(0,m[0].length)+nameMarkers(k.slice(m[0].length),+m[2]).trim():nameMarkers(k,4).trim();
 }
+/* A line typed without spaces gets them at its groups, so 7/8 (3+2+2) RLRLRLR reads RLR LR LR. */
+function groupSpaced(body,groups){
+  const toks=body.split(/\s+/),idx=[];
+  toks.forEach((t,i)=>{if(/^[RL_]{2,}$/i.test(t))idx.push(i);});
+  const per=groups.reduce((a,x)=>a+x,0);
+  if(idx.length!==1||!per||toks[idx[0]].length%per)return body;
+  const t=toks[idx[0]],out=[];let c=0,gi=0;
+  while(c<t.length){out.push(t.slice(c,c+groups[gi%groups.length]));c+=groups[gi%groups.length];gi++;}
+  toks[idx[0]]=out.join(' ');
+  return toks.join(' ');
+}
 function showKey(k){
   const m=/^(\d+)\/(\d+) \([\d+]+\): /.exec(k);
-  if(m)return k.slice(0,m[0].length)+nameMarkers(k.slice(m[0].length),+m[2]).trim();
+  if(m){const g=/\(([\d+]+)\)/.exec(m[0])[1].split('+').map(Number);return m[1]+'/'+m[2]+' '+groupSpaced(nameMarkers(k.slice(m[0].length),+m[2]).trim(),g);}
   return nameMarkers(k.replace(/^\/4 (?![^\/]*\/)/,''),4).trim();
 }
 /* Replaces a table's contents. A cell is text, [text, class] or a node. */
@@ -3761,7 +3836,7 @@ function syncData(){
 }
 /* Scores by click level, each level its own collapsible group. The first level with scores starts open, then your choices stick. */
 let scoreOpen=null;
-function renderScoreGroups(stats,practise){
+function renderScoreGroups(stats,practise,usual){
   const box=$('patGroups');box.textContent='';
   if(!stats.length){const p=document.createElement('p');p.className='hint';p.textContent='No exercises scored yet.';box.appendChild(p);return;}
   const levels=LEVELS.map(l=>({v:l.v,n:l.n})).concat([...new Set(stats.map(x=>x.lv))].filter(v=>!LEVELS.some(l=>l.v===v)).map(v=>({v:v,n:levelName(v)})));
@@ -3781,7 +3856,7 @@ function renderScoreGroups(stats,practise){
     rows.forEach(x=>{
       const row=document.createElement('div');row.className='srow';
       const q=document.createElement('div');q.className='sq';
-      const seq=document.createElement('span');seq.className='seq';seq.textContent=showKey(x.k)+(x.dy?' · '+dynText(x.dy):'');
+      const seq=document.createElement('span');seq.className='seq';seq.textContent=showKey(x.k);
       q.appendChild(seq);q.appendChild(practise(x.k,x.lv,x.dy));row.appendChild(q);
       const n=document.createElement('div');n.className='sn';
       const stat=(txt,unit,cls)=>{const e=document.createElement('span');if(cls)e.className=cls;e.textContent=txt;if(unit){const u=document.createElement('small');u.textContent=unit;e.appendChild(u);}n.appendChild(e);};
@@ -3790,9 +3865,17 @@ function renderScoreGroups(stats,practise){
       stat(acc[0],'ACC',acc[1]);
       const sp=sparkline(x.trend);
       if(Array.isArray(sp))stat(sp[0],'trend','muted');else n.appendChild(sp);
-      stat(isNaN(x.bias)?'\u2014':fmtMs(x.bias,1),'ms',biasCls(x.bias));
+      const rel=isNaN(x.bias)?NaN:(isNaN(usual)?x.bias:x.bias-usual);
+      stat(isNaN(rel)?'\u2014':fmtMs(rel,1),'ms',biasCls(rel));
       stat(isNaN(x.even)?'\u2014':'\u00B1'+x.even.toFixed(1),'dB');
-      row.appendChild(n);list.appendChild(row);
+      row.appendChild(n);
+      const bits=[];
+      bits.push(x.used+(x.used===1?' run':' runs')+' at '+x.bpm+' BPM');
+      if(x.dy)bits.push(dynText(x.dy));
+      const done=x.cleared&&x.cleared>=x.bpm;
+      if(done)bits.push('Cleared at '+x.cleared+' BPM.');else if(x.cleared)bits.push('best cleared '+x.cleared+' BPM');
+      const nt=document.createElement('div');nt.className='nt'+(done?' go':'');nt.textContent=bits.join(' \u00B7 ');row.appendChild(nt);
+      list.appendChild(row);
     });
     body.appendChild(list);det.appendChild(body);box.appendChild(det);
   });
@@ -3823,17 +3906,48 @@ function renderRoutineRows(routines,replay){
     row.appendChild(n);box.appendChild(row);
   });
 }
+/* Your usual lead or drag: the average bias over the exercises scored. Rows show their bias against it. */
+function scoreUsual(stats){const b=stats.map(x=>x.bias).filter(x=>!isNaN(x));return b.length?b.reduce((a,x)=>a+x,0)/b.length:NaN;}
+function renderScoreSummary(stats){
+  const sum=$('scoreSum'),nx=$('scoreNext');
+  sum.textContent='';nx.textContent='';
+  $('scoreSumBox').hidden=!stats.length;$('scoreNextBox').hidden=true;
+  if(!stats.length)return;
+  const add=(txt,unit,desc,cls)=>{
+    const e=document.createElement('div');
+    const b=document.createElement('div');b.className='big'+(cls?' '+cls:'');b.textContent=txt;
+    const u=document.createElement('small');u.textContent=unit;b.appendChild(u);
+    const p=document.createElement('p');p.textContent=desc;
+    e.appendChild(b);e.appendChild(p);sum.appendChild(e);};
+  const u=scoreUsual(stats);
+  if(!isNaN(u))add(fmtMs(u,0),'ms',u<-2.5?'You play early by about this much on average.'+(u<-8?' Calibrate, or aim to land later.':''):u>2.5?'You play late by about this much on average.':'You play close to the beat on average.',biasCls(u));
+  add(String(stats.filter(x=>x.cleared&&x.cleared>=x.bpm).length),'of '+stats.length+' cleared','Exercises at 90% or more at their current tempo.');
+  const weak=stats.filter(x=>x.recent<TARGET).slice(0,3);
+  if(!weak.length)return;
+  $('scoreNextBox').hidden=false;
+  const box=document.createElement('div');box.className='nextp';
+  weak.forEach((x,i)=>{
+    const r=document.createElement('div');r.className='nr';
+    const t=document.createElement('div');
+    const a=document.createElement('div');a.className='seq';a.textContent=showKey(x.k)+(x.dy?' \u00B7 '+dynText(x.dy):'');
+    const b=document.createElement('div');b.className='nt';b.textContent=Math.round(x.recent*100)+'% at '+x.bpm+' BPM'+(i===0?' \u00B7 weakest':'');
+    t.appendChild(a);t.appendChild(b);r.appendChild(t);
+    const btn=document.createElement('button');btn.type='button';btn.className='btn small';btn.textContent='Practise';
+    btn.addEventListener('click',()=>practisePattern(x.k,x.lv,x.dy));r.appendChild(btn);box.appendChild(r);
+  });
+  nx.appendChild(box);
+}
 function renderProgress(){
   renderPractice();renderBadges();
   const stats=patStats(recs.runs,recs.sum),routines=routineStats(recs.runs,recs.sum);
-  $('progHint').textContent=stats.length
-    ?'Accuracy (ACC) is the share of strokes inside your timing window over your last three runs at the tempo you played most recently. Trend plots each run at that tempo (up to 12), with the dotted line at the target. EVEN is how much your stroke loudness varies, in dB. Smaller is more even.'
-    :'Nothing yet. Play an exercise or a routine and each exercise\'s score shows up here, so you can see which rudiments need work.';
+  $('progHint').textContent=stats.length?'':'Nothing yet. Play an exercise or a routine and each exercise\'s score shows up here, so you can see which rudiments need work.';
+  $('scoreKey').hidden=!stats.length&&!routines.length;
   const practise=(k,lv,dy)=>iconBtn('replay','Practise this exercise',()=>practisePattern(k,lv,dy));
   /* A routine is replayed from its newest run at that level, while that run's text is still kept. */
   const replayRoutine=x=>{const r=recs.runs.slice().reverse().find(q=>q.rk===x.rk&&q.lv===x.lv&&(q.dy||'')===(x.dy||''));
     if(r)return replayBtn(r);const b=iconBtn('replay','Replay',()=>{});b.disabled=true;b.title='This routine was saved without its text.';return b;};
-  renderScoreGroups(stats,practise);
+  renderScoreSummary(stats);
+  renderScoreGroups(stats,practise,scoreUsual(stats));
   renderRoutineRows(routines,replayRoutine);
   renderHistory();syncData();
 }
@@ -3845,7 +3959,7 @@ function setSview(v){
   });
 }
 function showSetup(v){setSview(v);showTab('setup');}
-let pview='hist',histShown=20,histFilter='all';
+let pview='hist',histShown=20,histDays=7,histFilter='all',hview='day';
 function setPview(v){
   pview=v;
   [['stats','pvStats','pvBtnStats'],['hist','pvHist','pvBtnHist'],['ach','pvAch','pvBtnAch']].forEach(x=>{
@@ -3913,6 +4027,185 @@ function exTable(r){
 }
 /* Runs are grouped by exercise or routine, newest group first. A group of one run looks the same as a larger one. */
 function renderHistory(){
+  $('hvDay').classList.toggle('on',hview==='day');$('hvDay').setAttribute('aria-pressed',String(hview==='day'));
+  $('hvEx').classList.toggle('on',hview==='ex');$('hvEx').setAttribute('aria-pressed',String(hview==='ex'));
+  const pg=hview==='day'?histStack[histStack.length-1]:null;
+  document.querySelectorAll('#pvHist .hfilter').forEach(e=>{e.hidden=!!pg;});
+  $('histMore').hidden=true;
+  if(pg){
+    $('histHint').textContent='';
+    if(pg.run){const r=recs.runs.find(x=>x.id===pg.run);if(r){renderRunPage(r);return;}histStack.pop();return renderHistory();}
+    if(pg.group){renderGroupPage(pg.group);return;}
+  }
+  if(hview==='ex')renderHistoryGroups();else renderHistoryDays();
+}
+/* The log: runs by day, newest first. A run opens to its exercises, and holds Delete. */
+let histStack=[],histScroll=0;   /* pages opened from the list: a group of repeats, then a run */
+const isUntitled=rk=>/^Untitled \d+$/.test(routineName(rk));
+/* A routine of one exercise with no title of its own reads as the exercise. */
+const plainRun=r=>r.mode!=='routine'||(r.ne===1&&isUntitled(r.rk));
+const runTitle=r=>plainRun(r)?{text:showKey(r.exercises[0].k),mono:true}:{text:routineName(r.rk),mono:false};
+const runMins=r=>r.sec>=30?Math.max(1,Math.round(r.sec/60))+' min':'';
+function runMeta(r,withTime){
+  const bits=[];
+  if(withTime)bits.push(new Date(r.t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}));
+  bits.push(r.lv==='off'?'Count-in only':levelName(r.lv));
+  if(r.mode==='routine'&&r.ne>1)bits.push(r.ne+' exercises');
+  bits.push(r.bpm+' BPM');
+  const m=runMins(r);if(m)bits.push(m);
+  return bits.join(' · ');
+}
+const dyLine=r=>{if(!r.dy)return '';const t=dynText(r.dy);return t.charAt(0).toUpperCase()+t.slice(1);};
+/* A run's overall figures: strokes on time, lead or drag, and loudness spread. */
+function runFigures(r){
+  const off=r.lv==='off';let hs=0,sw=0;
+  r.exercises.forEach(b=>{hs+=b.heard||0;sw+=(b.avg||0)*(b.heard||0);});
+  const ls=r.exercises.map(b=>b.ls).filter(v=>typeof v==='number');
+  return {acc:off?null:runPct(r),ms:hs&&!off?sw/hs:NaN,db:ls.length?ls.reduce((a,v)=>a+v,0)/ls.length:NaN};
+}
+const accHtml=(pc)=>pc===null?['—','muted']:accCell(pc);
+function listRow(title,mono,sub,dy,pc,onOpen){
+  const row=document.createElement('button');row.type='button';row.className='lrow';
+  const l=document.createElement('div');l.className='l';
+  const n=document.createElement('div');n.className='nm'+(mono?' seq':'');n.textContent=title;
+  const b=document.createElement('div');b.className='sb';b.textContent=sub;
+  l.appendChild(n);l.appendChild(b);
+  if(dy){const d=document.createElement('div');d.className='sb dy';d.textContent=dy;l.appendChild(d);}
+  const a=accHtml(pc),ac=document.createElement('div');ac.className='ac '+a[1];ac.textContent=a[0].replace(' ✓','');
+  const u=document.createElement('small');u.textContent='ACC';ac.appendChild(u);
+  const ar=document.createElement('span');ar.className='ar';ar.textContent='›';ar.setAttribute('aria-hidden','true');
+  row.appendChild(l);row.appendChild(ac);row.appendChild(ar);
+  row.addEventListener('click',onOpen);
+  return row;
+}
+function openHist(page){histScroll=scrollY;histStack.push(page);renderHistory();scrollTo(0,0);}
+function backHist(){histStack.pop();renderHistory();if(!histStack.length)scrollTo(0,histScroll);else scrollTo(0,0);}
+/* The log: runs by day, newest first. Consecutive identical runs in a day fold into one row. */
+function renderHistoryDays(){
+  const box=$('histList');box.textContent='';
+  const saved=histFilter==='saved';
+  $('hfAll').classList.toggle('on',!saved);$('hfAll').setAttribute('aria-pressed',String(!saved));
+  $('hfSaved').classList.toggle('on',saved);$('hfSaved').setAttribute('aria-pressed',String(saved));
+  const gkey=r=>r.mode==='routine'?(r.rk||''):r.exercises[0].k;
+  let runs=recs.runs.slice().sort((a,b)=>b.t-a.t);
+  if(saved)runs=runs.filter(r=>libFor(gkey(r)));
+  $('histHint').textContent=runs.length?'':(saved?'Nothing saved yet. Tap the bookmark on a routine, or use Save in the editor.':'Nothing yet. Play an exercise or a routine and each run shows up here.');
+  const days=[];
+  runs.forEach(r=>{const k=dayKey(r.t);let d=days[days.length-1];if(!d||d.k!==k){d={k:k,t:r.t,runs:[]};days.push(d);}d.runs.push(r);});
+  const dword=t=>{const w=dayWord(t);return w==='today'?'Today':w==='yesterday'?'Yesterday':w;};
+  days.slice(0,histDays).forEach(d=>{
+    const h=document.createElement('div');h.className='dayh';
+    const a=document.createElement('span');a.textContent=dword(d.t);
+    const secs=d.runs.reduce((t,r)=>t+(r.sec||0),0),mins=Math.round(secs/60);
+    const b=document.createElement('span');b.textContent=d.runs.length+(d.runs.length===1?' run':' runs')+(secs>=30?' · '+Math.max(1,mins)+' min':'');
+    h.appendChild(a);h.appendChild(b);box.appendChild(h);
+    const panel=document.createElement('div');panel.className='dayp';
+    /* folds: neighbours with the same exercise or routine, level and accent rule */
+    const sig=r=>r.mode+'|'+gkey(r)+'|'+r.lv+'|'+(r.dy||'');
+    const folds=[];
+    d.runs.forEach(r=>{const f=folds[folds.length-1];if(f&&sig(f[0])===sig(r))f.push(r);else folds.push([r]);});
+    folds.forEach(f=>{
+      const r=f[0],t=runTitle(r),fig=runFigures(r);
+      if(f.length===1){panel.appendChild(listRow(t.text,t.mono,runMeta(r,true),dyLine(r),fig.acc,()=>openHist({run:r.id})));return;}
+      const tm=x=>new Date(x.t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+      const bpms=f.map(x=>x.bpm),lo=Math.min.apply(null,bpms),hi=Math.max.apply(null,bpms);
+      const best=r.lv==='off'?null:Math.max.apply(null,f.map(runPct));
+      const sub=f.length+' runs · '+tm(f[f.length-1])+' – '+tm(r)+' · '+(r.lv==='off'?'Count-in only':levelName(r.lv))+' · '+(lo===hi?lo:lo+'–'+hi)+' BPM'+(best!==null?' · best '+Math.round(best*100)+'%':'');
+      panel.appendChild(listRow(t.text,t.mono,sub,dyLine(r),fig.acc,()=>openHist({group:f.map(x=>x.id)})));
+    });
+    box.appendChild(panel);
+  });
+  $('histMore').textContent='Show more days';
+  $('histMore').hidden=days.length<=histDays;
+}
+function statBox(txt,unit,cls){const d=document.createElement('div');const v=document.createElement('div');v.className='v'+(cls?' '+cls:'');v.textContent=txt;const k=document.createElement('div');k.className='k';k.textContent=unit;d.appendChild(v);d.appendChild(k);return d;}
+function actBtn(label,fn,primary,icon){const b=document.createElement('button');b.type='button';b.className='btn'+(primary?' primary':'');if(icon){b.innerHTML=ICON[icon];}b.appendChild(document.createTextNode((icon?' ':'')+label));b.addEventListener('click',fn);return b;}
+/* The page of one run: overall figures, then for a routine the strip, the weakest and every exercise played. */
+function renderRunPage(r){
+  const box=$('histList');box.textContent='';
+  const page=document.createElement('div');page.className='rp';
+  const back=document.createElement('button');back.type='button';back.className='back';back.textContent='‹ '+(histStack.length>1?'Back':'History');
+  back.addEventListener('click',backHist);page.appendChild(back);
+  const t=runTitle(r),key=r.mode==='routine'?(r.rk||''):r.exercises[0].k,off=r.lv==='off';
+  const h=document.createElement('h2');h.className=t.mono?'seq':'';h.textContent=t.text;page.appendChild(h);
+  const sb=document.createElement('div');sb.className='sb';sb.textContent=dayWord(r.t).replace(/^./,c=>c.toUpperCase())+' · '+runMeta(r,true);page.appendChild(sb);
+  const dl=dyLine(r);if(dl){const d=document.createElement('div');d.className='sb dy';d.textContent=dl;page.appendChild(d);}
+  const f=runFigures(r),a=accHtml(f.acc);
+  const stats=document.createElement('div');stats.className='stats';
+  stats.appendChild(statBox(a[0].replace(' ✓',''),'ACC',a[1]));
+  stats.appendChild(statBox(String(r.bpm),'BPM'));
+  stats.appendChild(statBox(isNaN(f.ms)?'—':fmtMs(f.ms,1),'ms',isNaN(f.ms)?'muted':biasCls(f.ms)));
+  stats.appendChild(statBox(isNaN(f.db)?'—':'±'+f.db.toFixed(1),'dB'));
+  page.appendChild(stats);
+  if(!plainRun(r)&&r.ne>1){
+    const items=r.exercises.map(b=>({i:b.i||0,b:b})).concat((r.sk||[]).map(b=>({i:b.i,k:b.k})));
+    items.sort((x,y)=>x.i-y.i);
+    const lbl=txt=>{const e=document.createElement('div');e.className='lbl';e.textContent=txt;return e;};
+    const played=items.filter(x=>x.b),pctOf=x=>x.b.due?x.b.within/x.b.due:0;
+    page.appendChild(lbl('Exercises'));
+    const strip=document.createElement('div');strip.className='strip';
+    items.forEach(x=>{const c=document.createElement('span');c.className='cell '+(!x.b?'skip':off?'':(pctOf(x)>=TARGET?'ok':'late'));strip.appendChild(c);});
+    page.appendChild(strip);
+    const key2=document.createElement('div');key2.className='key';key2.textContent=off?'Count-in only: nothing is scored.':'Green: 90% or more. Pink: below 90%. Dashed: not played.';page.appendChild(key2);
+    if(!off&&played.length>1){
+      page.appendChild(lbl('Weakest'));
+      played.slice().sort((x,y)=>pctOf(x)-pctOf(y)).slice(0,3).forEach(x=>{
+        const w=document.createElement('div');w.className='wr';
+        const n=document.createElement('div');n.className='seq';n.textContent=showKey(x.b.k);
+        const c=accCell(pctOf(x)),ac=document.createElement('div');ac.className='ac '+c[1];ac.textContent=c[0].replace(' ✓','');const u=document.createElement('small');u.textContent='ACC';ac.appendChild(u);
+        w.appendChild(n);w.appendChild(ac);page.appendChild(w);});
+    }
+    page.appendChild(lbl('All exercises'));
+    played.forEach(x=>{
+      const b=x.b,row=document.createElement('div');row.className='exr';
+      const en=document.createElement('div');en.className='en';en.textContent=String(x.i||'');
+      const eb=document.createElement('div');
+      const n=document.createElement('div');n.className='seq';n.textContent=showKey(b.k);eb.appendChild(n);
+      const sn=document.createElement('div');sn.className='sn';
+      const stat=(txt,unit,cls)=>{const m=document.createElement('span');if(cls)m.className=cls;m.textContent=txt;if(unit){const u=document.createElement('small');u.textContent=unit;m.appendChild(u);}sn.appendChild(m);};
+      const c=off?['—','muted']:accCell(pctOf(x));
+      stat(c[0],'ACC',c[1]);
+      stat(b.heard&&typeof b.avg==='number'?fmtMs(b.avg,1):'—','ms',b.heard&&typeof b.avg==='number'?biasCls(b.avg):'muted');
+      stat(typeof b.ls==='number'?'±'+b.ls.toFixed(1):'—','dB');
+      eb.appendChild(sn);row.appendChild(en);row.appendChild(eb);page.appendChild(row);});
+    const sk=items.length-played.length;
+    if(sk){const e=document.createElement('div');e.className='sb';e.style.padding='8px 0';e.textContent=sk+(sk===1?' exercise was':' exercises were')+' not played and '+(sk===1?'is':'are')+' not listed.';page.appendChild(e);}
+  }
+  const acts=document.createElement('div');acts.className='actions';
+  acts.appendChild(actBtn('Replay',()=>replayRun(r),true,'replay'));
+  if(!r.rp)acts.lastChild.disabled=true;
+  const two=document.createElement('div');two.className='two';
+  if(!off){
+    const e=libFor(key),mb=markBtn(key,r.rp&&r.rp.x);
+    const sv=actBtn(e?'Saved':'Save',()=>mb.click(),false,e?'marked':'mark');sv.disabled=mb.disabled;two.appendChild(sv);
+  }
+  if(r.mode==='routine'&&!plainRun(r)){const rb=renameBtn(h,r.rk);two.appendChild(actBtn('Rename',()=>rb.click(),false,'edit'));}
+  if(two.children.length)acts.appendChild(two);
+  const del=document.createElement('button');del.type='button';del.className='del';del.textContent='Delete this run';
+  del.addEventListener('click',()=>{
+    if(delArm!==r.id){delArm=r.id;del.textContent='Tap again to delete';setTimeout(()=>{if(delArm===r.id){delArm=null;del.textContent='Delete this run';}},4000);return;}
+    delArm=null;histStack=[];deleteRun(r.id);scrollTo(0,histScroll);
+  });
+  acts.appendChild(del);page.appendChild(acts);
+  box.appendChild(page);
+}
+/* A fold of repeats opens to its runs. */
+function renderGroupPage(ids){
+  const box=$('histList');box.textContent='';
+  const runs=ids.map(id=>recs.runs.find(x=>x.id===id)).filter(Boolean);
+  if(!runs.length){histStack=[];renderHistory();return;}
+  const page=document.createElement('div');page.className='rp';
+  const back=document.createElement('button');back.type='button';back.className='back';back.textContent='‹ History';back.addEventListener('click',backHist);page.appendChild(back);
+  const t=runTitle(runs[0]);
+  const h=document.createElement('h2');h.className=t.mono?'seq':'';h.textContent=t.text;page.appendChild(h);
+  const sb=document.createElement('div');sb.className='sb';sb.textContent=runs.length+' runs · '+dayWord(runs[0].t).replace(/^./,c=>c.toUpperCase());page.appendChild(sb);
+  const dl=dyLine(runs[0]);if(dl){const d=document.createElement('div');d.className='sb dy';d.textContent=dl;page.appendChild(d);}
+  const panel=document.createElement('div');panel.className='dayp';panel.style.marginTop='12px';
+  runs.forEach(r=>panel.appendChild(listRow(new Date(r.t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}),false,runMeta(r,false),'',runFigures(r).acc,()=>openHist({run:r.id}))));
+  page.appendChild(panel);box.appendChild(page);
+}
+/* Runs grouped by exercise or routine, newest group first. A group of one run looks the same as a larger one. */
+function renderHistoryGroups(){
   const box=$('histList');box.textContent='';
   const groups=new Map();
   recs.runs.slice().reverse().forEach(r=>{const k=runKey(r)+'|'+r.lv+'|'+(r.dy||'');if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r);});
@@ -3966,6 +4259,7 @@ function renderHistory(){
     const op=iconBtn('play','Play',()=>playEntry(e));ac.appendChild(op);
     sm.appendChild(n);sm.appendChild(st);sm.appendChild(ac);row.appendChild(sm);box.appendChild(row);
   });
+  $('histMore').textContent='Show more';
   $('histMore').hidden=list.length<=histShown;
 }
 function deleteRun(id){
@@ -5141,6 +5435,7 @@ function wire(){
   $('accent').addEventListener('change',e=>{S.accent=e.target.value;dyChanged();});
   $('others').addEventListener('change',e=>{S.others=e.target.value;dyChanged();});
   $('tol').addEventListener('change',e=>{S.tol=+e.target.value;save();renderAll();});
+  $('step').addEventListener('change',e=>{S.step=+e.target.value;save();});
   $('inputMode').addEventListener('change',e=>{S.input=e.target.value;save();setInputMode();});
   $('routineText').addEventListener('input',e=>{const v=plainText(e.target.value);if(v!==e.target.value)e.target.value=v;S.routineText=v.slice(0,MAX_TEXT);S.startExercise=1;save();onRoutineChanged();});
   $('fileBtn').addEventListener('click',()=>$('routineFile').click());
@@ -5214,9 +5509,11 @@ function wire(){
   $('pvBtnStats').addEventListener('click',()=>setPview('stats'));
   $('pvBtnHist').addEventListener('click',()=>setPview('hist'));
   $('pvBtnAch').addEventListener('click',()=>setPview('ach'));
-  $('histMore').addEventListener('click',()=>{histShown+=20;renderHistory();});
-  $('hfAll').addEventListener('click',()=>{histFilter='all';histShown=20;renderHistory();});
-  $('hfSaved').addEventListener('click',()=>{histFilter='saved';histShown=20;renderHistory();});
+  $('histMore').addEventListener('click',()=>{if(hview==='day')histDays+=7;else histShown+=20;renderHistory();});
+  $('hvDay').addEventListener('click',()=>{hview='day';histDays=7;histStack=[];renderHistory();});
+  $('hvEx').addEventListener('click',()=>{hview='ex';histShown=20;histStack=[];renderHistory();});
+  $('hfAll').addEventListener('click',()=>{histFilter='all';histShown=20;histDays=7;renderHistory();});
+  $('hfSaved').addEventListener('click',()=>{histFilter='saved';histShown=20;histDays=7;renderHistory();});
   $('recExport').addEventListener('click',exportRecs);
   $('bakGo').addEventListener('click',exportRecs);
   $('recImport').addEventListener('click',()=>$('recFile').click());
@@ -5333,7 +5630,7 @@ function init(){
   $('routineText').value=S.routineText;
   $('bpm').value=S.bpm;
   $('click').value=S.click;$('accent').value=S.accent;$('others').value=S.others;
-  $('tol').value=String(S.tol);
+  $('tol').value=String(S.tol);$('step').value=String(S.step);
   $('gap').value=String(S.gap);
   $('pulse').value=S.pulse?'on':'off';$('palette').value=S.palette;
   syncEach();
