@@ -293,7 +293,7 @@ svg.spark{display:block;overflow:visible}
 .rp .stats .v.ok{color:var(--ok)} .rp .stats .v.late{color:var(--late)} .rp .stats .v.muted{color:var(--muted)}
 .rp .lbl{font:600 11px var(--font-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px}
 .rp .strip{display:grid;grid-template-columns:repeat(12,1fr);gap:4px}
-.rp .cell{aspect-ratio:1;border-radius:4px;background:var(--line)} .rp .cell.ok{background:var(--ok)} .rp .cell.late{background:var(--late)} .rp .cell.skip{background:transparent;border:1px dashed var(--line)}
+.rp .cell{aspect-ratio:1;border-radius:4px;background:var(--line)} .rp .cell.ok{background:var(--ok)} .rp .cell.late{background:var(--late)} .rp .cell.skip{background:transparent;border:1px dashed var(--line)} .rp .cell.lvl{background:var(--accent);color:#14110a;font:700 10px/1 var(--font-body);display:grid;place-items:center}
 .rp .key{font-size:12px;color:var(--muted);margin-top:8px}
 .rp .wr .ac{font:700 16px var(--font-data);white-space:nowrap} .rp .wr .ac small{font:600 11px var(--font-body);letter-spacing:.06em;color:var(--muted);margin-left:3px}
 .rp .wr{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
@@ -757,7 +757,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <h3>Reading the figures</h3>
       <p class="hint">The exercises and routines below show figures averaged over your last 3 runs at the tempo you played most recently.</p>
       <p class="hint hl"><b>BPM</b> the tempo of your latest run</p>
-      <p class="hint hl"><b>ACC</b> strokes on time (accuracy)</p>
+      <p class="hint hl"><b>ACC</b> strokes on time (accuracy). With an accent or ghost rule, they also have to be played as written</p>
       <p class="hint hl"><b>Trend</b> each run at that tempo, with the dotted line at the target</p>
       <p class="hint hl"><b>ms</b> lead (&minus;) or drag (+), against your usual</p>
       <p class="hint hl"><b>dB</b> loudness spread, lower is more even</p>
@@ -977,7 +977,7 @@ RLRR LRLL RLRR LRLL</pre>
     <section class="panel" id="help-scores">
       <h3>Scores, tempo and progress</h3>
       <ul>
-        <li><b>On time</b> is the share of due strokes that landed inside your on-time window. An exercise needs at least one full pass to be scored.</li>
+        <li><b>On time</b> is the share of due strokes that landed inside your on-time window. With an accent or ghost rule, a stroke also has to be played as written: an accent clearly louder, a ghost clearly softer than the strokes around it. An exercise needs at least one full pass to be scored.</li>
         <li><b>Exercise table:</b> after a routine run, each exercise gets its own accuracy, average error and spread, plus your earlier best at that tempo.</li>
         <li><b>The target is 90%.</b> An exercise is "cleared" at a tempo when it reaches 90% there. After a run the app says whether every exercise cleared, and suggests +4 BPM if so. Otherwise it names the weak exercises and suggests staying at the same tempo. These are only suggestions. Any tempo is always allowed.</li>
         <li><b>Discard this run</b> removes a run from your records, for example after a bad microphone read.</li>
@@ -1690,7 +1690,7 @@ function patStats(runs,sum){
     if(!(b.due>0)||run.lv==='off')return;
     const mk=b.k+'|'+run.lv+(run.dy?'|'+run.dy:'');   /* the same sticking with a different accent rule is a different exercise */
     let e=m.get(mk);if(!e){e={k:b.k,lv:run.lv,dy:run.dy||'',recs:[]};m.set(mk,e);}
-    e.recs.push({t:run.t,bpm:b.bpm||run.bpm,pct:b.within/b.due,avg:b.avg,ls:b.ls});
+    e.recs.push({t:run.t,bpm:b.bpm||run.bpm,pct:b.within/b.due,avg:b.avg,ls:b.ls,da:b.da||0,dg:b.dg||0});
   }));
   const out=[];
   m.forEach(e=>{
@@ -1701,7 +1701,7 @@ function patStats(runs,sum){
     const bias=recent.filter(x=>typeof x.avg==='number'&&!isNaN(x.avg));
     const ev=recent.filter(x=>typeof x.ls==='number');
     out.push({k:e.k,lv:e.lv,dy:e.dy,bpm:last.bpm,recent:recent.reduce((a,x)=>a+x.pct,0)/recent.length,last:last.pct,cleared:cleared||null,clearedT:clearedT,
-      runs:e.recs.length,used:recent.length,trend:at.slice(-12).map(x=>x.pct),t:last.t,bias:bias.length?bias.reduce((a,x)=>a+x.avg,0)/bias.length:NaN,even:ev.length?ev.reduce((a,x)=>a+x.ls,0)/ev.length:NaN});
+      da:last.da||0,dg:last.dg||0,runs:e.recs.length,used:recent.length,trend:at.slice(-12).map(x=>x.pct),t:last.t,bias:bias.length?bias.reduce((a,x)=>a+x.avg,0)/bias.length:NaN,even:ev.length?ev.reduce((a,x)=>a+x.ls,0)/ev.length:NaN});
   });
   if(sum){
     const idx=new Map(out.map(e=>[e.k+'|'+e.lv+(e.dy?'|'+e.dy:''),e]));
@@ -2099,7 +2099,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.37.1';                           /* shown beside the title */
+const VERSION='0.38.1';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2175,7 +2175,8 @@ function cleanRun(x){
     if(!b||typeof b.k!=='string'||b.k.length>400||!(+b.due>0)||!isFinite(+b.within))return;
     exercises.push({k:b.k,bpm:isFinite(+b.bpm)?+b.bpm:+x.bpm,due:+b.due,within:Math.max(0,Math.min(+b.due,+b.within)),heard:+b.heard||0,
       avg:typeof b.avg==='number'&&isFinite(b.avg)?b.avg:null,sd:typeof b.sd==='number'&&isFinite(b.sd)?b.sd:null,miss:+b.miss||0,i:+b.i||0,
-      ls:typeof b.ls==='number'&&isFinite(b.ls)?b.ls:null,ld:typeof b.ld==='number'&&isFinite(b.ld)?b.ld:null});
+      ls:typeof b.ls==='number'&&isFinite(b.ls)?b.ls:null,ld:typeof b.ld==='number'&&isFinite(b.ld)?b.ld:null,
+      da:+b.da>0?Math.floor(+b.da):undefined,dg:+b.dg>0?Math.floor(+b.dg):undefined,st:typeof b.st==='string'&&/^[obmsl]{1,240}$/.test(b.st)?b.st:undefined});
   });
   if(!exercises.length)return null;
   const o={id:x.id.slice(0,40),t:+x.t,mode:x.mode==='routine'?'routine':'single',rk:typeof x.rk==='string'?x.rk.slice(0,40):null,
@@ -2539,7 +2540,7 @@ function beginRun(mode,only){
     nextClick:0,pulseIdx:-1,nextFin:0,pending:new Map(),cur:-1,showSeg:0,gridSeg:-1,
     errs:[],lv:[],seq:[],hand:{L:[],R:[]},within:0,slots:0,miss:0,extras:0,streak:0,best:0,checked:0,bad:0,trace:[],res:new Map(),showG:0,missRun:0,trail:[],live:'',
     fin:new Set(),paused:false,ci:null,dyc:lat?'':dynCode(),dyl:[],
-    seg:plan.segs.map(sg=>({errs:[],lv:[],hand:{L:[],R:[]},within:0,slots:0,miss:0,extras:0,checked:0,bad:0,
+    seg:plan.segs.map(sg=>({errs:[],lv:[],hand:{L:[],R:[]},within:0,slots:0,miss:0,extras:0,checked:0,bad:0,sc:[],da:0,dg:0,
       posSum:new Array(sg.N).fill(0),posCnt:new Array(sg.N).fill(0)})),
     dirty:true,ended:false,totalExercises:routineParsed.exercises.length,only:only||null,
     startExercise:only?Math.min.apply(null,only):(S.mode==='routine'?S.startExercise:1)
@@ -2583,7 +2584,7 @@ function finalizeSlot(i){
   const redo=r.fin.has(i);r.fin.add(i);
   if(!redo){r.slots++;Q.slots++;}
   r.dirty=true;
-  if(!hits.length){if(!redo){r.miss++;Q.miss++;r.streak=0;r.missRun++;r.seq.push({db:null});if(r.seq.length>STRIP_MAX)r.seq.shift();}r.res.set(i,{miss:true});return;}
+  if(!hits.length){if(!redo){r.miss++;Q.miss++;Q.sc.push('m');r.streak=0;r.missRun++;r.seq.push({db:null});if(r.seq.length>STRIP_MAX)r.seq.shift();}r.res.set(i,{miss:true});return;}
   const h=pickBest(hits),ex=hits.length-1;
   const ms=h.e*1000,det=h.det;
   const sure=!!det&&(h.kb||det.conf>=0.2);
@@ -2595,7 +2596,9 @@ function finalizeSlot(i){
     r.errs.push(ms);Q.errs.push(ms);r.hand[hand].push(ms);Q.hand[hand].push(ms);
     const db=h.kb?null:strokeDb(h.pk,h.raw);
     if(db!==null){r.lv.push({db:db,hand:hand});Q.lv.push({db:db,hand:hand});}
-    if(db!==null&&sl.dy&&!sl.tight)r.dyl.push({db:db,dy:sl.dy});
+    const on=Math.abs(ms)<=S.tol;
+    if(db!==null&&sl.dy&&!sl.tight)r.dyl.push({db:db,dy:sl.dy,si:sl.seg,ci:Q.sc.length,on:on});
+    Q.sc.push(on?'o':'b');   /* o on time, b off time, m missed; s and l (accent too soft, ghost too loud) are set when the run ends */
     r.seq.push({db:db,hand:hand,dy:sl.dy||''});if(r.seq.length>STRIP_MAX)r.seq.shift();   /* one entry per stroke due, so a miss leaves a gap in the level bars */
     r.missRun=0;if(r.mode==='lat')latLive(r);
     if(Math.abs(ms)<=S.tol){r.within++;Q.within++;r.streak++;if(r.streak>r.best)r.best=r.streak;}else r.streak=0;
@@ -2699,9 +2702,20 @@ function stopRun(){
     endRun();
   }
 }
+/* A stroke counts toward ACC when it is on time and, where the exercise asks for an accent or a ghost note, played as written. Levels are judged against the strokes around each one, so this can only be done once the run is over. */
+function gateDynamics(r){
+  dynStats(r.dyl);
+  r.dyl.forEach(e=>{
+    if(e.v!==false||!e.on)return;
+    const Q=r.seg[e.si];
+    Q.within--;r.within--;
+    if(e.dy==='A'){Q.da++;Q.sc[e.ci]='s';}else{Q.dg++;Q.sc[e.ci]='l';}
+  });
+}
 function endRun(){
   const r=run;if(!r||r.ended)return;
   r.ended=true;r.dirty=true;r.paused=false;
+  if(r.mode!=='lat'&&r.dyc)gateDynamics(r);
   stopLoops();
   unlockScreen();
   if(r.mode==='lat'){
@@ -3158,7 +3172,8 @@ function dynStats(list){
     const q=x.dy==='A'?o.a:(x.dy==='g'?o.g:null);if(!q)return;
     const m=ref(i,x.dy);if(m===null)return;
     const gap=x.db-m;q.n++;q.sum+=gap;
-    if(x.dy==='A'?gap>=ACC_MIN:gap<=-GHOST_MIN)q.ok++;
+    x.v=x.dy==='A'?gap>=ACC_MIN:gap<=-GHOST_MIN;   /* the verdict stays on the stroke, so ACC can count it */
+    if(x.v)q.ok++;
   });
   return o;
 }
@@ -3657,7 +3672,8 @@ function recordRun(r){
     rk:all?routineKeyOf(all):null,ne:all?all.length:1,bpm:S.bpm,tol:S.tol,lv:S.click,dy:r.dyc||'',rp:replaySnap(r),sec:Math.max(0,Math.min(14400,Math.round((Date.now()-(r.w0||Date.now()))/1000))),
     exercises:rows.map(x=>({k:x.key,bpm:x.bpm,due:x.due,within:Math.round(x.pct*x.due),heard:x.heard,
       avg:isNaN(x.avg)?null:x.avg,sd:isNaN(x.spread)?null:x.spread,miss:x.miss,i:x.idx,
-      ls:x.lvl?Math.round(x.lvl.sd*10)/10:null,ld:x.lvl&&x.lvl.diff!==null?Math.round(x.lvl.diff*10)/10:null}))};
+      ls:x.lvl?Math.round(x.lvl.sd*10)/10:null,ld:x.lvl&&x.lvl.diff!==null?Math.round(x.lvl.diff*10)/10:null,
+      da:x.da||undefined,dg:x.dg||undefined,st:rows.length===1&&x.sc.length<=240?x.sc:undefined}))};
   if(all){   /* exercises of the routine that were not played, so a partial run still shows the whole routine */
     const played=new Set(rows.map(x=>x.idx));
     run.sk=all.map((k,i)=>({i:i+1,k:k})).filter(b=>!played.has(b.i));
@@ -3837,6 +3853,7 @@ function syncData(){
   $('recMsg').textContent=recs.runs.length+(recs.runs.length===1?' run':' runs')+' in history, '+(recs.runs.length+recs.sum.runs)+' in all.';
   syncBackup();
 }
+const causeText=(da,dg)=>[da?da+(da===1?' accent':' accents')+' too soft':'',dg?dg+(dg===1?' ghost':' ghosts')+' too loud':''].filter(Boolean).join(', ');
 /* Scores by click level: one row per level, and a level opens to its own page of exercises, weakest first. */
 let scoreLevel=null;
 function renderScoreGroups(stats,practise,usual){
@@ -3896,6 +3913,7 @@ function renderScoreGroups(stats,practise,usual){
       const bits=[];
       bits.push(x.used+(x.used===1?' run':' runs')+' at '+x.bpm+' BPM');
       if(x.dy)bits.push(dynText(x.dy));
+      if(x.da||x.dg)bits.push('last run: '+causeText(x.da,x.dg));
       const done=x.cleared&&x.cleared>=x.bpm;
       if(done)bits.push('Cleared at '+x.cleared+' BPM.');else if(x.cleared)bits.push('best cleared '+x.cleared+' BPM');
       const nt=document.createElement('div');nt.className='nt'+(done?' go':'');nt.textContent=bits.join(' \u00B7 ');row.appendChild(nt);
@@ -4147,6 +4165,24 @@ function renderHistoryDays(){
 function statBox(txt,unit,cls){const d=document.createElement('div');const v=document.createElement('div');v.className='v'+(cls?' '+cls:'');v.textContent=txt;const k=document.createElement('div');k.className='k';k.textContent=unit;d.appendChild(v);d.appendChild(k);return d;}
 function actBtn(label,fn,primary,icon){const b=document.createElement('button');b.type='button';b.className='btn small'+(primary?' main':'');if(icon){b.innerHTML=ICON[icon];}b.appendChild(document.createTextNode((icon?' ':'')+label));b.addEventListener('click',fn);return b;}
 /* The page of one run: overall figures, then for a routine the strip, the weakest and every exercise played. */
+/* One cell per stroke of a single-exercise run: good, off time, missed, or (with an accent or ghost rule) too soft or too loud. */
+function runStrokes(page,r){
+  const b=r.exercises[0],ruled=!!r.dy;
+  const lbl=document.createElement('div');lbl.className='lbl';lbl.textContent='Strokes';page.appendChild(lbl);
+  const strip=document.createElement('div');strip.className='strip';
+  const cls={o:'ok',b:'late',m:'skip',s:'lvl',l:'lvl'};
+  b.st.split('').forEach(c=>{const e=document.createElement('span');e.className='cell '+cls[c];if(c==='s')e.textContent='A\u2193';else if(c==='l')e.textContent='g\u2191';strip.appendChild(e);});
+  page.appendChild(strip);
+  const k=document.createElement('div');k.className='key';
+  k.textContent='Green: good. Pink: off time. Dashed: missed.'+(ruled?' Amber: too soft (A\u2193) or too loud (g\u2191).':'');
+  page.appendChild(k);
+  if(!ruled)return;
+  const n=c=>b.st.split(c).length-1,rows=[[n('m'),'missed'],[n('b'),'off time'],[n('s'),n('s')===1?'accent too soft':'accents too soft'],[n('l'),n('l')===1?'ghost too loud':'ghosts too loud']].filter(x=>x[0]);
+  if(!rows.length)return;
+  const l2=document.createElement('div');l2.className='lbl';l2.textContent='What cost strokes';page.appendChild(l2);
+  rows.forEach(x=>{const w=document.createElement('div');w.className='wr';const t=document.createElement('div');t.textContent=x[0]+' '+x[1];w.appendChild(t);page.appendChild(w);});
+  const g=n('o'),d=b.st.length,e=document.createElement('div');e.className='sb';e.style.padding='8px 0';e.textContent=g+' of '+d+' strokes were on time and played as written.';page.appendChild(e);
+}
 function renderRunPage(r){
   const box=$('histList');box.textContent='';
   const page=document.createElement('div');page.className='rp';
@@ -4163,6 +4199,7 @@ function renderRunPage(r){
   stats.appendChild(statBox(isNaN(f.ms)?'—':fmtMs(f.ms,1),'ms',isNaN(f.ms)?'muted':biasCls(f.ms)));
   stats.appendChild(statBox(isNaN(f.db)?'—':'±'+f.db.toFixed(1),'dB'));
   page.appendChild(stats);
+  if(r.exercises.length===1&&r.exercises[0].st&&!off)runStrokes(page,r);
   if(!plainRun(r)&&r.ne>1){
     const items=r.exercises.map(b=>({i:b.i||0,b:b})).concat((r.sk||[]).map(b=>({i:b.i,k:b.k})));
     items.sort((x,y)=>x.i-y.i);
@@ -4376,7 +4413,7 @@ function exerciseRows(r){
     if(!Q.slots)return;
     rows.push({idx:sg.idx,key:patKey(sg.notes,sg.groupStart,sg.subs,sg.defSub,sg.sig),seq:showPattern(sg.notes,sg.groupStart,sg.subs,sg.defSub,sg.sig,sg.src),bpm:sg.bpm,
       passes:Math.floor(Q.slots/sg.strokes),due:Q.slots,heard:Q.errs.length,
-      pct:Q.within/Q.slots,avg:Q.errs.length?mean(Q.errs):NaN,spread:sd(Q.errs),miss:Q.miss,
+      pct:Q.within/Q.slots,avg:Q.errs.length?mean(Q.errs):NaN,spread:sd(Q.errs),miss:Q.miss,da:Q.da,dg:Q.dg,sc:Q.sc.join(''),
       L:Q.hand.L.length?mean(Q.hand.L):NaN,R:Q.hand.R.length?mean(Q.hand.R):NaN,lvl:levelStats(Q.lv)});
   });
   return rows;
