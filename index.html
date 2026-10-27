@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>Stick Timing Trainer</title>
+<title>Pocket · stick timing trainer</title>
 <div class="pgov" id="pg" role="dialog" aria-modal="true" hidden><div class="pghd"><button type="button" class="linkbtn" id="pgBack"></button><span class="ttl" id="pgTtl"></span></div><div class="pgbd" id="pgBody"></div><div class="pgft" id="pgFoot" hidden></div></div>
 <script>(function(){var t='',c='';try{var o=JSON.parse(localStorage.getItem('stick-timing-trainer.v1')).settings;t=o.theme;c=o.palette}catch(e){}
 if(c==='cb')document.documentElement.dataset.palette=c;
@@ -44,7 +44,7 @@ body{
 .app>*{min-width:0}
 header .sub{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
 header .ver{font:600 12px var(--font-data);letter-spacing:.04em;text-transform:none;color:var(--muted);white-space:nowrap;vertical-align:baseline}
-h1{font:800 clamp(22px,6vw,36px)/1 var(--font-display);text-transform:uppercase;letter-spacing:.01em;margin:0}
+h1{font:800 clamp(26px,7.5vw,40px)/1 var(--font-display);text-transform:uppercase;letter-spacing:.01em;margin:0}
 h3{font:600 12px var(--font-body);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
 .sub{color:var(--muted);font-size:13px;margin:2px 0 0;line-height:1.2}
 .head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 12px}
@@ -491,8 +491,8 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 <main class="app">
   <header>
     <div class="head">
-      <h1>Stick Timing Trainer</h1>
-      <span class="headbtns"><button class="pill" id="helpBtn" type="button" data-help="help-how">Help</button><button class="pill" id="themeBtn" type="button"></button><button class="pill warn" id="calPill" type="button" hidden title="Latency is not calibrated, so lead and drag readings will be off">Calibrate</button><button class="pill" id="micPill" type="button" aria-pressed="false" title="Turn the microphone on or off">Mic off</button></span>
+      <h1>Pocket</h1>
+      <span class="headbtns"><button class="pill" id="helpBtn" type="button" data-help="help-how">Help</button><button class="pill" id="themeBtn" type="button"></button><button class="pill" id="micPill" type="button" aria-pressed="false" title="Turn the microphone on or off">Mic off</button></span>
     </div>
     <p class="sub"><span>Go from trailing to nailing the beat</span><small class="ver" id="ver"></small></p>
   </header>
@@ -1040,6 +1040,7 @@ RLRR LRLL RLRR LRLL</pre>
   </div>
 
   <div class="page" id="pagePlay" role="tabpanel" aria-labelledby="tabPlay" hidden>
+    <p class="notice" id="calNote" hidden>Latency is not calibrated, so lead and drag readings will be off. <button class="linkbtn" id="calGo" type="button">Calibrate</button></p>
     <section class="panel" id="welcome" aria-label="Getting started" hidden>
       <h3>Getting started</h3>
       <ol class="wsteps">
@@ -2152,7 +2153,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.44.0';                           /* shown beside the title */
+const VERSION='0.45.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2210,7 +2211,7 @@ const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({settings:S,cal:cal}
 function setLatency(v){S.latency=v;$('latency').value=v;save();}
 /* A calibration has been done, so the reminder at the top goes away. */
 function markCal(){S.latCal=true;save();syncNote();}
-function syncNote(){const n=$('calPill');if(n)n.hidden=S.latCal||S.input==='kb';}
+function syncNote(){const n=$('calNote');if(n)n.hidden=S.latCal||S.input==='kb';}
 /* Scores live under their own key so clearing them never touches your settings or calibration. */
 const RKEY='stick-timing-trainer.records.v2',OLDKEY='stick-timing-trainer.records.v1',MAX_RUNS=300,MAX_SNAP=20000;
 /* A short hash of a text. Each distinct pattern or routine is stored once and runs point to it. */
@@ -4501,7 +4502,7 @@ function syncBackup(){
 }
 function exportRecs(){
   S.lastExport=Date.now();S.expRuns=totalRuns();save();syncBackup();
-  saveFile('stick-timing-records-'+stamp()+'.json','application/json',JSON.stringify(packRecs()));
+  saveFile('pocket-records-'+stamp()+'.json','application/json',JSON.stringify(packRecs()));
   $('recMsg').textContent='Exported '+totalRuns()+(totalRuns()===1?' run':' runs')+' and '+recs.lib.length+(recs.lib.length===1?' routine':' routines')+'.';$('recMsg').classList.add('flash');
 }
 async function importRecs(file){
@@ -4574,7 +4575,7 @@ function downloadCsv(){
   const out=[['exercise','sticking','bpm','passes','strokes_due','strokes_heard','on_time_pct','avg_ms','spread_ms','missed','left_avg_ms','right_avg_ms'].join(',')];
   const n1=v=>isNaN(v)?'':v.toFixed(1);
   rows.forEach(x=>out.push([x.idx,csvCell(x.seq),x.bpm,x.passes,x.due,x.heard,Math.round(x.pct*100),n1(x.avg),n1(x.spread),x.miss,n1(x.L),n1(x.R)].join(',')));
-  saveFile('stick-timing-'+stamp(true)+'.csv','text/csv',out.join('\n')+'\n');
+  saveFile('pocket-'+stamp(true)+'.csv','text/csv',out.join('\n')+'\n');
 }
 
 /* ---------- run display ---------- */
@@ -5058,7 +5059,7 @@ async function loadLibrary(){
 function exportLibrary(){
   if(!recs.lib.length)return;
   const all=recs.lib.slice().sort((a,b)=>entryName(a).localeCompare(entryName(b),undefined,{sensitivity:'base'}));
-  saveFile('stick-timing-library-'+stamp()+'.txt','text/plain',all.map(e=>entryText(e).trim()).join('\n---\n')+'\n');
+  saveFile('pocket-library-'+stamp()+'.txt','text/plain',all.map(e=>entryText(e).trim()).join('\n---\n')+'\n');
   $('libMsg').textContent='Exported '+all.length+(all.length===1?' routine':' routines')+'. Import it as a file, or host it as a shared list.';
 }
 function addItems(items){
@@ -5715,7 +5716,7 @@ function wire(){
     if(await ensureAudio(true))beginRun('lat');
   });
   $('calLoop').addEventListener('click',startLoop);
-  $('calPill').addEventListener('click',()=>{showSetup('dev');$('calLoop').scrollIntoView({block:'center'});$('calLoop').focus();});
+  $('calGo').addEventListener('click',()=>{showSetup('dev');$('calLoop').scrollIntoView({block:'center'});$('calLoop').focus();});
   $('startBtn').addEventListener('click',()=>{
     if(run&&!run.ended){
       if(run.mode!=='play'){stopRun();return;}
