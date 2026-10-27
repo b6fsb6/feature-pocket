@@ -185,7 +185,7 @@ summary::after{content:"";float:right;width:9px;height:9px;margin:6px 4px 0 0;bo
 details[open]>summary::after{transform:rotate(-135deg);margin-top:10px}
 .libitem{display:flex;justify-content:space-between;gap:8px;width:100%;text-align:left;padding:9px 12px;border:0;border-bottom:1px solid var(--line);background:transparent;font:600 14px var(--font-body);color:var(--ink);cursor:pointer}
 .libitem:last-child{border-bottom:0}
-.libitem:hover{background:color-mix(in srgb,var(--fill) 10%,transparent)}
+@media (hover:hover){.libitem:hover{background:color-mix(in srgb,var(--fill) 10%,transparent)}}
 .libitem.cur{background:color-mix(in srgb,var(--fill) 20%,transparent)}
 .libitem:disabled{opacity:.5;cursor:default}
 .libitem.have b{font-weight:400;color:var(--muted)}
@@ -404,7 +404,7 @@ body[data-mode="routine"] .single-only{display:none}
 #editList .erow{grid-template-columns:30px minmax(0,1fr) 40px;align-items:center}
 #editList .meta{display:none}
 .dots{border:0;background:transparent;color:var(--muted);font:700 22px/1 var(--font-data);min-height:36px;cursor:pointer;border-radius:8px}
-.dots:hover{color:var(--accent)}
+@media (hover:hover){.dots:hover{color:var(--accent)}}
 .bnote{display:flex;align-items:flex-start;gap:10px}
 .bnote .btn{flex:none}
 .bfields{flex:1;min-width:0}
@@ -449,7 +449,7 @@ body[data-edit=type] .buildonly{display:none}
 .bcode[aria-pressed=true]{background:var(--fill);border-color:transparent}
 .bkey:active,.bcode:active{filter:brightness(.92)}
 .erow.editing{outline:2px solid var(--accent);outline-offset:-2px}
-.erow:hover{background:color-mix(in srgb,var(--fill) 10%,transparent)}
+@media (hover:hover){.erow:hover{background:color-mix(in srgb,var(--fill) 10%,transparent)}}
 .erow:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .erow.start{background:color-mix(in srgb,var(--fill) 22%,transparent);box-shadow:inset 4px 0 0 var(--fill)}
 .erow.cur{background:color-mix(in srgb,var(--fill) 20%,transparent)}
@@ -1707,6 +1707,8 @@ function adviceFor(exercises,bpm,step){
   const weak=played.filter(b=>b.pct<TARGET);
   return {played:played.length,weak:weak,cleared:!weak.length,next:Math.min(220,bpm+(step||4))};
 }
+/* An exercise where fewer than a quarter of the strokes due were heard is mostly noise (a mic left on, a test run), so its lead or drag and loudness are left out of the averages. */
+const heardEnough=b=>b.due>0&&(b.heard||0)>=b.due*0.25;
 /* Per pattern: how it is going at the tempo you played it at most recently. */
 function patStats(runs,sum){
   const m=new Map();
@@ -1714,7 +1716,8 @@ function patStats(runs,sum){
     if(!(b.due>0)||run.lv==='off')return;
     const mk=b.k+'|'+run.lv+(run.dy?'|'+run.dy:'');   /* the same sticking with a different accent rule is a different exercise */
     let e=m.get(mk);if(!e){e={k:b.k,lv:run.lv,dy:run.dy||'',recs:[]};m.set(mk,e);}
-    e.recs.push({t:run.t,bpm:b.bpm||run.bpm,pct:b.within/b.due,avg:b.avg,ls:b.ls,da:b.da||0,dg:b.dg||0});
+    const hd=heardEnough(b);
+    e.recs.push({t:run.t,bpm:b.bpm||run.bpm,pct:b.within/b.due,avg:hd?b.avg:null,ls:hd?b.ls:null,da:b.da||0,dg:b.dg||0});
   }));
   const out=[];
   m.forEach(e=>{
@@ -1747,7 +1750,7 @@ function routineStats(runs,sum){
     let e=m.get(mk);if(!e){e={rk:run.rk,lv:run.lv,dy:run.dy||'',ne:run.ne,runs:0,t:0,cleared:0,recs:[]};m.set(mk,e);}
     e.runs++;if(run.t>=e.t)e.t=run.t;
     /* a run counts as one score: strokes on time over all its exercises, bias and loudness spread weighted by strokes */
-    {let w=0,d=0,ba=0,bn=0,la=0,ln=0;run.exercises.forEach(b=>{w+=b.within;d+=b.due;if(typeof b.avg==='number'&&!isNaN(b.avg)){ba+=b.avg*b.due;bn+=b.due;}if(typeof b.ls==='number'){la+=b.ls*b.due;ln+=b.due;}});
+    {let w=0,d=0,ba=0,bn=0,la=0,ln=0;run.exercises.forEach(b=>{w+=b.within;d+=b.due;if(heardEnough(b)){if(typeof b.avg==='number'&&!isNaN(b.avg)){ba+=b.avg*b.due;bn+=b.due;}if(typeof b.ls==='number'){la+=b.ls*b.due;ln+=b.due;}}});
       if(d>0)e.recs.push({t:run.t,bpm:run.bpm,pct:w/d,avg:bn?ba/bn:NaN,ls:ln?la/ln:NaN});}
     const ok=run.exercises.length>=run.ne&&run.exercises.every(b=>b.due>0&&b.within/b.due>=TARGET);
     if(ok)e.cleared=Math.max(e.cleared,run.bpm);
@@ -1791,7 +1794,7 @@ function foldRun(sum,run){
     e.runs++;e.t=run.t;
     if(bpm!==e.bpm){e.bpm=bpm;e.tr=[];}
     e.tr.push(Math.round(pct*1000)/1000);if(e.tr.length>12)e.tr.shift();
-    e.avg=typeof b.avg==='number'?b.avg:null;
+    e.avg=heardEnough(b)&&typeof b.avg==='number'?b.avg:null;
     if(pct>=TARGET&&bpm>e.cleared){e.cleared=bpm;e.clearedT=run.t;}
   });
   if(run.rk){
@@ -2048,6 +2051,36 @@ function handTestOrder(n,rnd){
   }
   const a=[];for(let i=0;i<n;i++)a.push(i%2?'R':'L');return a;
 }
+const ACC_MIN=4,GHOST_MIN=6;   /* dB an accent must sit above, and a ghost note below, the strokes around it */
+/* list: [{db,dy}] in order. An accent is compared with the median of the nearest strokes that are not accents, a ghost note with the nearest that are not ghost notes. */
+function dynStats(list){
+  const near=(i,use,min)=>{
+    const v=[];
+    for(let d=1;d<=6&&v.length<4;d++)for(const j of [i-d,i+d])if(list[j]&&use(list[j].dy)&&v.length<4)v.push(list[j].db);
+    return v.length>=(min||2)?median(v):null;
+  };
+  /* An accent is measured against the strokes that are not accents. A ghost note is measured against normal strokes if there are some nearby, so a loud accent does not inflate the gap. With only accents about, one accent is enough, so the ghosts after the last accent of a run are still checked. */
+  const ref=(i,dy)=>dy==='A'?near(i,d=>d!=='A'):(near(i,d=>d==='n')!==null?near(i,d=>d==='n'):near(i,d=>d!=='g',1));
+  const o={a:{n:0,ok:0,sum:0},g:{n:0,ok:0,sum:0}};
+  list.forEach((x,i)=>{
+    const q=x.dy==='A'?o.a:(x.dy==='g'?o.g:null);if(!q)return;
+    const m=ref(i,x.dy);if(m===null)return;
+    const gap=x.db-m;q.n++;q.sum+=gap;
+    x.v=x.dy==='A'?gap>=ACC_MIN:gap<=-GHOST_MIN;   /* the verdict stays on the stroke, so ACC can count it */
+    if(x.v)q.ok++;
+  });
+  return o;
+}
+/* A stroke counts toward ACC when it is on time and, where the exercise asks for an accent or a ghost note, played as written. Levels are judged against the strokes around each one, so this can only be done once the run is over. */
+function gateDynamics(r){
+  dynStats(r.dyl);
+  r.dyl.forEach(e=>{
+    if(e.v!==false||!e.on)return;
+    const Q=r.seg[e.si];
+    Q.within--;r.within--;
+    if(e.dy==='A'){Q.da++;Q.sc[e.ci]='s';}else{Q.dg++;Q.sc[e.ci]='l';}
+  });
+}
 /* results: {want:'L'|'R', got:'L'|'R', conf} per prompted hit. A hit with conf under SURE counts as unsure,
    which a run treats as the expected hand rather than tagging it. */
 const SURE=0.2;
@@ -2153,7 +2186,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.45.0';                           /* shown beside the title */
+const VERSION='0.46.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2756,16 +2789,6 @@ function stopRun(){
     endRun();
   }
 }
-/* A stroke counts toward ACC when it is on time and, where the exercise asks for an accent or a ghost note, played as written. Levels are judged against the strokes around each one, so this can only be done once the run is over. */
-function gateDynamics(r){
-  dynStats(r.dyl);
-  r.dyl.forEach(e=>{
-    if(e.v!==false||!e.on)return;
-    const Q=r.seg[e.si];
-    Q.within--;r.within--;
-    if(e.dy==='A'){Q.da++;Q.sc[e.ci]='s';}else{Q.dg++;Q.sc[e.ci]='l';}
-  });
-}
 function endRun(){
   const r=run;if(!r||r.ended)return;
   r.ended=true;r.dirty=true;r.paused=false;
@@ -3220,26 +3243,6 @@ function dynText(code){
   const soft=/s$/.test(code),a=soft?code.slice(0,-1):code;
   if(!a)return 'all ghost notes';
   return 'accent '+(DY_NAMES[a]||'every '+nth(+a))+(soft?', other strokes ghost':'');
-}
-const ACC_MIN=4,GHOST_MIN=6;   /* dB an accent must sit above, and a ghost note below, the strokes around it */
-/* list: [{db,dy}] in order. An accent is compared with the median of the nearest strokes that are not accents, a ghost note with the nearest that are not ghost notes. */
-function dynStats(list){
-  const near=(i,use)=>{
-    const v=[];
-    for(let d=1;d<=6&&v.length<4;d++)for(const j of [i-d,i+d])if(list[j]&&use(list[j].dy)&&v.length<4)v.push(list[j].db);
-    return v.length>=2?median(v):null;
-  };
-  /* An accent is measured against the strokes that are not accents. A ghost note is measured against normal strokes if there are some nearby, so a loud accent does not inflate the gap. */
-  const ref=(i,dy)=>dy==='A'?near(i,d=>d!=='A'):(near(i,d=>d==='n')!==null?near(i,d=>d==='n'):near(i,d=>d!=='g'));
-  const o={a:{n:0,ok:0,sum:0},g:{n:0,ok:0,sum:0}};
-  list.forEach((x,i)=>{
-    const q=x.dy==='A'?o.a:(x.dy==='g'?o.g:null);if(!q)return;
-    const m=ref(i,x.dy);if(m===null)return;
-    const gap=x.db-m;q.n++;q.sum+=gap;
-    x.v=x.dy==='A'?gap>=ACC_MIN:gap<=-GHOST_MIN;   /* the verdict stays on the stroke, so ACC can count it */
-    if(x.v)q.ok++;
-  });
-  return o;
 }
 /* How tall a row is and how many passes fit, from the most lines any bar needs at this width. */
 const withPasses=(b,n)=>Object.assign({},b,{passes:n});
@@ -4152,7 +4155,7 @@ function exTable(r){
   fillTable(tb,['#','Exercise','BPM','Accuracy','Bias ms','dB'],rows.map(x=>{
     if(!x.b)return [[String(x.i),'muted'],[showKey(x.k),'seq muted'],['—','muted'],['skipped','muted'],['—','muted'],['—','muted']];
     const b=x.b,pc=b.due?b.within/b.due:0;
-    return [[String(b.i||''),'muted'],[showKey(b.k),'seq'],String(b.bpm),accCell(pc),[b.heard?fmtMs(b.avg,1):'—',b.heard?biasCls(b.avg):'muted'],dbCell(b.ls)];}));
+    return [[String(b.i||''),'muted'],[showKey(b.k),'seq'],String(b.bpm),accCell(pc),[heardEnough(b)?fmtMs(b.avg,1):'—',heardEnough(b)?biasCls(b.avg):'muted'],heardEnough(b)?dbCell(b.ls):['—','muted']];}));
   return wrap;
 }
 /* Runs are grouped by exercise or routine, newest group first. A group of one run looks the same as a larger one. */
@@ -4236,8 +4239,8 @@ const dyLine=r=>{if(!r.dy)return '';const t=dynText(r.dy);return t.charAt(0).toU
 /* A run's overall figures: strokes on time, lead or drag, and loudness spread. */
 function runFigures(r){
   const off=r.lv==='off';let hs=0,sw=0;
-  r.exercises.forEach(b=>{hs+=b.heard||0;sw+=(b.avg||0)*(b.heard||0);});
-  const ls=r.exercises.map(b=>b.ls).filter(v=>typeof v==='number');
+  r.exercises.forEach(b=>{if(heardEnough(b)){hs+=b.heard||0;sw+=(b.avg||0)*(b.heard||0);}});
+  const ls=r.exercises.filter(heardEnough).map(b=>b.ls).filter(v=>typeof v==='number');
   return {acc:off?null:runPct(r),ms:hs&&!off?sw/hs:NaN,db:ls.length?ls.reduce((a,v)=>a+v,0)/ls.length:NaN};
 }
 const accHtml=(pc)=>pc===null?['—','muted']:accCell(pc);
@@ -4359,8 +4362,9 @@ function renderRunPage(r){
       const stat=(txt,unit,cls)=>{const m=document.createElement('span');if(cls)m.className=cls;m.textContent=txt;if(unit){const u=document.createElement('small');u.textContent=unit;m.appendChild(u);}sn.appendChild(m);};
       const c=off?['—','muted']:accCell(pctOf(x));
       stat(c[0],'ACC',c[1]);
-      stat(b.heard&&typeof b.avg==='number'?fmtMs(b.avg,1):'—','ms',b.heard&&typeof b.avg==='number'?biasCls(b.avg):'muted');
-      stat(typeof b.ls==='number'?'±'+b.ls.toFixed(1):'—','dB');
+      const hd=heardEnough(b);
+      stat(hd&&typeof b.avg==='number'?fmtMs(b.avg,1):'—','ms',hd&&typeof b.avg==='number'?biasCls(b.avg):'muted');
+      stat(hd&&typeof b.ls==='number'?'±'+b.ls.toFixed(1):'—','dB');
       eb.appendChild(sn);row.appendChild(en);row.appendChild(eb);page.appendChild(row);});
     const sk=items.length-played.length;
     if(sk){const e=document.createElement('div');e.className='sb';e.style.padding='8px 0';e.textContent=sk+(sk===1?' exercise was':' exercises were')+' not played and '+(sk===1?'is':'are')+' not listed.';page.appendChild(e);}
