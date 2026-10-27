@@ -2267,7 +2267,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.61.3';                           /* shown beside the title */
+const VERSION='0.61.4';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -4346,7 +4346,6 @@ function setPview(v){
 const partialRun=r=>!!(r.sk&&r.sk.length);   /* some exercises of the routine were not played, so there is no overall accuracy */
 const bestPct=l=>{const v=l.filter(r=>r.lv!=='off'&&!partialRun(r)).map(runPct);return v.length?Math.max.apply(null,v):null;};
 const runPct=r=>{let w=0,d=0;r.exercises.forEach(b=>{w+=b.within;d+=b.due;});return d?w/d:0;};
-let delArm=null;
 const runKey=r=>r.mode==='routine'?'r:'+(r.rk||r.id):'p:'+r.exercises[0].k;
 const ICON={replay:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 4v5h5"/></svg>',
   mark:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v16l-5-4-5 4z"/></svg>',
@@ -4382,12 +4381,7 @@ function renameBtn(n,rk){
     n.replaceWith(inp);inp.focus();inp.select();
   });
 }
-function deleteBtn(r){
-  return iconBtn('del','Delete',b=>{
-    if(delArm!==r.id){delArm=r.id;b.classList.add('arm');b.textContent='Delete?';setTimeout(()=>{if(delArm===r.id){delArm=null;b.classList.remove('arm');b.innerHTML=ICON.del;}},4000);return;}
-    delArm=null;deleteRun(r.id);
-  });
-}
+function deleteBtn(r){return arm(iconBtn('del','Delete',()=>{}),()=>deleteRun(r.id),'Delete');}
 /* One run: Replay and Delete sit on the row. A routine run also expands to show each exercise's result. */
 /* Today and yesterday by name, otherwise the date. */
 const dayWord=t=>{const n=Date.now(),k=dayKey(t);return k===dayKey(n)?'today':k===dayKey(n-864e5)?'yesterday':new Date(t).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'});};
@@ -4858,11 +4852,7 @@ async function importRecs(file){
     say(add||addL||addS||dup?'Imported '+pl(add,'new run')+(u.lib.length?' and '+pl(addL,'routine'):'')+(addS?' and '+pl(addS,'library'):'')+(dup?' ('+dup+' already here)':'')+'.':'That file has nothing new in it.');
   }catch(e){say('That file is not a records export.');}
 }
-let clearArm=0;
 function clearRecs(){
-  const b=$('recClear');
-  if(!clearArm){clearArm=setTimeout(()=>{clearArm=0;b.textContent='Clear all';},4000);b.textContent='Click again to clear everything';return;}
-  clearTimeout(clearArm);clearArm=0;b.textContent='Clear all';
   /* Everything you made: runs and scores, saved routines and their names, linked libraries and the scratch pad. Device settings and calibration stay. The page reloads so every screen starts clean. */
   recs.runs.length=0;recs.sum=newSum();recs.names={};recs.nu=1;recs.lib=[];
   S.lists=hostedLists();S.listSel='';S.libId='';S.routineText=STARTER;S.startExercise=1;S.lastExport=0;S.expRuns=0;S.welcomed=false;   /* back to a first start: the getting-started card and the hosted libraries */
@@ -5271,15 +5261,20 @@ function libUndo(e,wasOpen){
     saveRecs();m.textContent='Restored “'+entryName(e)+'”.';renderLibraryPage();
   }));
 }
-/* A button that asks twice: the first tap changes its label, the second does it. */
-function armBtn(label,fn){
-  const b=document.createElement('button');b.type='button';b.className='btn small';b.textContent=label;
-  let t=0;
-  b.addEventListener('click',()=>{
-    if(!t){b.textContent=label+'?';b.classList.add('arm');t=setTimeout(()=>{t=0;b.textContent=label;b.classList.remove('arm');},4000);return;}
-    clearTimeout(t);fn();
+/* Every destructive button asks twice: the first tap turns it red and adds "?" to its label for four seconds, the second does it. */
+function arm(b,fn,label){
+  const html=b.innerHTML;let t=0;
+  const back=()=>{t=0;b.innerHTML=html;b.classList.remove('arm');};
+  b.addEventListener('click',e=>{
+    e.preventDefault();e.stopPropagation();
+    if(!t){b.textContent=(label||b.textContent)+'?';b.classList.add('arm');t=setTimeout(back,4000);return;}
+    clearTimeout(t);back();fn();
   });
   return b;
+}
+function armBtn(label,fn){
+  const b=document.createElement('button');b.type='button';b.className='btn small';b.textContent=label;
+  return arm(b,fn);
 }
 const textBtn=(label,fn)=>{const b=document.createElement('button');b.type='button';b.className='btn small';b.textContent=label;b.addEventListener('click',fn);return b;};
 /* The Library page: the pad if it holds something unsaved, then every saved routine. */
@@ -5322,10 +5317,7 @@ function renderLibraryPage(){
       const name=entryName(e).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'routine';
       saveFile(name+'.txt','text/plain',entryText(e)+'\n');
     }));
-    let arm=0;   /* the first tap asks, the second removes; Undo still follows */
-    const rb=textBtn('Remove',()=>{
-      if(!arm){arm=setTimeout(()=>{arm=0;rb.textContent='Remove';},4000);rb.textContent='Tap again to remove';return;}
-      clearTimeout(arm);arm=0;
+    const rb=armBtn('Remove',()=>{
       const was=e.id===S.libId;removeLibEntry(e);renderLibraryPage();libUndo(e,was);
     });
     acts.appendChild(rb);
@@ -5374,7 +5366,7 @@ function renderLinks(){
     if(l!==lnkEdit){
       const nm=document.createElement('b'),ur=document.createElement('span'),ac=document.createElement('div');
       nm.textContent=listName(l);ur.className='lnkurl';ur.textContent=l.url;ac.className='btns';
-      ac.append(mk('Edit',()=>{lnkEdit=l;renderLinks();}),mk('Remove',()=>{S.lists=S.lists.filter(q=>q!==l);if(S.listSel===l.url){S.listSel='';lib={items:[],loaded:false,busy:false,cur:''};}libMode='';save();renderLibrary();}));
+      ac.append(mk('Edit',()=>{lnkEdit=l;renderLinks();}),armBtn('Remove',()=>{S.lists=S.lists.filter(q=>q!==l);if(S.listSel===l.url){S.listSel='';lib={items:[],loaded:false,busy:false,cur:''};}libMode='';save();renderLibrary();}));
       row.append(nm,ur,ac);
     }else{
       const nm=document.createElement('input'),ur=document.createElement('input'),ac=document.createElement('div'),er=document.createElement('p');
@@ -5940,7 +5932,7 @@ function wireBuilder(){
     const lines=bLines();
     lines.splice(bLine+1,0,lines[bLine]);bLine=bLine+1;bSetLines(lines);
   });
-  $('bDel').addEventListener('click',()=>{
+  arm($('bDel'),()=>{
     const lines=bLines();
     lines.splice(bLine,1);if(!lines.length)lines.push('');
     bLine=Math.min(bLine,lines.length-1);bSetLines(lines);
@@ -6081,7 +6073,7 @@ function wire(){
   $('advUse').addEventListener('click',e=>{setBpm(+e.currentTarget.dataset.bpm);e.currentTarget.hidden=true;startPlay(lastRun&&lastRun.only||undefined);});
   $('advAgain').addEventListener('click',()=>startPlay(lastRun&&lastRun.only||undefined));
   $('advDone').addEventListener('click',()=>{setReview(false);window.scrollTo(0,0);});
-  $('advDiscard').addEventListener('click',discardRun);
+  arm($('advDiscard'),discardRun);
   $('svBtnPref').addEventListener('click',()=>setSview('pref'));
   $('svBtnDev').addEventListener('click',()=>setSview('dev'));
   $('svBtnData').addEventListener('click',()=>setSview('data'));
@@ -6100,7 +6092,7 @@ function wire(){
   $('expModal').addEventListener('click',e=>{if(e.target===$('expModal'))$('expModal').hidden=true;});
   $('recImport').addEventListener('click',()=>$('recFile').click());
   $('recFile').addEventListener('change',async e=>{await importRecs(e.target.files&&e.target.files[0]);e.target.value='';});
-  $('recClear').addEventListener('click',clearRecs);
+  arm($('recClear'),clearRecs);
   $('rows').addEventListener('keydown',e=>{
     if(labelMode!=='preview'||S.mode!=='routine')return;
     if(e.key==='ArrowDown'){e.preventDefault();goExercise(S.startExercise+1,true);}
