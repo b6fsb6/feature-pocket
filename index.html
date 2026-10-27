@@ -2147,7 +2147,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.42.0';                           /* shown beside the title */
+const VERSION='0.43.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -3511,13 +3511,12 @@ function showTab(t){
   curTab=t;
   closePages();
   closeListen();
-  $('pageHelp').hidden=t!=='help';
   $('pagePattern').hidden=t!=='pattern';
   TABS.forEach(n=>{
     $('page'+n[0].toUpperCase()+n.slice(1)).hidden=n!==t;
     const b=tabEl(n);
     b.setAttribute('aria-selected',String(n===t));
-    b.tabIndex=(n===t||((t==='help'||t==='pattern')&&n===TABS[0]))?0:-1;
+    b.tabIndex=(n===t||(t==='pattern'&&n===TABS[0]))?0:-1;
   });
   document.body.dataset.tab=t;
   ($(t==='play'?'stPlay':'stTop')).appendChild($('status'));   /* on Play the message sits under the staff, so the staff never moves */
@@ -4125,7 +4124,18 @@ function exTable(r){
 /* Runs are grouped by exercise or routine, newest group first. A group of one run looks the same as a larger one. */
 /* A record or a level opens as a full-screen page with its own fixed header and, for a run, fixed actions. The list underneath is left alone, so Back returns to the same place. The phone's Back gesture closes it too. */
 let pgOwner='',pgKey='',pgN=0;
+/* Help is one long page that lives in the document and is moved into the full-screen page while it is open. */
+let helpEl=null,helpHome=null;
+function stashHelp(){if(helpEl&&helpEl.parentNode===$('pgBody')){helpEl.hidden=true;helpHome.appendChild(helpEl);}}
+function openHelp(id){
+  if(!helpEl){helpEl=$('pageHelp');helpHome=helpEl.parentNode;}
+  if(!(pgOwner==='help'&&!$('pg').hidden))pgPush();
+  helpEl.hidden=false;
+  showPage({owner:'help',key:'help',back:'\u2039 Back',title:'Help',body:helpEl});
+  if(id)$(id).scrollIntoView({block:'start'});
+}
 function showPage(o){
+  stashHelp();
   $('pgBack').textContent=o.back;$('pgBack').onclick=pageBack;
   const t=$('pgTtl');t.textContent=o.title;t.className='ttl'+(o.mono?' seq':'');
   const bd=$('pgBody'),keep=o.key===pgKey&&!$('pg').hidden,y=bd.scrollTop;
@@ -4139,11 +4149,13 @@ function showPage(o){
 }
 function hidePage(owner){
   if(owner&&pgOwner!==owner)return;
+  stashHelp();
   $('pg').hidden=true;document.documentElement.classList.remove('pgopen');pgOwner='';pgKey='';
 }
 function pgPush(){try{history.pushState({pg:1},'');pgN++;}catch(e){}}
 function popPage(){
-  if(pgOwner==='score'){scoreLevel=null;renderProgress();}
+  if(pgOwner==='help'){hidePage();}
+  else if(pgOwner==='score'){scoreLevel=null;renderProgress();}
   else{histStack.pop();renderHistory();}
 }
 function pageBack(){
@@ -5601,10 +5613,9 @@ function wire(){
   $('pulse').addEventListener('change',e=>{S.pulse=e.target.value==='on';save();if(!S.pulse)clearPulse();});
   $('csvBtn').addEventListener('click',downloadCsv);
   document.querySelectorAll('[data-help]').forEach(b=>b.addEventListener('click',()=>{
-    showTab('help');
-    $(b.dataset.help).scrollIntoView({behavior:'auto',block:'start'});
+    openHelp(b.dataset.help);
   }));
-  document.querySelectorAll('.totop button').forEach(b=>b.addEventListener('click',()=>window.scrollTo(0,0)));
+  document.querySelectorAll('.totop button').forEach(b=>b.addEventListener('click',()=>{$('pgBody').scrollTop=0;}));
   document.querySelectorAll('[data-try]').forEach(b=>b.addEventListener('click',()=>{
     if(run&&!run.ended)return;
     guard(()=>{setRoutineText(b.dataset.text);showTab('play');window.scrollTo(0,0);});
