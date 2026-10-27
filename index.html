@@ -190,7 +190,8 @@ details[open]>summary::after{transform:rotate(-135deg);margin-top:10px}
 .libitem.have b{font-weight:400;color:var(--muted)}
 .libitem span{color:var(--muted);font:12px var(--font-data);white-space:nowrap}
 .chkmsg{margin:0;padding:10px 12px;border-left:4px solid var(--accent);background:var(--surface);border-radius:6px;font:600 17px/1.35 var(--font-body);color:var(--ink)} .chkmsg:empty{display:none}
-.chkout{margin:0;padding-left:18px;font-size:13px;display:grid;gap:4px} .chkout:empty{display:none} .chkout .bad,.chkout .warn{color:var(--late)} .chkout .good{color:var(--ok)} .chkout .good::before{content:'\2713  '} .chkout .bad::before,.chkout .warn::before{content:'\26A0  '}
+.calst{display:grid;gap:2px;margin:4px 0 8px} .calst .cs{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line);font-size:14px} .calst .cs:first-child{border-top:0} .calst .good{color:var(--ok)} .calst .warn{color:var(--accent)} .calst .bad{color:var(--late)} .calst .muted{color:var(--muted)}
+.chkout{margin:0;padding-left:18px;font-size:13px;display:grid;gap:4px} .chkout:empty{display:none} .chkout .bad{color:var(--late)} .chkout .warn{color:var(--accent)} .chkout .good{color:var(--ok)}
 .ctbox{display:grid;gap:6px;justify-items:center;text-align:center}
 .ctp{font:800 72px/1 var(--font-display);color:var(--accent);min-height:76px;display:flex;align-items:center}
 .ctp.hit{opacity:.35}
@@ -575,6 +576,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         <button class="btn small" id="calReset" type="button">Clear</button>
         <button class="btn small" id="calTest" type="button">Test left vs right</button>
       </div>
+      <div class="calst" id="calSt"></div>
       <p class="hint" id="calInfo"></p>
       <div class="ctbox" id="calTestBox" hidden><div class="ctp" id="calTestPrompt" aria-live="polite"></div><p class="hint" id="calTestMsg"></p></div>
       <ul class="chkout" id="calTestOut"></ul>
@@ -2042,6 +2044,13 @@ function handTestOrder(n,rnd){
 /* results: {want:'L'|'R', got:'L'|'R', conf} per prompted hit. A hit with conf under SURE counts as unsure,
    which a run treats as the expected hand rather than tagging it. */
 const SURE=0.2;
+/* How well the two sticks are told apart. Under 90% is no use and detection stays off. */
+function handBand(acc){
+  if(acc>=1)return {word:'Perfect',level:'good',on:true};
+  if(acc>=0.96)return {word:'Good',level:'good',on:true};
+  if(acc>=0.9)return {word:'Borderline',level:'warn',on:true};
+  return {word:'Poor',level:'bad',on:false};
+}
 function summariseHandTest(results){
   const n=results.length,out={n:n,correct:0,wrong:0,unsure:0,falseTags:0,L:{n:0,ok:0,to:0},R:{n:0,ok:0,to:0},acc:0,level:'good',lines:[]};
   results.forEach(r=>{
@@ -2052,12 +2061,8 @@ function summariseHandTest(results){
   });
   out.acc=n?out.correct/n:0;
   const pct=x=>Math.round(x*100);
-  out.level=out.acc>=0.9?'good':(out.acc>=0.75?'warn':'bad');
-  out.lines.push(out.level==='good'
-    ?'Hand detection is reliable: '+out.correct+' of '+n+' hits ('+pct(out.acc)+'%) were told apart correctly.'
-    :(out.level==='warn'
-      ?'Hand detection is fair: '+out.correct+' of '+n+' hits ('+pct(out.acc)+'%) were right. Recalibrating both sticks on the same spot may help.'
-      :'Hand detection is poor: only '+out.correct+' of '+n+' hits ('+pct(out.acc)+'%) were right, about the same as guessing. Calibrate both sticks again, hitting the same spot at your normal strength.'));
+  const band=handBand(out.acc);out.level=band.level;
+  out.lines.push('Last test: '+out.correct+' of '+n+' hits ('+pct(out.acc)+'%) named the right stick. '+band.word+'.'+(band.level==='bad'?' Calibrate both sticks again, hitting the same spot at your normal strength.':(band.level==='warn'?' Recalibrating both sticks on the same spot may help.':'')));
   ['L','R'].forEach(k=>{
     const h=out[k],name=k==='L'?'Left':'Right',other=k==='L'?'right':'left';
     if(h.n)out.lines.push(name+' stick: '+h.ok+' of '+h.n+' right'+(h.to?', '+h.to+' heard as '+other:'')+'.');
@@ -2141,7 +2146,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.40.1';                           /* shown beside the title */
+const VERSION='0.41.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2317,7 +2322,7 @@ function rebuildModel(){
     try{
       const m=trainModel(cal.L,cal.R);
       m.acc=looAccuracy(cal.L,cal.R);
-      m.usable=m.acc!=null&&m.acc>=0.75;
+      m.usable=m.acc!=null&&handBand(m.acc).on;
       model=m;
     }catch(e){model=null;}
   }
@@ -2881,12 +2886,22 @@ function collectCal(f){
 function calText(){
   if(calMode)return 'Hit the pad '+CAL_N+' times with your '+(calMode==='L'?'LEFT':'RIGHT')+' stick only. '+cal[calMode].length+'/'+CAL_N;
   const nl=cal.L.length,nr=cal.R.length;
-  if(!nl&&!nr)return 'Not calibrated. Timing works without it. Calibrating lets the app tell which stick made each hit.';
-  if(nl<6||nr<6)return 'Left: '+nl+' hits. Right: '+nr+' hits. Calibrate both sticks to turn on hand detection.';
-  const pct=Math.round(model.acc*100);
-  return model.usable
-    ?'Hand detection is on. '+pct+'% of your calibration hits were told apart correctly.'
-    :'Hand detection is off. Only '+pct+'% of calibration hits were told apart, so the two sticks sound too alike. Hit the same spot with each stick, or use a different spot per stick, then calibrate again.';
+  if(!nl&&!nr)return 'Timing works without it. Calibrating lets the app tell which stick made each hit.';
+  if(nl<6||nr<6)return 'Calibrate both sticks to turn on hand detection.';
+  const b=handBand(model.acc);
+  return b.word==='Poor'?'Too many hits sound alike to tell the hands apart (it needs 90% or more). Hit the same spot with each stick, or use a different spot per stick, then calibrate again.'
+    :(b.word==='Borderline'?'Detection is on but will sometimes tag the wrong hand. Calibrate again on the same spot to improve it.':'Hand detection is reliable.');
+}
+/* Status of each stick and of hand detection, as three plain rows. */
+function calStatus(){
+  const box=$('calSt');box.textContent='';
+  const row=(name,val,cls)=>{const r=document.createElement('div');r.className='cs';const n=document.createElement('span');n.textContent=name;const v=document.createElement('span');v.className=cls;v.textContent=val;r.appendChild(n);r.appendChild(v);box.appendChild(r);};
+  const stick=(h,name)=>{const n=cal[h].length;
+    if(calMode===h)return row(name,'Calibrating '+n+'/'+CAL_N,'');
+    row(name,n>=6?'Calibrated \u00B7 '+n+' hits':(n?'Needs more hits \u00B7 '+n:'Not calibrated'),n>=6?'good':'muted');};
+  stick('L','Left stick');stick('R','Right stick');
+  if(model&&!calMode){const b=handBand(model.acc);row('Hand detection',(b.on?'On':'Off')+' \u00B7 '+Math.round(model.acc*100)+'% told apart \u00B7 '+b.word,b.level);}
+  else row('Hand detection','Off','muted');
 }
 /* ---------- left vs right test ---------- */
 async function startHandTest(){
@@ -2926,12 +2941,12 @@ function finishHandTest(){
   const res=summariseHandTest(calTest.res);
   endHandTest('Left vs right test done.');
   const ul=$('calTestOut');ul.textContent='';
-  res.lines.forEach((t,i)=>{const li=document.createElement('li');li.textContent=t;li.className=i===0?res.level:(i>2||res.level==='good'?'':'warn');ul.appendChild(li);});
+  res.lines.forEach((t,i)=>{const li=document.createElement('li');li.textContent=t;li.className=i===0?res.level:'';ul.appendChild(li);});
 }
 function updateCalUI(){
   $('calL').textContent=calMode==='L'?'Cancel ('+cal.L.length+'/'+CAL_N+')':'Calibrate left stick';
   $('calR').textContent=calMode==='R'?'Cancel ('+cal.R.length+'/'+CAL_N+')':'Calibrate right stick';
-  $('calInfo').textContent=calText();
+  $('calInfo').textContent=calText();calStatus();
   const busy=!!(run&&!run.ended);
   const tst=!!calTest;
   const lp=!!loop;
@@ -3846,7 +3861,7 @@ function sparkline(vals){
 const biasCls=v=>isNaN(v)?'':(v<-2.5?'early':(v>2.5?'late':'ok'));
 const accCls=p=>p>=TARGET?'ok':'late';
 const dbCell=v=>typeof v==='number'?'\u00B1'+v.toFixed(1):['\u2014','muted'];   /* how much the stroke loudness varies, in dB */
-const accCell=p=>[Math.round(p*100)+'%'+(p>=TARGET?' \u2713':''),accCls(p)];
+const accCell=p=>[Math.round(p*100)+'%',accCls(p)];
 function renderPractice(){
   const days=practiceDays(recs.runs,recs.sum),now=new Date(),mins=k=>Math.round((days.get(k)||0)/60);
   const mon=(now.getDay()+6)%7,start=new Date(now.getFullYear(),now.getMonth(),now.getDate()-mon-21);
@@ -3923,7 +3938,7 @@ function renderScoreGroups(stats,practise,usual){
   const sb=document.createElement('div');sb.className='sb';sb.textContent=rows.length+(rows.length===1?' exercise':' exercises')+' \u00B7 last 3 runs at the tempo you played most recently';wrap.appendChild(sb);
   const acc=accHtml(mean(rows.map(x=>x.recent))),ms=mean(rows.map(x=>x.bias)),db=mean(rows.map(x=>x.even));
   const stt=document.createElement('div');stt.className='stats';
-  stt.appendChild(statBox(acc[0].replace(' \u2713',''),'ACC',acc[1]));
+  stt.appendChild(statBox(acc[0],'ACC',acc[1]));
   stt.appendChild(statBox(clearedN(rows)+' / '+rows.length,'CLEARED'));
   stt.appendChild(statBox(isNaN(ms)?'\u2014':fmtMs(ms,1),'ms',isNaN(ms)?'muted':biasCls(ms)));
   stt.appendChild(statBox(isNaN(db)?'\u2014':'\u00B1'+db.toFixed(1),'dB'));
@@ -4186,7 +4201,7 @@ function listRow(title,mono,sub,dy,pc,onOpen){
   const b=document.createElement('div');b.className='sb';b.textContent=sub;
   l.appendChild(n);l.appendChild(b);
   if(dy){const d=document.createElement('div');d.className='sb dy';d.textContent=dy;l.appendChild(d);}
-  const a=accHtml(pc),ac=document.createElement('div');ac.className='ac '+a[1];ac.textContent=a[0].replace(' ✓','');
+  const a=accHtml(pc),ac=document.createElement('div');ac.className='ac '+a[1];ac.textContent=a[0];
   const u=document.createElement('small');u.textContent='ACC';ac.appendChild(u);
   const ar=document.createElement('span');ar.className='ar';ar.textContent='›';ar.setAttribute('aria-hidden','true');
   row.appendChild(l);row.appendChild(ac);row.appendChild(ar);
@@ -4262,7 +4277,7 @@ function renderRunPage(r){
   const f=runFigures(r),a=accHtml(f.acc);
   const stats=document.createElement('div');stats.className='stats';
   stats.appendChild(statBox(String(r.bpm),'BPM'));
-  stats.appendChild(statBox(a[0].replace(' ✓',''),'ACC',a[1]));
+  stats.appendChild(statBox(a[0],'ACC',a[1]));
   stats.appendChild(statBox(isNaN(f.ms)?'—':fmtMs(f.ms,1),'ms',isNaN(f.ms)?'muted':biasCls(f.ms)));
   stats.appendChild(statBox(isNaN(f.db)?'—':'±'+f.db.toFixed(1),'dB'));
   page.appendChild(stats);
@@ -4282,7 +4297,7 @@ function renderRunPage(r){
       played.slice().sort((x,y)=>pctOf(x)-pctOf(y)).slice(0,3).forEach(x=>{
         const w=document.createElement('div');w.className='wr';
         const n=document.createElement('div');n.className='seq';n.textContent=showKey(x.b.k);
-        const c=accCell(pctOf(x)),ac=document.createElement('div');ac.className='ac '+c[1];ac.textContent=c[0].replace(' ✓','');const u=document.createElement('small');u.textContent='ACC';ac.appendChild(u);
+        const c=accCell(pctOf(x)),ac=document.createElement('div');ac.className='ac '+c[1];ac.textContent=c[0];const u=document.createElement('small');u.textContent='ACC';ac.appendChild(u);
         w.appendChild(n);w.appendChild(ac);page.appendChild(w);});
     }
     page.appendChild(lbl('All exercises'));
@@ -4439,12 +4454,12 @@ function syncBackup(){
 function exportRecs(){
   S.lastExport=Date.now();S.expRuns=totalRuns();save();syncBackup();
   saveFile('stick-timing-records-'+stamp()+'.json','application/json',JSON.stringify(packRecs()));
-  $('recMsg').textContent='\u2713 Exported '+totalRuns()+(totalRuns()===1?' run':' runs')+' and '+recs.lib.length+(recs.lib.length===1?' routine':' routines')+'.';$('recMsg').classList.add('flash');
+  $('recMsg').textContent='Exported '+totalRuns()+(totalRuns()===1?' run':' runs')+' and '+recs.lib.length+(recs.lib.length===1?' routine':' routines')+'.';$('recMsg').classList.add('flash');
 }
 async function importRecs(file){
   if(!file)return;
   const say=t=>{$('recMsg').textContent=t;$('recMsg').classList.add('flash');};   /* shown after the page redraws, so it is not overwritten by the run count */
-  if(file.size>5e6){say('\u26A0 That file is too large.');return;}
+  if(file.size>5e6){say('That file is too large.');return;}
   try{
     const o=JSON.parse(await file.text());
     if(!o||(!Array.isArray(o.runs)&&!Array.isArray(o.lib)))throw 0;
@@ -4460,8 +4475,8 @@ async function importRecs(file){
     if(addS)save();
     saveRecs();renderProgress();
     const dup=u.runs.length-add+u.lib.length-addL,pl=(n,w)=>n+' '+w+(n===1?'':'s');
-    say(add||addL||addS||dup?'\u2713 Imported '+pl(add,'new run')+(u.lib.length?' and '+pl(addL,'routine'):'')+(addS?' and '+pl(addS,'shared list'):'')+(dup?' ('+dup+' already here)':'')+'.':'\u26A0 That file has no runs or routines in it.');
-  }catch(e){say('\u26A0 That file is not a records export.');}
+    say(add||addL||addS||dup?'Imported '+pl(add,'new run')+(u.lib.length?' and '+pl(addL,'routine'):'')+(addS?' and '+pl(addS,'shared list'):'')+(dup?' ('+dup+' already here)':'')+'.':'That file has no runs or routines in it.');
+  }catch(e){say('That file is not a records export.');}
 }
 let clearArm=0;
 function clearRecs(){
@@ -4755,23 +4770,23 @@ function putEntry(t,id,keep){
 /* Save: the scratch pad goes to the library entry it was opened from, or to a new one. */
 function saveToLibrary(){
   const t=$('routineText').value;
-  if(!t.trim()){saySaved('⚠ Nothing to save yet.');return false;}
+  if(!t.trim()){saySaved('Nothing to save yet.');return false;}
   const r=putEntry(t,S.libId,false);
-  if(r.err){saySaved('⚠ '+r.err);return false;}
+  if(r.err){saySaved(r.err);return false;}
   S.libId=r.e.id;save();
-  saySaved('✓ Saved to your library as '+entryName(r.e)+'.');syncInfo();
+  saySaved('Saved to your library as '+entryName(r.e)+'.');syncInfo();
   return true;
 }
 /* Save as new: changes are kept as a second routine and the original stays as it was. With no changes yet, the pad is cut loose from the original so the next Save adds a new one. */
 function saveAsNew(){
   const t=$('routineText').value;
-  if(!t.trim()){saySaved('\u26A0 Nothing to save yet.');return;}
+  if(!t.trim()){saySaved('Nothing to save yet.');return;}
   if(scratchState()==='dirty'){
     const nm=curName();   /* two routines with one name would be confusing */
     if(recs.lib.some(q=>entryName(q)===nm)){S.routineText=setHeader(t,'title',nm+' copy');$('routineText').value=S.routineText;}
     const r=putEntry(S.routineText,'',false);
-    if(r.err){saySaved('\u26A0 '+r.err);return;}
-    S.libId=r.e.id;save();saySaved('\u2713 Saved as new: '+entryName(r.e)+'.');syncInfo();
+    if(r.err){saySaved(r.err);return;}
+    S.libId=r.e.id;save();saySaved('Saved as new: '+entryName(r.e)+'.');syncInfo();
   }else if(S.libId){
     S.libId='';save();saySaved('This is now a separate copy. Change it, then Save as new.');syncInfo();
   }else saveToLibrary();
@@ -4793,7 +4808,7 @@ function importFile(r,txt){
   if(r.fix){reviewImport(txt);return;}   /* text with errors opens in the scratch pad to fix */
   if(r.err){$('openErr').textContent=r.err;return;}
   $('openErr').textContent='';closeOpen();
-  $('libMsg').textContent='✓ '+(r.isNew?'Added “'+entryName(r.e)+'” to your library.':'“'+entryName(r.e)+'” is already in your library.');
+  $('libMsg').textContent=''+(r.isNew?'Added “'+entryName(r.e)+'” to your library.':'“'+entryName(r.e)+'” is already in your library.');
   renderLibraryPage();
 }
 /* ---------- the scratch pad: what is loaded is a working copy; the library only changes on Save ---------- */
@@ -4996,7 +5011,7 @@ function exportLibrary(){
   if(!recs.lib.length)return;
   const all=recs.lib.slice().sort((a,b)=>entryName(a).localeCompare(entryName(b),undefined,{sensitivity:'base'}));
   saveFile('stick-timing-library-'+stamp()+'.txt','text/plain',all.map(e=>entryText(e).trim()).join('\n---\n')+'\n');
-  $('libMsg').textContent='\u2713 Exported '+all.length+(all.length===1?' routine':' routines')+'. Import it as a file, or host it as a shared list.';
+  $('libMsg').textContent='Exported '+all.length+(all.length===1?' routine':' routines')+'. Import it as a file, or host it as a shared list.';
 }
 function addItems(items){
   const o={added:0,had:0,bad:0,full:false};
@@ -5007,8 +5022,8 @@ function addItems(items){
     else if(r.isNew)o.added++;else o.had++;
   });
   const pl=(n,w)=>n+' '+w+(n===1?'':'s');
-  o.msg='\u2713 Added '+pl(o.added,'routine')+(o.had?', '+o.had+' already in your library':'')+(o.bad?', '+o.bad+' skipped because of errors (open them to fix)':'')+'.';
-  o.err=o.full?'\u26A0 Your library is full ('+MAX_LIB+' routines). Added '+o.added+'.':'';
+  o.msg='Added '+pl(o.added,'routine')+(o.had?', '+o.had+' already in your library':'')+(o.bad?', '+o.bad+' skipped because of errors (open them to fix)':'')+'.';
+  o.err=o.full?'Your library is full ('+MAX_LIB+' routines). Added '+o.added+'.':'';
   return o;
 }
 function importAll(){
