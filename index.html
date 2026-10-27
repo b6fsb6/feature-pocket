@@ -100,7 +100,7 @@ body[data-run="1"] .notice{display:none}
 .rowswrap{position:relative}
 .exnav{margin:0 0 10px}
 .rows.pick .prow{cursor:pointer}
-.rows.pick{touch-action:none;overscroll-behavior:contain;user-select:none;-webkit-user-select:none}
+.rows.pick{user-select:none;-webkit-user-select:none}   /* the page scrolls over it; only a finished run's staff scrolls on its own */
 .rows.pick:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .bigcount{position:absolute;inset:0 0 auto 0;height:100%;max-height:260px;z-index:5;display:grid;place-items:center;font:800 96px/1 var(--font-display);color:var(--accent);background:color-mix(in srgb,var(--bg) 80%,transparent);border-radius:10px;pointer-events:none}
 .rows{border-radius:10px;--rowh:124px;--nrows:3}
@@ -110,6 +110,14 @@ body[data-run="1"] .notice{display:none}
 .rows.win .rows-track{min-height:0;transition:transform .22s ease}
 .rows.win .prow{min-height:0}
 .rows.win.rv{overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain}
+.stobar{position:relative;display:flex;height:16px;border-radius:8px;overflow:hidden;background:var(--line)}
+.stobar i{display:block;height:100%}
+.stobar i.stomk{position:absolute;top:0;bottom:0;width:2px;background:var(--ink);opacity:.6}
+.stoleg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}
+.stoleg span{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.rvhost{overflow-y:auto;overflow-x:hidden;border-radius:10px;border:1px solid var(--line)}
+.rvtrack{display:grid;gap:4px;align-content:start}
+.stsec{display:grid;gap:8px;justify-items:start}
 .rows-track{position:relative;display:grid;gap:4px;align-content:start;min-height:calc(var(--nrows,3)*var(--rowh) + (var(--nrows,3) - 1)*4px);transition:transform .24s ease}
 #rowEnd{margin-top:8px}
 .prow{display:grid;gap:4px;align-content:start;min-height:var(--rowh);box-shadow:inset 0 0 0 transparent;transition:opacity .24s ease,background-color 1.1s ease,box-shadow 1.1s ease}
@@ -643,6 +651,13 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <p class="hint" id="recMsg"></p>
       <p class="hint" id="storeMsg"></p>
     </section>
+    <section class="panel" aria-label="Storage">
+      <h3>Storage</h3>
+      <p class="hint" id="stoTotal"></p>
+      <div class="stobar" id="stoBar" role="img"></div>
+      <div class="stoleg" id="stoLeg"></div>
+      <p class="hint" id="stoNote"></p>
+    </section>
     <section class="panel" aria-label="Library links" id="lnkBox" hidden>
       <h3>Library links</h3>
       <p class="hint">Libraries you loaded from a web address. Edit changes a name or address. Update saves it and Cancel leaves it as it was.</p>
@@ -861,7 +876,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
     <section class="panel" id="help-pages">
       <h3>The four pages and the editor</h3>
       <ul>
-        <li><b>Play:</b> how long it plays, tempo, click level, Start, Pause, Restart and Stop, the notation, the lead/drag gauge and your results. With a routine loaded, scroll or swipe the rows (or press ↑ ↓) to choose which exercise to start at.</li>
+        <li><b>Play:</b> how long it plays, tempo, click level, Start, Pause, Restart and Stop, the notation, the lead/drag gauge and your results. With a routine loaded, tap an exercise in the rows (or press ↑ ↓) to choose which one to start at. After a run, scroll the staff to look back over every exercise.</li>
         <li><b>Library:</b> your saved routines, each with Edit and Play. <b>New</b> starts a routine and <b>Import</b> adds one from a file or a link. <b>Export</b> saves your whole library as one file, which Import reads back in one go and which can also be hosted as a library. What you are working on is the <b>scratch pad</b>: it is kept as you type, but a saved routine only changes when you press Save in the editor. The app asks before you open another routine and lose unsaved work. The editor opens full screen from Edit on the Play page or in the Library, and Back returns you.</li>
         <li><b>Stats:</b> three views. <b>History</b> lists your last runs by exercise or routine, with Play. <b>Scores</b> shows each exercise, weakest first, and each routine, with tempo, accuracy, trend, lead or drag and evenness. <b>Achievements</b> shows your practice days for the last four weeks, a streak that forgives one rest day a week, and your badges.</li>
         <li><b>Settings:</b> <b>Preferences</b> has the on-time window, visual pulse and click volume, and the colours. <b>Device</b> has the input, microphone level, stick calibration and latency. <b>Data</b> has export, import and clear, and the addresses of your library links.</li>
@@ -1042,6 +1057,7 @@ RLRR LRLL RLRR LRLL</pre>
         <li><b>Practise weak exercises.</b> After a routine run, a button plays only the exercises that were below the target. Restart repeats the same exercises. A run of only some exercises never counts as clearing the routine.</li>
         <li><b>Tempo guidance.</b> Each exercise in the start list shows the tempo it has cleared, or "new". The summary shows the tempo at which the whole routine has been cleared.</li>
         <li><b>Records are saved in this browser only.</b> Use Export to keep a copy or move to another device, and Import to bring one back. The app asks the browser to keep your records and reminds you to export a copy if you never have, or if the last one is two weeks old. On iPhone and iPad, Safari can clear a site's data after about a week without use, so add the page to your Home Screen.</li>
+        <li><b>Staff and strokes of a run:</b> each run keeps the result of every stroke, so a run's page can show <b>Show staff</b>, the notation with every stroke coloured and read out, and the Play page rebuilds its review from the same saved run. This detail uses most of the space. <b>Settings &rsaquo; Data &rsaquo; Storage</b> shows what is taking room. Stroke detail may use about 40% of the space the browser allows, and past that the oldest runs lose their detail first and keep their totals.</li>
         <li><b>History:</b> on the Stats page, switch to History to see your last 300 runs, grouped by exercise or routine with the most recent group first. Tap a group for its runs, and a run for its exercises. <b>Play</b> loads the same pattern or routine, tempo, click level and settings on the Play page, ready to start. A routine without a title is called Untitled 1, Untitled 2 and so on. The pencil renames it everywhere, in History and Scores. A title typed in the Editor replaces that name. <b>Delete</b> removes the run from your records. Runs older than the last 300 are folded into your totals, streaks, achievements and cleared tempos, which are kept for good, but they can no longer be replayed.</li>
       </ul>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
@@ -1158,7 +1174,7 @@ RLRR LRLL RLRR LRLL</pre>
 
 
     <section aria-label="Strokes">
-      <p class="hint routine-only cfg exnav">Scroll, swipe or tap an exercise to choose where to start.</p>
+      <p class="hint routine-only cfg exnav">Tap an exercise to choose where to start.</p>
       <div class="rowswrap">
       <div class="bigcount" id="bigCount" hidden aria-hidden="true"></div>
       <div class="rows" id="rows" tabindex="0"><div class="rows-track" id="rowsTrack"></div></div>
@@ -2241,7 +2257,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.59.9';                           /* shown beside the title */
+const VERSION='0.60.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2312,6 +2328,27 @@ function hashOf(t){
   h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
   return (4294967296*(2097151&h2)+(h1>>>0)).toString(36);
 }
+/* One stroke of a saved run is four characters. The first holds the result (on time, off time, missed, accent too soft, ghost too loud),
+   the accent or ghost class and a wrong-stick flag, the next two the timing in whole milliseconds, the last the level in dB below full scale. */
+const B64='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_',SPR='obmsl',SPD='nAg';
+function packStrokes(x){
+  let o='';
+  for(let i=0;i<x.sc.length;i++){
+    const r=Math.max(0,SPR.indexOf(x.sc[i])),d=Math.max(0,SPD.indexOf(x.sy[i]||'n')),w=x.sw&&x.sw[i]?1:0;
+    const m=x.sm[i],v=m===null||m===undefined?4095:Math.max(0,Math.min(4094,Math.round(m)+2047)),b=x.sb[i];
+    o+=B64[r+5*(d+3*w)]+B64[v>>6]+B64[v&63]+B64[b===null||b===undefined?63:Math.max(0,Math.min(62,Math.round(-b)))];
+  }
+  return o;
+}
+function unpackStrokes(sp){
+  const out=[];
+  for(let i=0;i+3<sp.length;i+=4){
+    const c=B64.indexOf(sp[i]),v=(B64.indexOf(sp[i+1])<<6)|B64.indexOf(sp[i+2]),b=B64.indexOf(sp[i+3]);
+    out.push({r:SPR[c%5],dy:SPD[Math.floor(c/5)%3],w:c>=15,ms:v===4095?null:v-2047,db:b===63?null:-b});
+  }
+  return out;
+}
+const SPMAX=4*40000;
 function cleanRun(x){
   if(!x||typeof x!=='object'||typeof x.id!=='string'||!Array.isArray(x.exercises)||!isFinite(+x.t)||!isFinite(+x.bpm)||!['strokes','beat','half','bar','off'].includes(x.lv))return null;
   const exercises=[];
@@ -2320,9 +2357,7 @@ function cleanRun(x){
     exercises.push({k:b.k,bpm:isFinite(+b.bpm)?+b.bpm:+x.bpm,due:+b.due,within:Math.max(0,Math.min(+b.due,+b.within)),heard:+b.heard||0,
       avg:typeof b.avg==='number'&&isFinite(b.avg)?b.avg:null,sd:typeof b.sd==='number'&&isFinite(b.sd)?b.sd:null,miss:+b.miss||0,i:+b.i||0,
       ls:typeof b.ls==='number'&&isFinite(b.ls)?b.ls:null,ld:typeof b.ld==='number'&&isFinite(b.ld)?b.ld:null,
-      da:+b.da>0?Math.floor(+b.da):undefined,dg:+b.dg>0?Math.floor(+b.dg):undefined,st:typeof b.st==='string'&&/^[obmsl]{1,240}$/.test(b.st)?b.st:undefined,
-      tm:typeof b.tm==='string'&&/^[-\d,]{1,1500}$/.test(b.tm)?b.tm:undefined,lb:typeof b.lb==='string'&&/^[-\d,]{1,1500}$/.test(b.lb)?b.lb:undefined,
-      dc:typeof b.dc==='string'&&/^[Agn]{1,240}$/.test(b.dc)?b.dc:undefined,
+      da:+b.da>0?Math.floor(+b.da):undefined,dg:+b.dg>0?Math.floor(+b.dg):undefined,sp:typeof b.sp==='string'&&b.sp.length%4===0&&b.sp.length<=SPMAX&&/^[A-Za-z0-9_-]+$/.test(b.sp)?b.sp:undefined,
       an:+b.an>0?Math.floor(+b.an):undefined,ac:+b.ac>0?Math.floor(+b.ac):undefined,as:typeof b.as==='number'&&isFinite(b.as)?b.as:undefined,
       gn:+b.gn>0?Math.floor(+b.gn):undefined,gc:+b.gc>0?Math.floor(+b.gc):undefined,gs:typeof b.gs==='number'&&isFinite(b.gs)?b.gs:undefined});
   });
@@ -2415,8 +2450,18 @@ const entryName=e=>{const k=libKey(e);return isRoutineKey(k)?routineName(k):show
 const libId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 /* The text to load for an entry: a routine gets its name back as a title. */
 function entryText(e){const k=libKey(e);return isRoutineKey(k)&&recs.names[k]?setHeader(e.x,'title',recs.names[k]):e.x;}
+/* Stroke detail may use 40% of the space the browser gives this page (about 5 MB, two bytes a character). When it is over, the oldest runs lose theirs first; their totals stay.
+   One run keeps at most a quarter of that share. */
+const QUOTA=Math.floor(5*1024*1024/2),DETAIL_SHARE=0.4;
+const detailChars=()=>recs.runs.reduce((n,r)=>n+r.exercises.reduce((m,b)=>m+(b.sp?b.sp.length:0),0),0);
+function trimDetail(){
+  const budget=Math.floor(QUOTA*DETAIL_SHARE),one=Math.floor(budget/4);
+  recs.runs.forEach(r=>{let left=one;r.exercises.forEach(b=>{if(!b.sp)return;if(b.sp.length<=left){left-=b.sp.length;return;}if(left>=4)b.sp=b.sp.slice(0,left-left%4);else delete b.sp;left=0;});});
+  let n=detailChars();
+  for(let i=0;i<recs.runs.length&&n>budget;i++)recs.runs[i].exercises.forEach(b=>{if(b.sp){n-=b.sp.length;delete b.sp;}});
+}
 function saveRecs(){
-  foldOld(MAX_RUNS);pruneNames();
+  foldOld(MAX_RUNS);pruneNames();trimDetail();
   for(let i=0;i<4;i++){
     try{localStorage.setItem(RKEY,JSON.stringify(packRecs()));try{localStorage.removeItem(OLDKEY);}catch(e){}return true;}
     catch(e){foldOld(Math.floor(recs.runs.length*0.75));}
@@ -2701,14 +2746,14 @@ function beginRun(mode,only){
     nextClick:0,pulseIdx:-1,nextFin:0,pending:new Map(),cur:-1,showSeg:0,gridSeg:-1,
     errs:[],lv:[],seq:[],hand:{L:[],R:[]},within:0,slots:0,miss:0,extras:0,streak:0,best:0,checked:0,bad:0,trace:[],res:new Map(),showG:0,missRun:0,trail:[],live:'',
     fin:new Set(),paused:false,ci:null,dyc:lat?'':dynCode(),dyl:[],
-    seg:plan.segs.map(sg=>({errs:[],lv:[],hand:{L:[],R:[]},within:0,slots:0,miss:0,extras:0,checked:0,bad:0,sc:[],sm:[],sb:[],sy:[],da:0,dg:0,
+    seg:plan.segs.map(sg=>({errs:[],lv:[],hand:{L:[],R:[]},within:0,slots:0,miss:0,extras:0,checked:0,bad:0,sc:[],sm:[],sb:[],sy:[],sw:[],da:0,dg:0,
       posSum:new Array(sg.N).fill(0),posCnt:new Array(sg.N).fill(0)})),
     dirty:true,ended:false,totalExercises:routineParsed.exercises.length,only:only||null,
     startExercise:only?Math.min.apply(null,only):(S.mode==='routine'?S.startExercise:1)
   };
   if(audioFresh){r.t0+=0.4;audioFresh=false;}
   run=r;
-  if(!lat){view=r;r.gridSeg=0;document.body.dataset.state='run';if(S.mode==='routine')markExercises(r);applyLayout(layoutPlan(plan));rowsShown=ROWS;labelsOn=true;labelMode='routine';setRows(plan,0,false);paintRows(r,null);}
+  if(!lat){rvModel=null;view=r;r.gridSeg=0;document.body.dataset.state='run';if(S.mode==='routine')markExercises(r);applyLayout(layoutPlan(plan));rowsShown=ROWS;labelsOn=true;labelMode='routine';setRows(plan,0,false);paintRows(r,null);}
   else{
     /* Calibration shows one row with a cursor on the Play page, so there is something to watch as well as hear. */
     document.body.dataset.state='idle';updateGauge(null);
@@ -2746,7 +2791,7 @@ function finalizeSlot(i){
   const redo=r.fin.has(i);r.fin.add(i);
   if(!redo){r.slots++;Q.slots++;}
   r.dirty=true;
-  if(!hits.length){if(!redo){r.miss++;Q.miss++;Q.sc.push('m');Q.sy.push(sl.dy||'n');Q.sm.push(null);Q.sb.push(null);r.streak=0;r.missRun++;r.seq.push({db:null});if(r.seq.length>STRIP_MAX)r.seq.shift();}r.res.set(i,{miss:true});return;}
+  if(!hits.length){if(!redo){r.miss++;Q.miss++;Q.sc.push('m');Q.sy.push(sl.dy||'n');Q.sw.push(0);Q.sm.push(null);Q.sb.push(null);r.streak=0;r.missRun++;r.seq.push({db:null});if(r.seq.length>STRIP_MAX)r.seq.shift();}r.res.set(i,{miss:true});return;}
   const h=pickBest(hits),ex=hits.length-1;
   const ms=h.e*1000,det=h.det;
   const sure=!!det&&(h.kb||det.conf>=0.2);
@@ -2760,7 +2805,7 @@ function finalizeSlot(i){
     if(db!==null){r.lv.push({db:db,hand:hand,dy:sl.dy||''});Q.lv.push({db:db,hand:hand,dy:sl.dy||''});}
     const on=Math.abs(ms)<=S.tol;
     if(db!==null&&sl.dy&&!sl.tight)r.dyl.push({db:db,dy:sl.dy,si:sl.seg,ci:Q.sc.length,on:on});
-    Q.sy.push(sl.dy||'n');Q.sm.push(Math.round(ms));Q.sb.push(db===null?null:Math.round(db));
+    Q.sy.push(sl.dy||'n');Q.sw.push(wrong?1:0);Q.sm.push(Math.round(ms));Q.sb.push(db===null?null:Math.round(db));
     Q.sc.push(on?'o':'b');   /* o on time, b off time, m missed; s and l (accent too soft, ghost too loud) are set when the run ends */
     r.seq.push({db:db,hand:hand,dy:sl.dy||''});if(r.seq.length>STRIP_MAX)r.seq.shift();   /* one entry per stroke due, so a miss leaves a gap in the level bars */
     r.missRun=0;if(r.mode==='lat')latLive(r);
@@ -2893,8 +2938,9 @@ function endRun(){
     renderAll();
     renderAdvice();
     if(S.mode==='routine')renderResults(view);
-    roleRows();
-    paintRows(view,null);
+    /* The review is rebuilt from the saved run, the same way a run's page does it. */
+    rvModel=lastRun&&lastRun.run?reviewModel(lastRun.run):null;
+    if(rvModel)showReview();else{roleRows();paintRows(view,null);}
     if(lastRun&&!lastRun.discarded)setReview(true);
     showResult();
   }
@@ -3336,15 +3382,15 @@ function applyLayout(plan){
   box.dataset.lines=String(L);
   return L;
 }
-function buildRow(plan,g){
+function buildRow(plan,g,w){
   const pa=passAt(plan,g),sg=plan.segs[pa.si],N=sg.N;
   const el=document.createElement('div');el.className='prow';
   const lab=document.createElement('div');lab.className='rl';
   const dyn=[];for(let i=0;i<N;i++)dyn.push(plan.cells[sg.cell0+pa.p*N+i].dy||'');
-  const st=buildStaff(sg,undefined,undefined,undefined,dyn),cards=st.cards;
+  const st=buildStaff(sg,w,undefined,undefined,dyn),cards=st.cards;
   cards.forEach((c,i)=>{c._slot=plan.cells[sg.cell0+pa.p*N+i].slot;});
   el.append(lab,st.svg);
-  el.addEventListener('click',()=>{if(labelMode==='preview')goExercise(sg.idx,true);});
+  if(!w)el.addEventListener('click',()=>{if(labelMode==='preview')goExercise(sg.idx,true);});
   return {el:el,lab:lab,cards:cards,sg:sg,si:pa.si,p:pa.p};
 }
 /* The row that will slide in next is built a moment after each shift, so building it never lands on the shift itself. */
@@ -3401,11 +3447,11 @@ function finishSlide(){
 }
 /* While playing, a passage that wraps to two or more lines shows four lines at a time, and they scroll with the cursor:
    it starts on the first line, moves to the second, and from then on the lines slide up so the cursor stays on the second. */
-const WIN_LINES=4;
+const WIN_LINES=4,REVIEW_ROWS=500;
 let winKey='',lastCur=null;
 const playing=()=>!!run&&!run.ended&&run.mode==='play';
 /* The window applies before Start, while playing and after Stop. After Stop it scrolls by hand, so every stroke can still be checked. */
-const winWanted=()=>labelMode!=='lat'&&(+$('rows').dataset.lines||1)>=2;
+const winWanted=()=>labelMode!=='lat'&&((+$('rows').dataset.lines||1)>=2||(document.body.dataset.state==='done'&&rowMap.size>WIN_LINES));
 function syncWindow(cursor){
   const box=$('rows'),tr=$('rowsTrack');
   if(!winWanted()){
@@ -3522,33 +3568,94 @@ function movePlayhead(r,cursor,heard){
   ph.setAttribute('x1',cx);ph.setAttribute('x2',cx);
   ph.setAttribute('visibility','visible');
 }
+/* One stroke's colour and reading, from its result. The same for the live run, the review after it and a saved run. */
+function paintCard(el,res,ended,tol){
+  const sig=(res?(res.miss?'m':res.ms+'|'+(res.wrong||'')):'')+'#'+tol+(ended?'e':'');
+  if(sig===el._sig)return;
+  el._sig=sig;
+  el.classList.remove('ok','early','late','miss','wrong');
+  let ft='',tg='';
+  if(res){
+    if(res.miss){el.classList.add('miss');if(ended)ft='miss';}
+    else{
+      el.classList.add(Math.abs(res.ms)<=tol?'ok':(res.ms<0?'early':'late'));
+      if(ended)ft=fmtMs(res.ms);
+      if(res.wrong){el.classList.add('wrong');tg='\u2192'+res.wrong;}
+    }
+  }
+  el._ft.textContent=ft;el._tg.textContent=tg;
+}
 function paintRows(r,cursor,heard){
-  const ended=!!(r&&r.ended);
+  if(rvModel&&document.body.dataset.state==='done')r=rvModel;
+  const ended=!!(r&&r.ended),tol=(r&&r.tol)||S.tol;
   rowMap.forEach((o,g)=>{
     o.cards.forEach((el,i)=>{
       if(el._slot<0)return;
-      const res=r?r.res.get(el._slot):null;
-      const sig=(res?(res.miss?'m':res.ms+'|'+(res.wrong||'')):'')+'#'+S.tol+(ended?'e':'');
-      if(sig!==el._sig){
-        el._sig=sig;
-        el.classList.remove('ok','early','late','miss','wrong');
-        let ft='',tg='';
-        if(res){
-          if(res.miss){el.classList.add('miss');if(ended)ft='miss';}
-          else{
-            el.classList.add(Math.abs(res.ms)<=S.tol?'ok':(res.ms<0?'early':'late'));
-            if(ended)ft=fmtMs(res.ms);
-            if(res.wrong){el.classList.add('wrong');tg='→'+res.wrong;}
-          }
-        }
-        el._ft.textContent=ft;el._tg.textContent=tg;
-      }
+      paintCard(el,r?r.res.get(el._slot):null,ended,tol);
       const on=!!cursor&&g===cursor.g&&i===cursor.i;
       if(on!==el._now){el._now=on;el.classList.toggle('now',on);}
     });
   });
   movePlayhead(r,cursor,heard);
   lastCur=r&&!r.ended?cursor:null;syncWindow(lastCur);
+}
+/* A finished run, rebuilt from what was saved: its passes drawn again and every stroke given back its result. The review on the Play page and the staff on a run's own page both come from this. */
+let rvModel=null;
+function reviewModel(rec){
+  const q=rec&&rec.rp;if(!q||!rec.exercises.some(b=>b.sp))return null;
+  try{
+    const p=parseRoutine(q.x),all=resolveExercises(p.exercises,p.each||{unit:'pass',v:1},{bpm:rec.bpm,subdiv:S.subdiv});
+    const ex=[],data=[];
+    rec.exercises.forEach(b=>{
+      if(!b.sp)return;
+      const e=all.find(a=>a.idx===b.i)||(all.length===1?all[0]:null);
+      if(!e)return;
+      const u=unpackStrokes(b.sp),per=e.notes.filter(x=>x!=='_').length||1;
+      ex.push(Object.assign({},e,{passes:Math.max(1,Math.ceil(u.length/per))}));data.push(u);
+    });
+    if(!ex.length)return null;
+    const soft=/s$/.test(rec.dy||''),a=soft?rec.dy.slice(0,-1):(rec.dy||'');
+    const plan=buildPlan(ex,{gapBeats:q.gp||0,clickMode:'off',dyn:rec.dy?{acc:a,oth:soft?'g':'n'}:null});
+    const res=new Map(),bySeg=plan.segs.map(()=>[]);
+    plan.slots.forEach((sl,i)=>bySeg[sl.seg].push(i));
+    data.forEach((u,si)=>u.forEach((d,j)=>{
+      const i=bySeg[si][j];if(i===undefined)return;
+      if(d.r==='m'){res.set(i,{miss:true});return;}
+      const exp=plan.segs[si].notes[plan.slots[i].pos];
+      res.set(i,{ms:d.ms,wrong:d.w?(exp==='R'?'L':'R'):null});
+    }));
+    return {plan:plan,res:res,ended:true,tol:rec.tol||S.tol,mode:'play'};
+  }catch(e){return null;}
+}
+function showReview(){
+  const rm=rvModel;if(!rm)return;
+  applyLayout(layoutPlan(rm.plan));labelsOn=true;labelMode='routine';
+  const tp=totalPasses(rm.plan);rowsShown=Math.min(tp,REVIEW_ROWS);setRows(rm.plan,0,false);
+  if(tp>REVIEW_ROWS){$('rowEnd').hidden=false;$('rowEnd').textContent='Showing the first '+REVIEW_ROWS+' of '+tp+' passes.';}
+  paintRows(rm,null);
+}
+/* The staff of a saved run on its own page, drawn when asked for and scrolled by hand. */
+function staffSection(page,r){
+  const wrap=document.createElement('div');wrap.className='stsec';
+  const btn=actBtn('Show staff',()=>{
+    const rm=reviewModel(r);
+    if(!rm){btn.replaceWith(Object.assign(document.createElement('div'),{className:'key',textContent:'The staff could not be rebuilt for this run.'}));return;}
+    const host=document.createElement('div');host.className='rvhost';
+    const tr=document.createElement('div');tr.className='rvtrack';host.appendChild(tr);
+    btn.replaceWith(host);
+    const W=host.clientWidth||320,tp=Math.min(totalPasses(rm.plan),REVIEW_ROWS);
+    for(let g=0;g<tp;g++){
+      const o=buildRow(rm.plan,g,W);
+      o.lab.textContent=(rm.plan.segs.length>1?'Exercise '+o.sg.idx+' \u00b7 ':'')+'pass '+(o.p+1)+' of '+o.sg.passes;
+      o.cards.forEach(el=>{if(el._slot>=0)paintCard(el,rm.res.get(el._slot),true,rm.tol);});
+      tr.appendChild(o.el);
+    }
+    let h=0;[...tr.children].slice(0,4).forEach(c=>{h+=c.offsetHeight+4;});
+    host.style.height=Math.min(h,tr.scrollHeight)+'px';
+    if(totalPasses(rm.plan)>REVIEW_ROWS){const n=document.createElement('div');n.className='key';n.textContent='Showing the first '+REVIEW_ROWS+' of '+totalPasses(rm.plan)+' passes.';wrap.appendChild(n);}
+  });
+  const lbl=document.createElement('div');lbl.className='lbl';lbl.textContent='Staff';
+  wrap.append(lbl,btn);page.appendChild(wrap);
 }
 function previewRows(animate){
   if(S.mode==='routine'){
@@ -3843,8 +3950,7 @@ function recordRun(r){
     exercises:rows.map(x=>({k:x.key,bpm:x.bpm,due:x.due,within:Math.round(x.pct*x.due),heard:x.heard,
       avg:isNaN(x.avg)?null:x.avg,sd:isNaN(x.spread)?null:x.spread,miss:x.miss,i:x.idx,
       ls:x.lvl&&x.lvl.sd!==null?Math.round(x.lvl.sd*10)/10:null,ld:x.lvl&&x.lvl.diff!==null?Math.round(x.lvl.diff*10)/10:null,
-      da:x.da||undefined,dg:x.dg||undefined,st:rows.length===1&&x.sc.length<=240?x.sc:undefined,
-      tm:rows.length===1&&x.sc.length<=240?x.sm.map(v=>v===null?'':v).join(','):undefined,lb:rows.length===1&&x.sc.length<=240?x.sb.map(v=>v===null?'':v).join(','):undefined,dc:rows.length===1&&x.sc.length<=240&&r.dyc?x.sy:undefined,...dynSaved(r,x.si)}))};
+      da:x.da||undefined,dg:x.dg||undefined,sp:x.sc.length?packStrokes(x):undefined,...dynSaved(r,x.si)}))};
   if(all){   /* exercises of the routine that were not played, so a partial run still shows the whole routine */
     const played=new Set(rows.map(x=>x.idx));
     run.sk=all.map((k,i)=>({i:i+1,k:k})).filter(b=>!played.has(b.i));
@@ -4190,10 +4296,28 @@ function renderProgress(){
 }
 let sview='pref';
 function setSview(v){
-  sview=v;
+  sview=v;if(v==='data')renderStorage();
   [['pref','svPref','svBtnPref'],['dev','svDev','svBtnDev'],['data','svData','svBtnData']].forEach(x=>{
     $(x[1]).hidden=v!==x[0];$(x[2]).setAttribute('aria-pressed',String(v===x[0]));
   });
+}
+/* What the saved data takes. Sizes are characters written to browser storage, two bytes each; the limit is the browser's, about 5 MB, and is only an estimate. */
+function renderStorage(){
+  let rk=0,kk=0;
+  try{rk=(localStorage.getItem(RKEY)||'').length;kk=(localStorage.getItem(KEY)||'').length;}catch(e){}
+  const detail=detailChars(),p=packRecs();
+  const runs=Math.max(0,JSON.stringify(p.runs||[]).length-detail)+JSON.stringify(p.sum||{}).length;
+  const libs=JSON.stringify(S.lists||[]).length,sets=Math.max(0,kk-libs),routines=Math.max(0,rk-detail-runs);
+  const parts=[['Stroke detail',detail,'var(--accent)'],['Runs',runs,'var(--ok,#3a8f5c)'],['Routines',routines,'var(--late,#c4366b)'],['Libraries',libs,'var(--early,#3a6fc4)'],['Settings',sets,'var(--muted)']];
+  const used=parts.reduce((n,x)=>n+x[1],0),fmt=c=>{const b=c*2;return b>=1048576?(b/1048576).toFixed(1)+' MB':Math.max(0.1,b/1024).toFixed(b<10240?1:0)+' KB';};
+  $('stoTotal').textContent=fmt(used)+' of about '+fmt(QUOTA)+' used on this device.';
+  const bar=$('stoBar');bar.textContent='';bar.setAttribute('aria-label',$('stoTotal').textContent);
+  parts.forEach(x=>{if(!x[1])return;const e=document.createElement('i');e.style.width=(x[1]/QUOTA*100)+'%';e.style.background=x[2];e.title=x[0];bar.appendChild(e);});
+  const mk=document.createElement('i');mk.className='stomk';mk.style.left=(QUOTA*DETAIL_SHARE/QUOTA*100)+'%';mk.title='Limit for stroke detail';bar.appendChild(mk);
+  const leg=$('stoLeg');leg.textContent='';
+  parts.forEach(x=>{const d=document.createElement('div');const dot=document.createElement('span');dot.style.background=x[2];d.append(dot,x[0]+' '+fmt(x[1]));leg.appendChild(d);});
+  const n=recs.runs.filter(r=>r.exercises.some(b=>b.sp)).length;
+  $('stoNote').textContent='Stroke detail is what lets a run show its staff and strokes again. It may use up to '+fmt(Math.floor(QUOTA*DETAIL_SHARE))+'. Past that the oldest runs lose their detail first and keep their totals. '+n+(n===1?' run has':' runs have')+' its detail now.';
 }
 function showSetup(v){setSview(v);showTab('setup');}
 let pview='hist',histShown=20,histDays=7,histFilter='all',hview='day';
@@ -4403,15 +4527,14 @@ function runStrokes(page,r){
   const lbl=document.createElement('div');lbl.className='lbl';lbl.textContent='Strokes';page.appendChild(lbl);
   const strip=document.createElement('div');strip.className='strip';
   const cls={o:'ok',b:'late',m:'skip',s:'lvl',l:'lvl'};
-  const tm=(b.tm||'').split(','),lb=(b.lb||'').split(','),has=tm.length===b.st.length&&lb.length===b.st.length;   /* one ms and one dB per stroke, if they were kept */
-  const nums=a=>a.map(v=>v===''?null:+v),T=has?nums(tm):[],D=has?nums(lb):[];
+  const U=unpackStrokes(b.sp),st=U.map(x=>x.r).join(''),T=U.map(x=>x.ms),D=U.map(x=>x.db),dcs=U.map(x=>x.dy).join(''),has=true;
   const cells=[],bars=[],info=document.createElement('div');info.className='sb tapinfo';
   const pick=i=>{
     cells.forEach((e,j)=>e.classList.toggle('sel',j===i));bars.forEach((e,j)=>e.classList.toggle('sel',j===i));
     const m=T[i],d=D[i];
     info.textContent='Stroke '+(i+1)+': '+(m===null?'missed':fmtMs(m)+' ms'+(d===null?'':', '+fmtDb(d)+' dB'))+'.';
   };
-  b.st.split('').forEach((c,i)=>{const e=document.createElement('span');e.className='cell '+cls[c];if(c==='s')e.textContent='A\u2193';else if(c==='l')e.textContent='g\u2191';if(has)e.onclick=()=>pick(i);cells.push(e);strip.appendChild(e);});
+  st.split('').forEach((c,i)=>{const e=document.createElement('span');e.className='cell '+cls[c];if(c==='s')e.textContent='A\u2193';else if(c==='l')e.textContent='g\u2191';if(has)e.onclick=()=>pick(i);cells.push(e);strip.appendChild(e);});
   page.appendChild(strip);
   const k=document.createElement('div');k.className='key';
   k.textContent='Green: good. Pink: off time. Dashed: missed.'+(ruled?' Amber: too soft (A\u2193) or too loud (g\u2191).':'');
@@ -4422,17 +4545,17 @@ function runStrokes(page,r){
     if(ds.length>=4){
       const med=ds[ds.length>>1],l3=document.createElement('div');l3.className='lbl';l3.textContent='Level';page.appendChild(l3);
       const bx=document.createElement('div');bx.className='lvbars';
-      D.forEach((v,i)=>{const e=document.createElement('i');if(b.dc&&b.dc.length===D.length&&b.dc[i]==='A')e.className='acc';e.style.height=v===null?'0':Math.round(clamp(50+(v-med)/24*100,6,100))+'%';e.onclick=()=>pick(i);bars.push(e);bx.appendChild(e);});
+      D.forEach((v,i)=>{const e=document.createElement('i');if(dcs[i]==='A')e.className='acc';e.style.height=v===null?'0':Math.round(clamp(50+(v-med)/24*100,6,100))+'%';e.onclick=()=>pick(i);bars.push(e);bx.appendChild(e);});
       page.appendChild(bx);
-      const k2=document.createElement('div');k2.className='key';k2.textContent='Each bar is one stroke against your typical stroke. Middle is typical, higher is louder.'+(b.dc&&b.dc.length===D.length&&b.dc.includes('A')?' Amber bars are accents.':'');page.appendChild(k2);
+      const k2=document.createElement('div');k2.className='key';k2.textContent='Each bar is one stroke against your typical stroke. Middle is typical, higher is louder.'+(dcs.includes('A')?' Amber bars are accents.':'');page.appendChild(k2);
     }
   }
   if(!ruled)return;
-  const n=c=>b.st.split(c).length-1,rows=[[n('m'),'missed'],[n('b'),'off time'],[n('s'),n('s')===1?'accent too soft':'accents too soft'],[n('l'),n('l')===1?'ghost too loud':'ghosts too loud']].filter(x=>x[0]);
+  const n=c=>st.split(c).length-1,rows=[[n('m'),'missed'],[n('b'),'off time'],[n('s'),n('s')===1?'accent too soft':'accents too soft'],[n('l'),n('l')===1?'ghost too loud':'ghosts too loud']].filter(x=>x[0]);
   if(!rows.length)return;
   const l2=document.createElement('div');l2.className='lbl';l2.textContent='What cost strokes';page.appendChild(l2);
   rows.forEach(x=>{const w=document.createElement('div');w.className='wr';const t=document.createElement('div');t.textContent=x[0]+' '+x[1];w.appendChild(t);page.appendChild(w);});
-  const g=n('o'),d=b.st.length,e=document.createElement('div');e.className='sb';e.style.padding='8px 0';e.textContent=g+' of '+d+' strokes were on time and played as written.';page.appendChild(e);
+  const g=n('o'),d=st.length,e=document.createElement('div');e.className='sb';e.style.padding='8px 0';e.textContent=g+' of '+d+' strokes were on time and played as written.';page.appendChild(e);
 }
 function runLevelText(r){   /* the level card of the play results, from what a run keeps */
   if(r.lv==='off')return '';
@@ -4464,7 +4587,8 @@ function renderRunPage(r){
   stats.appendChild(statBox(isNaN(f.db)?'—':'±'+f.db.toFixed(1),'dB'));
   page.appendChild(stats);
   const lc=runLevelText(r);if(lc){const d=document.createElement('div');d.className='sb lvl';d.textContent=lc;page.appendChild(d);}
-  if(r.exercises.length===1&&r.exercises[0].st&&!off)runStrokes(page,r);
+  if(r.exercises.length===1&&r.exercises[0].sp&&!off)runStrokes(page,r);
+  if(!off&&r.rp&&r.exercises.some(b=>b.sp))staffSection(page,r);
   if(!plainRun(r)&&r.ne>1){
     const items=r.exercises.map(b=>({i:b.i||0,b:b})).concat((r.sk||[]).map(b=>({i:b.i,k:b.k})));
     items.sort((x,y)=>x.i-y.i);
@@ -4737,7 +4861,7 @@ function exerciseRows(r){
     if(!Q.slots)return;
     rows.push({si:si,idx:sg.idx,key:patKey(sg.notes,sg.groupStart,sg.subs,sg.defSub,sg.sig),seq:showPattern(sg.notes,sg.groupStart,sg.subs,sg.defSub,sg.sig,sg.src),bpm:sg.bpm,
       passes:Math.floor(Q.slots/sg.strokes),due:Q.slots,heard:Q.errs.length,
-      pct:Q.within/Q.slots,avg:Q.errs.length?mean(Q.errs):NaN,spread:sd(Q.errs),miss:Q.miss,da:Q.da,dg:Q.dg,sc:Q.sc.join(''),sm:Q.sm,sb:Q.sb,sy:Q.sy.join(''),
+      pct:Q.within/Q.slots,avg:Q.errs.length?mean(Q.errs):NaN,spread:sd(Q.errs),miss:Q.miss,da:Q.da,dg:Q.dg,sc:Q.sc.join(''),sm:Q.sm,sb:Q.sb,sy:Q.sy.join(''),sw:Q.sw,
       L:Q.hand.L.length?mean(Q.hand.L):NaN,R:Q.hand.R.length?mean(Q.hand.R):NaN,lvl:levelStats(Q.lv)});
   });
   return rows;
@@ -5432,7 +5556,7 @@ function routineGuide(){
   return e&&e.cleared?' · routine cleared at '+e.cleared+' BPM':'';
 }
 function refreshPreview(){
-  view=null;document.body.dataset.state='idle';
+  view=null;rvModel=null;document.body.dataset.state='idle';
   previewRows();renderAll();syncInfo();
   if(S.mode==='routine')buildExerciseList();
   renderBuilder();
@@ -5931,26 +6055,11 @@ function wire(){
   $('recImport').addEventListener('click',()=>$('recFile').click());
   $('recFile').addEventListener('change',async e=>{await importRecs(e.target.files&&e.target.files[0]);e.target.value='';});
   $('recClear').addEventListener('click',clearRecs);
-  let wheelAt=0;
-  $('rows').addEventListener('wheel',e=>{
-    if(labelMode!=='preview'||S.mode!=='routine'||(run&&!run.ended)||!e.deltaY)return;
-    e.preventDefault();
-    const t=performance.now();
-    if(t-wheelAt<140)return;
-    wheelAt=t;goExercise(S.startExercise+(e.deltaY>0?1:-1),e.deltaY>0);
-  },{passive:false});
   $('rows').addEventListener('keydown',e=>{
     if(labelMode!=='preview'||S.mode!=='routine')return;
     if(e.key==='ArrowDown'){e.preventDefault();goExercise(S.startExercise+1,true);}
     else if(e.key==='ArrowUp'){e.preventDefault();goExercise(S.startExercise-1,true);}
   });
-  let ty=null;
-  $('rows').addEventListener('touchstart',e=>{ty=e.touches.length===1?e.touches[0].clientY:null;},{passive:true});
-  $('rows').addEventListener('touchend',e=>{
-    if(ty===null||labelMode!=='preview'||S.mode!=='routine'||(run&&!run.ended))return;
-    const dy=(e.changedTouches[0]?e.changedTouches[0].clientY:ty)-ty;ty=null;
-    if(Math.abs(dy)>=48)goExercise(S.startExercise+(dy<0?Math.max(1,Math.round(-dy/60)):-Math.max(1,Math.round(dy/60))),true);
-  },{passive:true});
   $('restartBtn').addEventListener('click',restartRun);
   $('stopBtn').addEventListener('click',()=>{if(run&&!run.ended)stopRun();});
   $('settle').addEventListener('input',e=>{S.settle=+e.target.value;$('settleOut').textContent=S.settle+' ms';pushDet();save();});
@@ -6045,7 +6154,8 @@ function wire(){
       if(run&&!run.ended&&(run.mode==='play'||run.mode==='lat')){
         applyLayout(run.mode==='lat'?run.plan:layoutPlan(run.plan));rowsShown=run.mode==='lat'?1:ROWS;
         setRows(run.plan,run.showG||0,false);paintRows(run,null);
-      }else if(!run||run.ended)previewRows(false);
+      }else if(rvModel&&document.body.dataset.state==='done')showReview();
+      else if(!run||run.ended)previewRows(false);
     },150);
   });
   if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',drawTrace);
