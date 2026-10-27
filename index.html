@@ -191,6 +191,10 @@ details[open]>summary::after{transform:rotate(-135deg);margin-top:10px}
 .libitem.have b{font-weight:400;color:var(--muted)}
 .libitem span{color:var(--muted);font:12px var(--font-data);white-space:nowrap}
 .chkmsg{margin:0;padding:10px 12px;border-left:4px solid var(--accent);background:var(--surface);border-radius:6px;font:600 17px/1.35 var(--font-body);color:var(--ink)} .chkmsg:empty{display:none}
+.rchev{width:40px;height:40px;border:0;background:none;position:relative;flex:none;cursor:pointer} .rchev::after{content:"";position:absolute;left:15px;top:13px;width:9px;height:9px;border:solid var(--muted);border-width:0 2.5px 2.5px 0;transform:rotate(45deg);transition:transform .15s} .rchev.up::after{transform:rotate(-135deg);top:18px}
+.rtruns{margin:10px 0 2px;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:0 12px}
+.rrun{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:10px 0;font:inherit;color:inherit;cursor:pointer} .rrun:first-child{border-top:0} .rrun .l{flex:1;min-width:0} .rrun .nm{font:600 14px var(--font-body)} .rrun .ar{color:var(--muted);font-size:22px;line-height:1}
+.rmore{border-top:1px solid var(--line);width:100%;text-align:left;border-radius:0}
 .calst{display:grid;gap:2px;margin:4px 0 8px} .calst .cs{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line);font-size:14px} .calst .cs:first-child{border-top:0} .calst .good{color:var(--ok)} .calst .warn{color:var(--accent)} .calst .bad{color:var(--late)} .calst .muted{color:var(--muted)}
 .chkout{margin:0;padding-left:18px;font-size:13px;display:grid;gap:4px} .chkout:empty{display:none} .chkout .bad{color:var(--late)} .chkout .warn{color:var(--accent)} .chkout .good{color:var(--ok)}
 .ctbox{display:grid;gap:6px;justify-items:center;text-align:center}
@@ -331,6 +335,7 @@ html.pgopen{overflow:hidden}
 .srow .sn small{color:var(--muted);font:11px var(--font-body);letter-spacing:.04em;margin-left:3px}
 .srow .sn .muted{color:var(--muted)} .srow .sn .ok{color:var(--ok)} .srow .sn .late{color:var(--late)} .srow .sn .early{color:var(--early)}
 .srow .ib{flex:none;margin:-6px 0}
+.srow .sq .seq{flex:1;min-width:0;overflow-wrap:anywhere} #rtList .srow{cursor:pointer} #rtList .srow .rtruns{cursor:default}
 .hgrp .tablewrap td,.hgrp .tablewrap th{padding-left:6px;padding-right:6px}
 .hgrp .tablewrap .ib{min-width:40px;height:40px;padding:0;margin:-8px -6px}
 .hgrp .tablewrap .ib svg{width:17px;height:17px}
@@ -2147,7 +2152,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.43.0';                           /* shown beside the title */
+const VERSION='0.44.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -3974,14 +3979,20 @@ function renderScoreGroups(stats,practise,usual){
   showPage({owner:'score',key:'lv'+cur.v,back:'\u2039 Scores',title:'Exercises \u00B7 '+cur.n,body:wrap});
 }
 /* Routine rows: same figures as exercises, one row per routine and level. */
+let rtOpen='',rtAll=false;   /* the routine row that is open in Scores, and whether it lists every run */
 function renderRoutineRows(routines,replay){
   const box=$('rtList');box.textContent='';
   if(!routines.length){const p=document.createElement('p');p.className='hint';p.textContent='No routines scored yet.';box.appendChild(p);return;}
   routines.forEach(x=>{
+    const key=x.rk+'|'+x.lv+'|'+(x.dy||''),open=rtOpen===key;
     const row=document.createElement('div');row.className='srow';
     const q=document.createElement('div');q.className='sq';
     const t=document.createElement('span');t.className='seq';t.textContent=routineName(x.rk);
-    q.appendChild(t);q.appendChild(replay(x));row.appendChild(q);
+    const ch=document.createElement('button');ch.type='button';ch.className='rchev'+(open?' up':'');ch.setAttribute('aria-expanded',String(open));ch.setAttribute('aria-label',(open?'Hide':'Show')+' runs of '+routineName(x.rk));
+    q.appendChild(t);q.appendChild(replay(x));q.appendChild(ch);row.appendChild(q);
+    const toggle=()=>{rtOpen=open?'':key;rtAll=false;renderProgress();};
+    ch.addEventListener('click',toggle);
+    row.addEventListener('click',e=>{if(!e.target.closest('button'))toggle();});
     const n=document.createElement('div');n.className='sn';
     const stat=(txt,unit,cls)=>{const e=document.createElement('span');if(cls)e.className=cls;e.textContent=txt;if(unit){const u=document.createElement('small');u.textContent=unit;e.appendChild(u);}n.appendChild(e);};
     if(x.bpm===null){stat('\u2014','ACC','muted');}
@@ -4000,6 +4011,28 @@ function renderRoutineRows(routines,replay){
     bits.push(x.runs+(x.runs===1?' run':' runs'));
     if(x.cleared)bits.push('Cleared at '+x.cleared+' BPM.');
     const nt=document.createElement('div');nt.className='nt'+(x.cleared&&x.bpm!==null&&x.cleared>=x.bpm?' go':'');nt.textContent=bits.join(' \u00B7 ');row.appendChild(nt);
+    if(open){
+      const mine=recs.runs.filter(r=>r.rk===x.rk&&r.lv===x.lv&&(r.dy||'')===(x.dy||'')).sort((a,b)=>b.t-a.t);
+      const shown=rtAll?mine:mine.slice(0,4);
+      const list=document.createElement('div');list.className='rtruns';
+      shown.forEach(r=>{
+        const b=document.createElement('button');b.type='button';b.className='rrun';
+        const l=document.createElement('div');l.className='l';
+        const nm=document.createElement('div');nm.className='nm';nm.textContent=dayWord(r.t).replace(/^./,c=>c.toUpperCase())+' \u00B7 '+new Date(r.t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});l.appendChild(nm);
+        const f=runFigures(r),a=accHtml(f.acc),sn=document.createElement('div');sn.className='sn';
+        const st=(txt,unit,cls)=>{const e=document.createElement('span');if(cls)e.className=cls;e.textContent=txt;const u=document.createElement('small');u.textContent=unit;e.appendChild(u);sn.appendChild(e);};
+        st(String(r.bpm),'BPM');st(a[0],'ACC',a[1]);st(isNaN(f.ms)?'\u2014':fmtMs(f.ms,1),'ms',isNaN(f.ms)?'muted':biasCls(f.ms));st(isNaN(f.db)?'\u2014':'\u00B1'+f.db.toFixed(1),'dB');
+        l.appendChild(sn);
+        if(r.exercises.length<r.ne){const pn=document.createElement('div');pn.className='nt';pn.textContent=r.exercises.length+' of '+r.ne+' exercises played';l.appendChild(pn);}
+        const ar=document.createElement('span');ar.className='ar';ar.textContent='\u203A';ar.setAttribute('aria-hidden','true');
+        b.appendChild(l);b.appendChild(ar);
+        b.addEventListener('click',()=>openRunFrom(r.id,'Scores'));
+        list.appendChild(b);
+      });
+      if(mine.length>4){const m=document.createElement('button');m.type='button';m.className='linkbtn rmore';m.textContent=rtAll?'Show fewer':'Show all '+mine.length+' runs';m.addEventListener('click',()=>{rtAll=!rtAll;renderProgress();});list.appendChild(m);}
+      if(x.runs>mine.length){const o=document.createElement('div');o.className='nt';o.style.padding='6px 0';o.textContent='Older runs are summarised and not listed.';list.appendChild(o);}
+      row.appendChild(list);
+    }
     box.appendChild(row);
   });
 }
@@ -4221,7 +4254,9 @@ function listRow(title,mono,sub,dy,pc,onOpen){
   row.addEventListener('click',onOpen);
   return row;
 }
-function openHist(page){histStack.push(page);pgPush();renderHistory();}
+let runBack='History';   /* what the run page's Back says: the list it was opened from */
+function openHist(page){runBack='History';histStack.push(page);pgPush();renderHistory();}
+function openRunFrom(id,label){runBack=label;histStack.push({run:id});pgPush();renderHistory();}
 /* The log: runs by day, newest first. Consecutive identical runs in a day fold into one row. */
 function renderHistoryDays(){
   const box=$('histList');box.textContent='';
@@ -4339,7 +4374,7 @@ function renderRunPage(r){
   }
   if(r.mode==='routine'&&!plainRun(r)){const rb=renameBtn(h,r.rk);two.appendChild(actBtn('Rename',()=>rb.click()));}
   acts.appendChild(armBtn('Delete',()=>{closePages();deleteRun(r.id);}));
-  showPage({owner:'hist',key:'run'+r.id,back:'\u2039 '+(histStack.length>1?'Back':'History'),title:t.text,mono:t.mono,body:page,foot:acts});
+  showPage({owner:'hist',key:'run'+r.id,back:'\u2039 '+(histStack.length>1?'Back':runBack),title:t.text,mono:t.mono,body:page,foot:acts});
 }
 /* A fold of repeats opens to its runs. */
 function renderGroupPage(ids){
