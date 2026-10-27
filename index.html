@@ -515,6 +515,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
     <button type="button" role="tab" id="tabProgress" aria-controls="pageProgress" aria-selected="false">Stats</button>
     <button type="button" role="tab" id="tabSetup" aria-controls="pageSetup" aria-selected="false">Settings</button>
   </nav>
+  <p class="notice" id="updNote" hidden><span id="updText"></span> <button class="linkbtn" id="updGo" type="button">Update</button> <button class="linkbtn" id="updLater" type="button">Later</button></p>
 
   <div id="stTop"><p class="status" id="status" role="status" aria-live="polite"></p></div>
 
@@ -2208,7 +2209,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.54.3';                           /* shown beside the title */
+const VERSION='0.55.1';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -4610,7 +4611,7 @@ async function importRecs(file){
     recs.runs.sort((a,b)=>a.t-b.t);
     let addL=0;
     u.lib.forEach(c=>{const k=textKey(c.x,S.subdiv);if(k&&!libFor(k)&&recs.lib.length<MAX_LIB){recs.lib.push({id:recs.lib.some(q=>q.id===c.id)?libId():c.id,x:c.x,t:c.t});addL++;}});
-    let addS=0;(Array.isArray(o.lists)?o.lists:[]).forEach(l=>{if(l&&typeof l.url==='string'&&l.url.length<=500&&httpUrl(l.url)&&S.lists.length<20&&!S.lists.some(q=>q.url===l.url)){S.lists.push({url:l.url,name:typeof l.name==='string'?l.name.slice(0,60):'',t:0});addS++;}});
+    let addS=0;(Array.isArray(o.lists)?o.lists:[]).forEach(l=>{if(l&&typeof l.url==='string'&&l.url.length<=500&&httpUrl(l.url)&&S.lists.length<20&&!S.lists.some(q=>q.url===l.url||listName(q).toLowerCase()===listName({url:l.url,name:typeof l.name==='string'?l.name:''}).toLowerCase())){S.lists.push({url:l.url,name:typeof l.name==='string'?l.name.slice(0,60):'',t:0});addS++;}});
     /* The file is a saved copy: dated when it was written, and holding as many runs as it holds. A fresh install that imports its old records is not 'unsaved'. */
     const ids=new Set(u.runs.map(x=>x.id));let savedCopy=false;
     if((file.lastModified||0)>S.lastExport){S.lastExport=file.lastModified;S.expRuns=recs.runs.filter(x=>ids.has(x.id)).length+(fresh?(u.sum.runs||0):0);savedCopy=true;}
@@ -5861,7 +5862,27 @@ function wire(){
       handleHit({t:kbTime(e.timeStamp),kb:true,f:null,det:{hand:b.dataset.hand,conf:1}});
     });
   });
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&run&&!run.ended)lockScreen();});
+  /* A new version: the page asks the server for itself, reads the version number, and offers to reload if it is newer. The notice stays out of the way during a run. */
+  let newVer='',updLater=false,updAt=0;
+  const verGt=(a,b)=>{const x=a.split('.').map(Number),y=b.split('.').map(Number);for(let i=0;i<3;i++){if((x[i]||0)!==(y[i]||0))return (x[i]||0)>(y[i]||0);}return false;};
+  const showUpd=()=>{$('updNote').hidden=!newVer||updLater;$('updText').textContent='A new version ('+newVer+') is available.';};
+  async function checkUpdate(){
+    if(!/^https?:$/.test(location.protocol)||Date.now()-updAt<60000)return;
+    updAt=Date.now();
+    try{
+      const res=await fetch(location.pathname,{cache:'no-cache',credentials:'omit'});
+      if(!res.ok)return;
+      const m=/const VERSION='(\d+\.\d+\.\d+)'/.exec(await res.text());
+      if(m&&verGt(m[1],VERSION)){newVer=m[1];showUpd();}
+    }catch(e){}
+  }
+  $('updGo').addEventListener('click',()=>{
+    if(run&&!run.ended)return;
+    fetch(location.pathname,{cache:'reload',credentials:'omit'}).catch(()=>{}).then(()=>location.reload());
+  });
+  $('updLater').addEventListener('click',()=>{updLater=true;showUpd();});
+  setTimeout(checkUpdate,2000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){checkUpdate();if(run&&!run.ended)lockScreen();}});
   let lastW=0,rzT=0;
   window.addEventListener('resize',()=>{
     drawTrace();
