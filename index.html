@@ -859,29 +859,30 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
   <div class="page help" id="pageHelp" role="region" aria-label="Help" hidden>
     <section class="panel" id="help-how">
       <h3>How it works</h3>
-      <p>The app plays a click at your tempo and listens to your pad through the microphone. It matches each hit you play to the stroke that was due, then measures how many milliseconds early (<b>leading</b>) or late (<b>dragging</b>) it was. Nothing is uploaded. Everything stays in this browser.</p>
-      <p>Pick a sticking, press Start on the Play page, and play along with the moving line. Your strokes light up as you play, and the numbers appear when you stop.</p>
+      <p>The app plays a click and listens to your pad through the microphone. It matches each hit to the stroke that was due and measures how early (<b>leading</b>) or late (<b>dragging</b>) it was, in milliseconds. Nothing is uploaded. Everything stays in this browser.</p>
+      <p>Pick a sticking, press Start on the Play page and play along with the moving line. The numbers appear when you stop.</p>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
 
     <section class="panel" id="help-start">
       <h3>Quick start</h3>
       <ol>
-        <li><b>Settings:</b> pick a tempo, use headphones for the click, press "Turn microphone on" and hit the pad. The level bar should cross the trigger line on every stroke. Calibrating each stick is optional but lets the app tell L from R.</li>
-        <li><b>Library:</b> press <b>New</b> to write a routine, or <b>Import</b> to bring one in. Press <b>Edit</b> on a routine, write one exercise, or press <b>+ Add exercise</b> for more. One exercise plays on its own. Two or more make a routine, played one after another. Play shows how long each plays, the gap between them, and where to start.</li>
-        <li><b>Play:</b> set the tempo and click level, then press Start. <b>Plays for</b> sets how long each exercise plays, in minutes or passes. The page controls hide while you play. After a count-in, play on the moving line. Press Stop when you are done. The page stays in focus mode and shows your result first, with <b>Again</b>, <b>Next tempo</b> (when you cleared the target) and <b>Done</b>. The staff below it keeps its colours and numbers so you can see which strokes were off. Press Done to bring the controls back.</li>
+        <li><b>Settings:</b> pick a tempo, use headphones for the click, turn the microphone on and hit the pad. The level bar should cross the trigger line on every stroke. Calibrating each stick is optional, but lets the app tell L from R.</li>
+        <li><b>Library:</b> press <b>New</b> to write a routine or <b>Import</b> to bring one in. One exercise plays on its own. Two or more make a routine, played in order.</li>
+        <li><b>Play:</b> set the tempo, click level and how long each exercise plays, then press Start. After the count-in, play on the moving line and press Stop when you are done. Your result appears first, with <b>Again</b>, <b>Next tempo</b> (when you cleared the target) and <b>Done</b>. The staff keeps its colours and numbers so you can see which strokes were off. Done brings the controls back.</li>
       </ol>
-      <p>No microphone? In Settings, under Device, change Input to "Keyboard or pads". Press <b>F</b> for left and <b>J</b> for right. This is a test mode, and its timing is rougher than a microphone on a pad.</p>
+      <p>No microphone? Under Settings &rsaquo; Device, set Input to "Keyboard or pads" and press <b>F</b> for left, <b>J</b> for right. This is a test mode, and its timing is rougher than a pad with a microphone.</p>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
 
     <section class="panel" id="help-pages">
       <h3>The four pages and the editor</h3>
       <ul>
-        <li><b>Play:</b> how long it plays, tempo, click level, Start, Pause, Restart and Stop, the notation, the lead/drag gauge and your results. With a routine loaded, tap an exercise in the rows (or press ↑ ↓) to choose which one to start at. After a run, scroll the staff to look back over every exercise.</li>
-        <li><b>Library:</b> your saved routines, each with Edit and Play. <b>New</b> starts a routine and <b>Import</b> adds one from a file or a link. <b>Export</b> saves your whole library as one file, which Import reads back in one go and which can also be hosted as a library. What you are working on is the <b>scratch pad</b>: it is kept as you type, but a saved routine only changes when you press Save in the editor. The app asks before you open another routine and lose unsaved work. The editor opens full screen from Edit on the Play page or in the Library, and Back returns you.</li>
-        <li><b>Stats:</b> three views. <b>History</b> lists your last runs by exercise or routine, with Play. <b>Scores</b> shows each exercise, weakest first, and each routine, with tempo, accuracy, trend, lead or drag and evenness. <b>Achievements</b> shows your practice days for the last four weeks, a streak that forgives one rest day a week, and your badges.</li>
-        <li><b>Settings:</b> <b>Preferences</b> has the on-time window, visual pulse and click volume, and the colours. <b>Device</b> has the input, microphone level, stick calibration and latency. <b>Data</b> has export, import and clear, and the addresses of your library links.</li>
+        <li><b>Play:</b> tempo, click level, Start, Pause, Restart and Stop, the notation, the lead/drag gauge and your results.</li>
+        <li><b>Library:</b> your saved routines, each with Edit and Play. <b>New</b> starts a routine, <b>Import</b> adds one from a file or a link, and <b>Export</b> saves the whole library as one file that Import reads back (it can also be hosted as a library). A title such as "Rudiment: Single stroke roll" groups the routine under Rudiment. Remove takes two taps, and Undo follows.</li>
+        <li><b>The scratch pad</b> is what you are working on. It is kept as you type, but a saved routine changes only when you press Save. The app asks before you open another routine and lose unsaved work. The editor opens full screen from Edit, and Back returns you.</li>
+        <li><b>Stats:</b> <b>History</b> lists your runs by exercise or routine, with Play. <b>Scores</b> shows each exercise (weakest first) and each routine: tempo, accuracy, trend, lead or drag, and evenness. <b>Achievements</b> shows your practice days for the last four weeks, a streak that forgives one rest day a week, and badges.</li>
+        <li><b>Settings:</b> <b>Preferences</b> (on-time window, visual pulse, click volume, colours), <b>Device</b> (input, microphone level, stick calibration, latency) and <b>Data</b> (export, import, clear, storage, library links).</li>
       </ul>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
@@ -889,21 +890,22 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
     <section class="panel" id="help-play">
       <h3>Reading the Play page</h3>
       <ul>
-        <li><b>Each row is one pass</b> of an exercise, the way it is played. The top row is the one you are playing, and the next passes sit underneath. An exercise with 16 passes shows the same notation 16 times as it comes round. When a pass ends the rows slide up.</li>
-        <li><b>The moving line</b> glides across the row at an even pace and reaches a note exactly when it is due. Strike as the line reaches the note.</li>
-        <li><b>Letter colours:</b> green is on time, blue and slanted is early (leading), pink and underlined is late (dragging), and a faded letter means no hit was heard. The "on-time window" in Settings decides how close counts as green.</li>
-        <li><b>A small arrow tag</b> such as →R beside a letter means that stroke was due on the other hand but the app heard R. This needs both sticks calibrated.</li>
-        <li><b>The gauge</b> shows your average lead or drag over the last 32 strokes. Left of the middle is leading and right is dragging.</li>
-        <li><b>The level bars</b> appear below the timing trace when a run ends. They show how loud every stroke was compared with your own typical stroke: the middle is typical, higher is louder. Blue bars are left-hand strokes. Scroll sideways to see the whole run. The number is the spread in decibels for the whole run, so smaller is more even (with an accent or ghost rule, only the normal strokes count, since accents and ghosts are checked separately), and the line under it says if one hand is quieter. Levels are relative to your own playing, so they do not depend on how loud your pad is. Clipped hits are left out, and keyboard mode has no levels.</li>
-        <li><b>On narrow screens</b> a busy pass wraps onto two lines at the barline so the notes stay roomy.</li>
-        <li><b>Pause</b> stops the click. Resume counts you in again from the start of that pass. Tapping the notation while playing also pauses, and tapping it again resumes. <b>Restart</b> goes back to your chosen start exercise.</li>
+        <li><b>Each row is one pass</b> of an exercise. The top row is playing and the next passes sit beneath it. Rows slide up as each pass ends.</li>
+        <li><b>The moving line</b> reaches each note exactly when it is due. Strike as it arrives.</li>
+        <li><b>Letter colours:</b> green is on time, blue and slanted is early, pink and underlined is late, and a faded letter means no hit was heard. The on-time window in Settings sets how close counts as green.</li>
+        <li><b>An arrow tag</b> such as &rarr;R means the stroke was due on the other hand but the app heard R. This needs both sticks calibrated.</li>
+        <li><b>The gauge</b> shows your average lead or drag over the last 32 strokes. Left is leading, right is dragging.</li>
+        <li><b>The level bars</b> appear when a run ends. Each bar is one stroke's loudness against your own typical stroke: the middle is typical, higher is louder, and blue bars are left hand. Scroll sideways for the whole run. The number is the spread in dB, so smaller is more even. With an accent or ghost rule only the normal strokes count, since accents and ghosts are checked separately. A line below says if one hand is quieter. Clipped hits are left out, and keyboard input has no levels.</li>
+        <li><b>Narrow screens:</b> a busy pass wraps onto two lines at a barline.</li>
+        <li><b>Pause</b> stops the click, and Resume counts you in from the start of that pass. Tapping the notation also pauses and resumes. <b>Restart</b> goes back to your start exercise.</li>
+        <li><b>Choosing where to start:</b> with a routine, tap an exercise in the rows (or press &uarr; &darr;). After a run, scroll the staff to look back over every exercise.</li>
       </ul>
       <div class="ex">
         <h4>Click levels</h4>
         <pre>RLRR LRLL RLRR LRLL</pre>
         <div class="clk" style="--c:16"><div class="clt">4/4: one bar, sixteen strokes</div><span class="cln">Easy</span><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><span class="cln">Medium</span><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><span class="cln">Hard</span><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><span class="cln">Extreme</span><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></div><p class="clc">Each mark is one stroke. A filled mark has a click.</p>
         <div class="clk" style="--c:6"><div class="clt">6/8: one bar, six eighths</div><span class="cln">Medium</span><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><span class="cln">Hard</span><i class="on"></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><span class="cln">Extreme</span><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></div><p class="clc">Hard follows the two groups of three. Easy is every stroke, as above.</p>
-        <p>Choose the click level on the Play page: Easy clicks every stroke, Medium every beat, Hard on the strong beats (1 and 3, or each group), Extreme on beat 1 of each bar.</p>
+        <p>Choose the click level on the Play page. Easy clicks every stroke (none on rests), Medium every beat, Hard the strong beats (1 and 3, or the start of each group), and Extreme beat 1 of each bar. Count-in only clicks the count-in and is not scored. Each level is scored on its own, against the same grid. Use headphones, or the click is heard as strokes.</p>
         <button class="btn small" type="button" data-try="single" data-text="RLRR LRLL RLRR LRLL">Try it</button>
       </div>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
@@ -911,37 +913,39 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 
     <section class="panel" id="help-format">
       <h3>Writing a routine</h3>
-      <p><b>L</b> and <b>R</b> are strokes. A <b>space</b> starts a new group, and groups are joined with a beam. <b>_</b> is a rest. A <b>note code</b> says what the strokes are, and it means the same in any time signature: <b>q</b> quarter notes, <b>8</b> eighths, <b>16</b> sixteenths, <b>32</b> thirty-seconds, <b>8t</b> eighth-note triplets, <b>16t</b> sixteenth-note triplets, <b>5t</b> quintuplets and <b>7t</b> septuplets. A code applies to the strokes after it until the next code, so <b>8 RLRL 16 RLRL</b> is a beat of eighths, then a beat of sixteenths, in 4/4 or in cut time. A code only works where the strokes come out at a sensible speed for the beat. With no code, strokes are sixteenths. One line is one exercise. Two or more lines make a routine, played one after another.</p>
+      <p><b>L</b> and <b>R</b> are strokes, a <b>space</b> starts a new beamed group and <b>_</b> is a rest. One line is one exercise. Two or more lines make a routine, played in order. With no note code, strokes are sixteenths.</p>
+      <p>A <b>note code</b> sets what the strokes after it are, in any time signature, until the next code: <b>q</b> quarter notes, <b>8</b> eighths, <b>16</b> sixteenths, <b>32</b> thirty-seconds, <b>8t</b> eighth triplets, <b>16t</b> sixteenth triplets, <b>5t</b> quintuplets and <b>7t</b> septuplets. <b>8 RLRL 16 RLRL</b> is a beat of eighths, then a beat of sixteenths. The code has to give a sensible speed for the beat.</p>
       <h4>Simple examples</h4>
-      <p>Each example has a button that loads it for you.</p>
+      <p>Each example has a Try it button.</p>
       <div class="ex">
         <h4>Four beats of sixteenths</h4>
         <pre>RLRL RLRL RLRL RLRL</pre>
-        <p>Four groups of four. Each group is one beat. The notation shows a barline every two beats.</p>
+        <p>Four groups of four, one beat each. A barline falls every two beats.</p>
         <button class="btn small" type="button" data-try="single" data-text="RLRL RLRL RLRL RLRL">Try it</button>
       </div>
       <div class="ex">
         <h4>Two triplets in one beat</h4>
         <pre>8t RLR LRL</pre>
-        <p>Two groups of three, each with its own "3". Triplets are drawn with a bracket and the click accents each beat.</p>
+        <p>Two groups of three, each with its own "3". The click accents each beat.</p>
         <button class="btn small" type="button" data-try="single" data-text="8t RLR LRL">Try it</button>
       </div>
       <div class="ex">
         <h4>Sixteenths then sextuplets</h4>
         <pre>16 RLRL 16t RLR LRL</pre>
-        <p>One beat of sixteenths, then one beat of sextuplets written as two joined triplets (two "3" brackets). Writing <b>16t RLRLRL</b> with no space instead gives one run of six, with a single "6".</p>
+        <p>A beat of sixteenths, then a beat of sextuplets written as two triplets. <b>16t RLRLRL</b> with no space gives one run of six, with a single "6".</p>
         <button class="btn small" type="button" data-try="single" data-text="16 RLRL 16t RLR LRL">Try it</button>
       </div>
       <div class="ex">
         <h4>Rests</h4>
         <pre>16 R _ L _ R L _ L</pre>
-        <p>A rest takes up time but no hit is expected. A hit during a rest counts as an extra hit.</p>
+        <p>A rest takes time but expects no hit. A hit during a rest counts as an extra.</p>
         <button class="btn small" type="button" data-try="single" data-text="16 R _ L _ R L _ L">Try it</button>
       </div>
       <h4>Using the editor</h4>
-      <p>You do not have to type any of this. The notation help sits at the bottom of the editor, and each exercise has a <b>&#8942;</b> menu to insert, clone, move or delete it. <b>Builder</b> and <b>Text</b> are two views of the same routine. In <b>Builder</b> you pick a note code, then tap R, L, rest and space to add strokes to the exercise you are editing, and Time, Grouping and Strokes are above the list. In <b>Text</b> you edit the whole routine as plain text, one exercise per line, with line numbers beside it for errors. The page opens on Builder and remembers your last choice on each device. The speaker button opens a popup with the staff and plays the exercise as clicks, with a bar moving along the staff as each stroke sounds. Press play or stop in the popup to hear it again, and Close or Esc to leave it. In a routine, <b>Title</b>, <b>Each exercise plays for</b>, <b>Time</b>, <b>Grouping</b> and <b>Default note</b> are shared by every exercise, and <b>This exercise</b> overrides them for the one you are editing: its own length, tempo, time signature and grouping.</p>
+      <p>You do not have to type any of this. <b>Builder</b> and <b>Text</b> are two views of one routine. In Builder, pick a note code, then tap R, L, rest and space to add strokes. Each exercise has a <b>&#8942;</b> menu to insert, clone, move or delete it. In Text you edit the whole routine, one exercise per line, with line numbers beside any errors. The editor remembers your last view on each device.</p>
+      <p>The &#9654; beside Save plays the routine as it stands. The speaker button plays the exercise as clicks over the staff (Close or Esc to leave). In a routine, <b>Title</b>, <b>Each exercise plays for</b>, <b>Time</b>, <b>Grouping</b> and <b>Default note</b> apply to every exercise, and <b>This exercise</b> overrides them for the one you are editing.</p>
       <h4>The routine format</h4>
-      <p>A routine is plain text with one exercise per line. Lines starting with <b>#</b> are notes to yourself, and a name before a colon (<b>Exercise 4:</b>) is ignored, like a note. This app does not come with any book content. You supply the exercises.</p>
+      <p>A routine is plain text, one exercise per line. A line starting with <b>#</b> is a note to yourself, and a name before a colon (<b>Exercise 4:</b>) is ignored. This app has no book content. You supply the exercises.</p>
       <pre>title: My warm-up routine
 each: 1m
 RLRR LRLL
@@ -951,11 +955,11 @@ Exercise 4: RRLL RRLL
 16 RLRL 8t RLR LRL</pre>
       <h4>How long each exercise plays</h4>
       <ul>
-        <li><b>each:</b> sets the default for every exercise: <b>1m</b> (a minute), <b>90s</b> or <b>x8</b> (eight passes). With no <b>each:</b> line, the "Each exercise plays for" setting is used.</li>
-        <li><b>strokes:</b> sets what the strokes are for every exercise after it, so you do not repeat a marker on each line: <b>strokes: 8</b>, <b>strokes: 16</b> or <b>strokes: 8t</b>. A code inside an exercise still wins, and <b>strokes: off</b> goes back to sixteenths.</li>
-        <li><b>x16</b> at the end of an exercise's line means <b>play this exercise 16 times</b>. One pass is the exercise played once through.</li>
-        <li><b>90s</b> or <b>1.5m</b> means play for about that long. Time is rounded to whole passes.</li>
-        <li><b>@100</b> plays just that exercise at 100 BPM. Combine them freely: <b>RLRL RLRL x16 @80</b>.</li>
+        <li><b>each:</b> sets the default for every exercise: <b>1m</b> (a minute), <b>90s</b> or <b>x8</b> (eight passes). Without it, the "Each exercise plays for" setting applies.</li>
+        <li><b>strokes:</b> sets the note code for every exercise after it, such as <b>strokes: 8</b> or <b>strokes: 8t</b>. A code inside an exercise wins, and <b>strokes: off</b> goes back to sixteenths.</li>
+        <li><b>x16</b> at the end of a line plays that exercise <b>16 times</b>. One pass is one play-through.</li>
+        <li><b>90s</b> or <b>1.5m</b> plays for about that long, rounded to whole passes.</li>
+        <li><b>@100</b> plays that exercise at 100 BPM. Combine them: <b>RLRL RLRL x16 @80</b>.</li>
       </ul>
       <div class="ex">
         <h4>Passes: how x16 works</h4>
@@ -964,7 +968,7 @@ each: x4
 RLRL RLRL RLRL RLRL
 LRLR LRLR LRLR LRLR  x8
 RRLL RRLL RRLL RRLL  30s</pre>
-        <p>At 60 BPM one pass of each exercise takes 4 seconds. The first exercise gets the routine default of 4 passes, the second gets 8 passes, and the third plays for 30 seconds, which is 7 passes.</p>
+        <p>At 60 BPM a pass takes 4 seconds. The first exercise gets the default 4 passes and the second gets 8. The third plays for 30 seconds, which rounds to 8 passes.</p>
         <button class="btn small" type="button" data-try="routine" data-text="title: Passes demo&#10;each: x4&#10;RLRL RLRL RLRL RLRL&#10;LRLR LRLR LRLR LRLR  x8&#10;RRLL RRLL RRLL RRLL  30s">Try it</button>
       </div>
       <div class="ex">
@@ -989,13 +993,13 @@ RLRL RLRL RLRL RLRL  x6
         <button class="btn small" type="button" data-try="routine" data-text="title: Mixed&#10;RLRL RLRL RLRL RLRL  x6&#10;8t RLR LRL RLR LRL RLR LRL RLR LRL  x6 @70&#10;16 RLRL 16t RLR LRL  x6">Try it</button>
       </div>
       <h4>Time signatures</h4>
-      <p>By default an exercise is as long as the strokes in it. Add a time signature to say how long it should be. Write it with a colon, like <b>7/8:</b>, at the start of a line, or on its own line as <b>time: 7/8</b> to set it for every exercise after it. <b>time: off</b> goes back to plain exercises, and an exercise's own signature wins over the routine one.</p>
+      <p>An exercise is as long as its strokes unless you add a time signature. Write it with a colon at the start of a line (<b>7/8:</b>), or on its own line as <b>time: 7/8</b> for every exercise after it. <b>time: off</b> goes back to plain exercises, and an exercise's own signature wins.</p>
       <ul>
-        <li><b>The pulse is the beat you count.</b> In x/4 it is a quarter note, in x/8 an eighth note and in x/2 a half note, so <b>2/2</b> is cut time. <b>BPM counts pulses</b>, so 7/8 at 120 BPM is 120 eighth notes a minute and 2/2 at 60 BPM is 60 half notes a minute, which is how a cut-time book marks its tempo. The summary says "per eighth note" or "per half note" when that applies. Only /2, /4 and /8 are supported.</li>
-        <li><b>Codes mean what they say.</b> <b>8</b> is eighth notes in any signature. In 7/8, <b>RLRLRLR</b> with no code is seven eighth notes: with no code, the exercise's strokes are shared out evenly, so 14 strokes in 7/8 become sixteenths.</li>
-        <li><b>Grouping.</b> 7/8 is felt as 2+2+3, 6/8 as 3+3, 5/4 as 3+2. Write your own in brackets: <b>7/8 (3+2+2):</b>. The click is strong on the first pulse and lighter at the start of each group, and the notation is beamed the same way. A line with its own spaces keeps your spacing. The groups have to add up to the top number: 7/8 (3+2+2) is fine, 7/8 (3+2) is refused with a note. The builder's <b>Grouping</b> menu offers the common choices for 5/4, 6/8, 7/8 and 7/4, and the usual one is marked.</li>
-        <li><b>The count-in is one measure</b> of the signature, with the same accents.</li>
-        <li><b>The exercise has to add up.</b> It can be one bar or a whole number of bars, such as two bars of 2/2, with a barline between them and a strong click on each bar's first pulse. If the strokes do not fill the signature, a note appears, such as "this exercise holds 5 eighth notes but 7/8 has 7". Use <b>_</b> for rests. The exercise still plays as you wrote it.</li>
+        <li><b>The pulse is the beat you count:</b> a quarter note in x/4, an eighth in x/8 and a half note in x/2, so <b>2/2</b> is cut time. <b>BPM counts pulses.</b> 7/8 at 120 BPM is 120 eighths a minute, and 2/2 at 60 BPM is 60 half notes a minute, as a cut-time book marks it. Only /2, /4 and /8 are supported.</li>
+        <li><b>Codes mean what they say.</b> <b>8</b> is eighth notes in any signature. With no code, the strokes are shared evenly over the bar, so <b>RLRLRLR</b> in 7/8 is seven eighths and 14 strokes become sixteenths.</li>
+        <li><b>Grouping:</b> 7/8 is felt as 2+2+3, 6/8 as 3+3 and 5/4 as 3+2. Write your own in brackets, such as <b>7/8 (3+2+2):</b>. The groups must add up to the top number (7/8 (3+2) is refused). The click is strong on the first pulse and lighter at each group start, and the notation is beamed the same way. A line with its own spaces keeps your spacing. The Builder's <b>Grouping</b> menu offers the usual choices.</li>
+        <li><b>The count-in is one bar</b> of the signature, with the same accents.</li>
+        <li><b>The exercise has to add up.</b> It must fill one bar or a whole number of bars (two bars of 2/2 show a barline between them). If it does not, a note says so, such as "this exercise holds 5 eighth notes but 7/8 has 7". Use <b>_</b> for rests. It still plays as written.</li>
       </ul>
       <div class="ex">
         <h4>Odd meters</h4>
@@ -1018,23 +1022,27 @@ time: 2/2
 strokes: 8
 RLRL RLRL RLRL RLRL  x8
 LRLR LRLR LRLR LRLR  x8</pre>
-        <p>Two bars of eighth notes, written the way the page reads. The ¢ sign means the beat is a half note, so BPM is the book's half-note tempo.</p>
+        <p>Two bars of eighth notes, written as the page reads. The ¢ sign means a half-note beat, so BPM is the book's half-note tempo.</p>
         <button class="btn small" type="button" data-try="routine" data-text="title: Cut time&#10;time: 2/2&#10;strokes: 8&#10;RLRL RLRL RLRL RLRL  x8&#10;LRLR LRLR LRLR LRLR  x8">Try it</button>
       </div>
       <h4>Between exercises and the visual pulse</h4>
-      <p>"Between exercises" can be a 4-beat count-in, or <b>Straight on</b> (the default), where the next exercise starts without a pause. With Straight on, nothing marks the change except the notation: the rows slide up and the new exercise's first pass starts on the next beat.</p>
-      <p><b>Visual pulse</b> (in Settings, under Preferences) makes the moving line swell on every click, bigger on the first beat of each pass, so you can see the click as well as hear it. Turn it off for a plain moving line.</p>
-      <p><b>Colours</b> (in Settings, under Preferences) switches to a colour-blind safe set: blue for leading, orange for dragging and grey for on time. Early notes also lean and late notes are underlined, and results at or above your target carry a tick, so colour is never the only signal.</p>
+      <p><b>Between exercises</b> can be a 4-beat count-in or <b>Straight on</b> (the default). Straight on starts the next exercise with no pause, and only the notation marks the change: the rows slide up and the new exercise starts on the next beat.</p>
+      <p><b>Visual pulse</b> (Settings &rsaquo; Preferences) swells the moving line on every click, more on the first beat of a pass. Turn it off for a plain line.</p>
+      <p><b>Colours</b> (Settings &rsaquo; Preferences) switches to a colour-blind safe set: blue for leading, orange for dragging, grey for on time. Early notes also lean, late notes are underlined, and results at or above target carry a tick, so colour is never the only signal.</p>
       <h4>Saving and importing</h4>
-      <p><b>Save</b> keeps the routine in <b>your library</b>. Saving again updates it, so the runs you already played still replay as they were. The <b>&#8942;</b> beside Save has <b>Save as new</b>, which keeps your changes as a second routine and leaves the original as it was, and <b>Download file</b>, a .txt you can send to someone. On the Library page, <b>Import</b> adds a routine from a .txt, .json or .csv file straight to your library, or opens one from a link in the editor for you to review and Save. Text with errors opens in the editor too, so you can fix it. <b>New</b> starts again with an empty exercise. In History, the bookmark on a routine saves it or removes it from your library, and <b>Saved</b> shows your library, including routines you have not played yet. JSON also works: a list such as <b>["RLRR LRLL", {"sticking":"RLRL RLRL","passes":16}]</b>, or an object with <b>title</b>, <b>each</b> and <b>exercises</b>.</p>
+      <p><b>Save</b> keeps the routine in <b>your library</b>. If you change only the title, Save renames it. If you change the exercises, Save keeps the original and adds a new routine, so past runs still replay as played. The <b>&#8942;</b> beside Save has <b>Save as new</b> (a copy without changes) and <b>Download file</b> (a .txt to send).</p>
+      <p>On the Library page, <b>Import</b> adds a routine from a .txt, .json or .csv file, or opens one from a link in the editor to review and Save. Text with errors opens in the editor to fix. <b>New</b> starts an empty exercise. In History, the bookmark on a routine saves it or removes it from your library, and <b>Saved</b> lists your library, including routines you have not played. A title such as "Rudiment: Single stroke roll" groups it under Rudiment on the Library page.</p>
+      <p>JSON also works: a list such as <b>["RLRR LRLL", {"sticking":"RLRL RLRL","passes":16}]</b>, or an object with <b>title</b>, <b>each</b> and <b>exercises</b>.</p>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
 
     <section class="panel" id="help-library">
       <h3>Libraries and links</h3>
-      <p>On the Library page you can import from a web address. Press <b>Import</b>, choose <b>Add a link…</b> under <b>Routine or library link</b>, paste the address (and a name if you like) and press <b>Load</b>. If the file is one routine, it opens in the editor to look over, and then you press <b>Save</b> to add it or <b>Back</b> to leave it. If the file holds several routines, it is saved as a <b>library</b> in the dropdown. The dropdown keeps every library you have loaded, up to 20, so you can switch between them. To rename one, change its address or remove it, open <b>Settings &rsaquo; Data &rsaquo; Library links</b>. Export saves your libraries with your records. Each routine in a list is tagged <b>New</b> or <b>In library</b>, whatever its source. Tap one to open it in the editor, then press <b>Save</b> to add it, or press <b>Import all</b> to add every routine that is not already in your library at once. Routines with errors are skipped. A library you loaded recently is shown without a request until you press Load again. The <b>Starter routines</b> and <b>Rudiments</b> buttons on the Play page, shown until you have saved or played something, load two small libraries hosted next to the app: plain practice routines, and the standard rudiments that can be written as sticking. Beyond that, this app does not come with any routines. You choose the library.</p>
+      <p>On the Library page, press <b>Import</b>, choose <b>Add a link&hellip;</b> under <b>Routine or library link</b>, paste the address (and a name if you like) and press <b>Load</b>. A file with one routine opens in the editor to look over. Press <b>Save</b> to add it or <b>Back</b> to leave. A file with several routines is kept as a <b>library</b> in the dropdown, up to 20.</p>
+      <p>Each routine in a library is tagged <b>New</b> or <b>In library</b>. Tap one to open it in the editor and Save it, or press <b>Import all</b> to add every routine not already in your library (routines with errors are skipped). A library you loaded recently shows without a request until you press Load. To rename a library, change its address or remove it, use <b>Settings &rsaquo; Data &rsaquo; Library links</b>. Export includes them.</p>
+      <p>The <b>Starter routines</b> and <b>Rudiments</b> buttons on the Play page (shown until you have saved or played something) load two small libraries hosted next to the app: examples of the routine format, and the standard rudiments that can be written as sticking. The app has no other routines. You choose the library.</p>
       <h4>The library file</h4>
-      <p>One plain text file. Write each routine as you would in the editor, with its own <b>title:</b> line, and put a line of three or more dashes (or an em dash) between routines. A routine without a title is named by its place in the file. Up to 100 routines are read.</p>
+      <p>One plain text file. Write each routine as in the editor, with its own <b>title:</b> line, and put a line of three or more dashes (or an em dash) between routines. A routine without a title is named by its place in the file. Up to 100 routines are read.</p>
       <pre>title: Singles
 RLRL RLRL RLRL RLRL
 ---
@@ -1042,8 +1050,8 @@ title: Paradiddles
 RLRR LRLL RLRR LRLL</pre>
       <h4>Hosting one</h4>
       <ul>
-        <li>Put the file anywhere that serves plain text, such as a GitHub repository. Use the <b>Raw</b> button there, and paste the address that opens (it starts with <b>raw.githubusercontent.com</b>), or the address of the file on a site you host.</li>
-        <li>The host has to allow other sites to read the file. GitHub's raw addresses do. Many other sites do not, and the app will say it could not reach the address.</li>
+        <li>Put the file anywhere that serves plain text, such as a GitHub repository. Use its <b>Raw</b> button and paste that address (it starts with <b>raw.githubusercontent.com</b>).</li>
+        <li>The host must let other sites read the file. GitHub's raw addresses do. Many sites do not, and the app will say it could not reach the address.</li>
       </ul>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
@@ -1051,16 +1059,15 @@ RLRR LRLL RLRR LRLL</pre>
     <section class="panel" id="help-scores">
       <h3>Scores, tempo and progress</h3>
       <ul>
-        <li><b>On time</b> is the share of due strokes that landed inside your on-time window. With an accent or ghost rule, a stroke also has to be played as written: an accent clearly louder, a ghost clearly softer than the strokes around it. An exercise needs at least one full pass to be scored.</li>
-        <li><b>Exercise table:</b> after a routine run, each exercise gets its own accuracy, average error and spread, plus your earlier best at that tempo.</li>
-        <li><b>The target is 90%.</b> An exercise is "cleared" at a tempo when it reaches 90% there. After a run the app says whether every exercise cleared, and suggests +4 BPM if so. Otherwise it names the weak exercises and suggests staying at the same tempo. These are only suggestions. Any tempo is always allowed.</li>
-        <li><b>Discard this run</b> removes a run from your records, for example after a bad microphone read.</li>
-        <li><b>Stats page:</b> every exercise, weakest first, with accuracy at the tempo you last played, a trend and your lead/drag bias, grouped by click level. The play button loads that exercise. A routine counts as cleared at a tempo when one run covered every exercise and all reached 90%.</li>
-        <li><b>Practise weak exercises.</b> After a routine run, a button plays only the exercises that were below the target. Restart repeats the same exercises. A run of only some exercises never counts as clearing the routine.</li>
-        <li><b>Tempo guidance.</b> Each exercise in the start list shows the tempo it has cleared, or "new". The summary shows the tempo at which the whole routine has been cleared.</li>
-        <li><b>Records are saved in this browser only.</b> Use Export to keep a copy or move to another device, and Import to bring one back. The app asks the browser to keep your records and reminds you to export a copy if you never have, or if the last one is two weeks old. On iPhone and iPad, Safari can clear a site's data after about a week without use, so add the page to your Home Screen.</li>
-        <li><b>Staff and strokes of a run:</b> each run keeps the result of every stroke, so a run's page can show <b>Show staff</b>, the notation with every stroke coloured and read out, and the Play page rebuilds its review from the same saved run. This detail uses most of the space. <b>Settings &rsaquo; Data &rsaquo; Storage</b> shows what is taking room. Stroke detail may use about 40% of the space the browser allows, and past that the oldest runs lose their detail first and keep their totals.</li>
-        <li><b>History:</b> on the Stats page, switch to History to see your last 300 runs, grouped by exercise or routine with the most recent group first. Tap a group for its runs, and a run for its exercises. <b>Play</b> loads the same pattern or routine, tempo, click level and settings on the Play page, ready to start. A routine without a title is called Untitled 1, Untitled 2 and so on. The pencil renames it everywhere, in History and Scores. A title typed in the Editor replaces that name. <b>Delete</b> removes the run from your records. Runs older than the last 300 are folded into your totals, streaks, achievements and cleared tempos, which are kept for good, but they can no longer be replayed.</li>
+        <li><b>On time</b> is the share of due strokes inside your on-time window. With an accent or ghost rule a stroke must also be played as written: an accent clearly louder and a ghost clearly softer than its neighbours. An exercise needs at least one full pass to be scored.</li>
+        <li><b>Exercise table:</b> after a routine run, each exercise gets its accuracy, average error and spread, plus your earlier best at that tempo.</li>
+        <li><b>The target is 90%.</b> An exercise is "cleared" at a tempo when it reaches 90% there. After a run the app suggests +4 BPM if every exercise cleared. Otherwise it names the weak ones and suggests staying put. Any tempo is always allowed.</li>
+        <li><b>Discard this run</b> removes it from your records, for example after a bad microphone read.</li>
+        <li><b>Stats page:</b> every exercise, weakest first, with accuracy at your last tempo, trend and lead/drag bias, grouped by click level. Play loads that exercise. A routine is cleared at a tempo when one run covered every exercise and all reached 90%.</li>
+        <li><b>Practise weak exercises:</b> after a routine run, this plays only the exercises below target. Restart repeats the same ones. A partial run never counts as clearing the routine.</li>
+        <li><b>Tempo guidance:</b> each exercise in the start list shows the tempo it has cleared, or "new". The summary shows where the whole routine has been cleared.</li>
+        <li><b>Staff of a run:</b> each run keeps the result of every stroke. A run's page has a <b>Staff</b> group showing the notation with each stroke coloured and read out, and the Play page rebuilds its review from the same record.</li>
+        <li><b>History:</b> on the Stats page, switch to History for your last 300 runs, by exercise or routine, newest first. Tap a group for its runs and a run for its exercises. <b>Play</b> loads the same pattern or routine, tempo, click level and settings, ready to start. <b>Delete</b> removes the run. An untitled routine is called "Untitled 1", "Untitled 2" and so on. The pencil renames it everywhere, and a title typed in the editor replaces it. Runs beyond 300 are folded into your totals, streaks, achievements and cleared tempos, which are kept for good, but they can no longer be replayed.</li>
       </ul>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
@@ -1068,13 +1075,14 @@ RLRR LRLL RLRR LRLL</pre>
     <section class="panel" id="help-setup">
       <h3>Settings details</h3>
       <ul>
-        <li><b>Mic check:</b> in Settings, under Device, press Mic check, stay quiet for two seconds, then hit the pad ten times. It sets the trigger line and settle time, and tells you if the signal is too quiet, clipping, uneven or double triggering.</li>
-        <li><b>Trigger line:</b> raise it if room noise counts as hits, and lower it if soft strokes are missed.</li>
-        <li><b>Stick calibration:</b> hit the same spot of the pad with one stick only, at normal strength, until the count finishes. Do it for both sticks.</li>
-        <li><b>Test left vs right:</b> after calibrating, press it and hit once with whichever hand is shown, 20 times in a shuffled order. It reports how often the app named the right stick, how each hand did, and how many hits would be tagged with the wrong hand in a run. Below 90% is worth recalibrating.</li>
-        <li><b>Latency:</b> sound reaches the page late, and the click reaches your ears late. Press Auto calibrate once on each device. It plays clicks through the speakers and times when the mic hears them, so you don't play. Calibrate by playing is the second choice: hit right on each click and keep going until the number settles, then stop (80 hits or more). It assumes you were on the click on average. You can also type a number.</li>
-        <li><b>Click level:</b> Easy clicks on every stroke (none on rests). Medium clicks on every beat. Hard clicks on the strong beats: 1 and 3 in a bar of four, and on the start of each group in other bars (1 and 4 in 6/8), or just beat 1 when the bar is a single group of three. Extreme clicks only on the first beat of each bar. Count-in only clicks just the count-in and is not scored in your stats. Every level is scored against the same grid, and each level is cleared on its own. Use headphones, or the click will be picked up as strokes.</li>
-        <li><b>Accent and Other strokes:</b> on the Play page, these lay accents and ghost (soft) notes over whatever exercise is loaded. Accent picks which strokes are loud: the first of each group, each beat, each bar, every 2nd to 7th stroke (counted across passes, so the accent drifts when the count does not divide the pass), or just the right or left hand. Rests are never accented. Other strokes can be Normal or Ghost. The staff shows accents with a &gt; and ghost notes in brackets. With the microphone, Results compares each accent with the strokes around it and each ghost note with its neighbours, and reports how many were clear: an accent needs to be about 4 dB louder, a ghost note about 6 dB quieter. Strokes less than 60 ms apart are not judged. Ghost notes are heard down to a floor 14 dB below the trigger line (the dashed line on the Settings meter), kept at least 6 dB above the room noise from your last Mic check. A quiet hit only counts on a ghost note, so room noise elsewhere is ignored. The rule is saved with each run, and an exercise played with a different rule has its own scores and its own History group. Keyboard input does not judge loudness.</li>
+        <li><b>Mic check:</b> under Device, press it, stay quiet for two seconds, then hit the pad ten times. It sets the trigger line and settle time, and says if the signal is too quiet, clipping, uneven or double triggering.</li>
+        <li><b>Trigger line:</b> raise it if room noise counts as hits, lower it if soft strokes are missed.</li>
+        <li><b>Stick calibration:</b> hit the same spot with one stick only, at normal strength, until the count finishes. Do both sticks.</li>
+        <li><b>Test left vs right:</b> after calibrating, hit once with whichever hand is shown, 20 times in a shuffled order. It reports how often the app named the right stick, how each hand did, and how many hits a run would tag with the wrong hand. Below 90% is worth recalibrating.</li>
+        <li><b>Latency:</b> sound reaches the page late, and the click reaches your ears late. Press <b>Auto calibrate</b> once on each device. It plays clicks through the speakers and times when the mic hears them, so you do not play. <b>Calibrate by playing</b> is the second choice: hit on each click, 80 hits or more, until the number settles. It assumes you were on the click on average. You can also type a number.</li>
+        <li><b>Accent and Other strokes</b> (Play page) lay accents and ghost notes over the loaded exercise. Accent picks the loud strokes: the first of each group, each beat, each bar, every 2nd to 7th stroke (counted across passes, so it drifts if the count does not divide the pass), or the right or left hand. Rests are never accented. Other strokes can be Normal or Ghost. The staff shows accents with &gt; and ghost notes in brackets.</li>
+        <li><b>How accents are scored:</b> with the microphone, each accent is compared with the strokes around it and each ghost note with its neighbours. An accent must be about 4 dB louder and a ghost note about 6 dB quieter. Strokes less than 60 ms apart are not judged. Ghost notes are heard down to 14 dB below the trigger line (the dashed line on the Settings meter), kept at least 6 dB above the room noise from your last Mic check. A quiet hit counts only on a ghost note, so room noise elsewhere is ignored. The rule is saved with each run, and an exercise played with a different rule has its own scores and History group. Keyboard input does not judge loudness.</li>
+        <li><b>Records and storage:</b> records are saved in this browser only. Export keeps a copy or moves it to another device, and Import brings it back. The app reminds you if you have never exported, or the last copy is two weeks old. On iPhone and iPad, Safari can clear a site's data after about a week without use, so add the page to your Home Screen. <b>Settings &rsaquo; Data &rsaquo; Storage</b> shows what takes space. Stroke detail (what rebuilds a run's staff) may use about 40% of what the browser allows. Past that, the oldest runs lose their detail first and keep their totals.</li>
       </ul>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
@@ -2259,7 +2267,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.61.2';                           /* shown beside the title */
+const VERSION='0.61.3';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
