@@ -2206,7 +2206,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.53.2';                           /* shown beside the title */
+const VERSION='0.54.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2426,11 +2426,13 @@ function showMicError(err){
   setStatus(m);
   showSetup('dev');$('micMsg').textContent=m;
 }
+let audioFresh=false;   /* the output was just started or the microphone just opened, so the first click needs a little more time */
 async function ensureAudio(needMic){
   try{
     if(!ctx)ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'});
-    if(ctx.state!=='running')await ctx.resume();
-    if(needMic&&!node){
+    if(ctx.state!=='running'){await ctx.resume();audioFresh=true;}
+    try{const z=ctx.createBufferSource();z.buffer=ctx.createBuffer(1,1,ctx.sampleRate);z.connect(ctx.destination);z.start(0);}catch(e){}   /* wakes the output */
+    if(needMic&&!node){audioFresh=true;
       if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw {name:'insecure'};
       stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1}});
       const src=micSrc=ctx.createMediaStreamSource(stream);
@@ -2614,9 +2616,12 @@ function click(time,level){
 /* The point on the audio clock that is coming out of the speakers right now. The browser's output timestamp,
    advanced by the page clock, is smoother and closer to what you hear than the audio clock minus a latency guess. */
 function heardNow(){
-  const o=ctx.getOutputTimestamp?ctx.getOutputTimestamp():null;
-  if(o&&o.performanceTime>0&&o.contextTime>0)return o.contextTime+(performance.now()-o.performanceTime)/1000;
-  return ctx.currentTime-(ctx.outputLatency||0);
+  const now=ctx.currentTime,o=ctx.getOutputTimestamp?ctx.getOutputTimestamp():null;
+  if(o&&o.performanceTime>0&&o.contextTime>0){
+    const h=o.contextTime+(performance.now()-o.performanceTime)/1000;
+    if(h<=now+0.02&&h>=now-0.4)return h;   /* what is heard can be a little behind the audio clock, never ahead of it. A stale timestamp (some phones) would put the screen ahead of the clicks. */
+  }
+  return now-(ctx.outputLatency||0);
 }
 function kbTime(ts){
   const o=ctx.getOutputTimestamp?ctx.getOutputTimestamp():null;
@@ -2656,6 +2661,7 @@ function beginRun(mode,only){
     dirty:true,ended:false,totalExercises:routineParsed.exercises.length,only:only||null,
     startExercise:only?Math.min.apply(null,only):(S.mode==='routine'?S.startExercise:1)
   };
+  if(audioFresh){r.t0+=0.4;audioFresh=false;}
   run=r;
   if(!lat){view=r;r.gridSeg=0;document.body.dataset.state='run';if(S.mode==='routine')markExercises(r);applyLayout(layoutPlan(plan));rowsShown=ROWS;labelsOn=true;labelMode='routine';setRows(plan,0,false);paintRows(r,null);}
   else{
