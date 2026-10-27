@@ -474,6 +474,8 @@ body[data-edit=type] .buildonly{display:none}
     radial-gradient(farthest-side at 0 50%,color-mix(in srgb,var(--ink) 20%,transparent),transparent),radial-gradient(farthest-side at 100% 50%,color-mix(in srgb,var(--ink) 20%,transparent),transparent);
   background-position:left center,right center,left center,right center;background-size:36px 100%,36px 100%,14px 100%,14px 100%;
   background-repeat:no-repeat;background-attachment:local,local,scroll,scroll}
+/* the exercise number stays in view while the table scrolls sideways */
+.tablewrap.s1 th:first-child,.tablewrap.s1 td:first-child{position:sticky;left:0;z-index:1;background:var(--surface);box-shadow:1px 0 0 var(--line)}
 table{border-collapse:collapse;width:100%;font:13px var(--font-data);font-variant-numeric:tabular-nums}
 th{text-align:left;font:600 11px var(--font-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
 td{padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -1220,7 +1222,7 @@ RLRR LRLL RLRR LRLL</pre>
 
       <section class="panel" id="results" hidden aria-label="Results by exercise">
         <h3>Results by exercise</h3>
-        <div class="tablewrap"><table id="resTable"></table></div>
+        <div class="tablewrap s1"><table id="resTable"></table></div>
         <p class="insight" id="resInsight"></p>
         <div class="btns"><button class="btn small" id="csvBtn" type="button">Download CSV</button></div>
       </section>
@@ -1330,11 +1332,11 @@ function levelStats(items){
     if(ruled)items=plain;
     const d2=items.map(x=>x.db);
     if(d2.length<4)return null;
-    return {n:d2.length,sd:sd(d2),med:median(d2),diff:hd(items)};
+    return {n:d2.length,sd:sd(d2),med:median(d2),diff:hd(items),ruled:ruled};
   }
   if(items.length<4)return null;
   const ds=['A','g','n'].map(c=>hd(items.filter(x=>(x.dy||'n')===c))).filter(v=>v!==null);
-  return {n:items.length,sd:null,med:median(items.map(x=>x.db)),diff:ds.length?ds.reduce((a,v)=>a+v,0)/ds.length:null};
+  return {n:items.length,sd:null,med:median(items.map(x=>x.db)),diff:ds.length?ds.reduce((a,v)=>a+v,0)/ds.length:null,ruled:true};
 }
 function median(a){if(!a.length)return NaN;const b=[...a].sort((x,y)=>x-y),m=b.length>>1;return b.length%2?b[m]:(b[m-1]+b[m])/2;}
 function fmtMs(v,dec){
@@ -2206,7 +2208,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.54.0';                           /* shown beside the title */
+const VERSION='0.54.3';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -3571,7 +3573,7 @@ const fmtDb=v=>(Math.abs(v)<0.05?'0':(v>0?'+':'\u2212')+Math.abs(v).toFixed(1));
 /* The headline is the level of the last 32 strokes, or the whole run once it ends. The bars show the whole run against your typical stroke: bar height 50% is the median, the top is 12 dB louder, the bottom 12 dB softer. */
 function updateLevel(r){
   const done=!!(r&&r.ended),st=levelStats(done?r.lv:(r?r.seq.slice(-32):[]).filter(x=>x.db!==null));   /* the last 32 while playing, the whole run once it is over */
-  $('lvUnit').textContent=done?'dB, whole run':'dB, last 32';
+  $('lvUnit').textContent=(done?'dB, whole run':'dB, last 32')+(st&&st.ruled&&st.sd!==null?', normal strokes':'');
   if(lvStrip)lvStrip.draw();
   {
     const ln=$('lvDyn'),ds=done&&r.dyc?dynStats(r.dyl):null,t=[];
@@ -4208,17 +4210,6 @@ function deleteBtn(r){
 const dayWord=t=>{const n=Date.now(),k=dayKey(t);return k===dayKey(n)?'today':k===dayKey(n-864e5)?'yesterday':new Date(t).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'});};
 const fmtDay=t=>new Date(t).toLocaleDateString(undefined,{day:'numeric',month:'short'})+' '+new Date(t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
 /* One routine run, exercise by exercise, laid out like the Scores list. */
-function exTable(r){
-  const tw=tableWrap(),wrap=tw.wrap,tb=tw.tb;
-  /* every exercise of the routine in order, the ones not played greyed out */
-  const rows=r.exercises.map(b=>({i:b.i||0,b:b})).concat((r.sk||[]).map(b=>({i:b.i,k:b.k})));
-  rows.sort((a,c)=>a.i-c.i);
-  fillTable(tb,['#','Exercise','BPM','Accuracy','Bias ms','dB'],rows.map(x=>{
-    if(!x.b)return [[String(x.i),'muted'],[showKey(x.k),'seq muted'],['—','muted'],['skipped','muted'],['—','muted'],['—','muted']];
-    const b=x.b,pc=b.due?b.within/b.due:0;
-    return [[String(b.i||''),'muted'],[showKey(b.k),'seq'],String(b.bpm),accCell(pc),[heardEnough(b)?fmtMs(b.avg,1):'—',heardEnough(b)?biasCls(b.avg):'muted'],heardEnough(b)?dbCell(b.ls):['—','muted']];}));
-  return wrap;
-}
 /* Runs are grouped by exercise or routine, newest group first. A group of one run looks the same as a larger one. */
 /* A record or a level opens as a full-screen page with its own fixed header and, for a run, fixed actions. The list underneath is left alone, so Back returns to the same place. The phone's Back gesture closes it too. */
 let pgOwner='',pgKey='',pgN=0;
@@ -4406,7 +4397,7 @@ function runLevelText(r){   /* the level card of the play results, from what a r
   const lsv=ex.filter(b=>typeof b.ls==='number'),ldv=ex.filter(b=>typeof b.ld==='number');
   if(lsv.length){
     const v=lsv.reduce((a,b)=>a+b.ls,0)/lsv.length,d=ldv.length?ldv.reduce((a,b)=>a+b.ld,0)/ldv.length:null;
-    t.push(spreadWord(v).replace(/^./,c=>c.toUpperCase())+(d!==null&&Math.abs(d)>=3?', '+(d<0?'left':'right')+' hand '+Math.abs(d).toFixed(0)+' dB quieter':'')+'.');
+    t.push((/^[gbm2-7RL]$/.test(r.dy||'')?'Normal strokes: '+spreadWord(v):spreadWord(v).replace(/^./,c=>c.toUpperCase()))+(d!==null&&Math.abs(d)>=3?', '+(d<0?'left':'right')+' hand '+Math.abs(d).toFixed(0)+' dB quieter':'')+'.');
   }
   [['a','Accents'],['g','Ghost notes']].forEach(([c,w])=>{
     let n=0,k=0,sp=[];r.exercises.forEach(b=>{n+=b[c+'n']||0;k+=b[c+'c']||0;if(typeof b[c+'s']==='number')sp.push(b[c+'s']);});
@@ -4620,7 +4611,10 @@ async function importRecs(file){
     let addL=0;
     u.lib.forEach(c=>{const k=textKey(c.x,S.subdiv);if(k&&!libFor(k)&&recs.lib.length<MAX_LIB){recs.lib.push({id:recs.lib.some(q=>q.id===c.id)?libId():c.id,x:c.x,t:c.t});addL++;}});
     let addS=0;(Array.isArray(o.lists)?o.lists:[]).forEach(l=>{if(l&&typeof l.url==='string'&&l.url.length<=500&&httpUrl(l.url)&&S.lists.length<20&&!S.lists.some(q=>q.url===l.url)){S.lists.push({url:l.url,name:typeof l.name==='string'?l.name.slice(0,60):'',t:0});addS++;}});
-    if(addS)save();
+    /* The file is a saved copy: dated when it was written, and holding as many runs as it holds. A fresh install that imports its old records is not 'unsaved'. */
+    const ids=new Set(u.runs.map(x=>x.id));let savedCopy=false;
+    if((file.lastModified||0)>S.lastExport){S.lastExport=file.lastModified;S.expRuns=recs.runs.filter(x=>ids.has(x.id)).length+(fresh?(u.sum.runs||0):0);savedCopy=true;}
+    if(addS||savedCopy)save();
     saveRecs();renderProgress();
     const dup=u.runs.length-add+u.lib.length-addL,pl=(n,w)=>n+' '+w+(n===1?'':'s');
     say(add||addL||addS||dup?'Imported '+pl(add,'new run')+(u.lib.length?' and '+pl(addL,'routine'):'')+(addS?' and '+pl(addS,'shared list'):'')+(dup?' ('+dup+' already here)':'')+'.':'That file has no runs or routines in it.');
