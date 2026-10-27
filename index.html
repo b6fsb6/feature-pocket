@@ -115,9 +115,9 @@ body[data-run="1"] .notice{display:none}
 .stobar i.stomk{position:absolute;top:0;bottom:0;width:2px;background:var(--ink);opacity:.6}
 .stoleg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}
 .stoleg span{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
-.rvhost{overflow-y:auto;overflow-x:hidden;border-radius:10px;border:1px solid var(--line)}
+.rvhost{overflow-y:auto;overflow-x:hidden;border-radius:10px;overscroll-behavior:auto}
 .rvtrack{display:grid;gap:4px;align-content:start}
-.stsec{display:grid;gap:8px;justify-items:start}
+.stbody{padding:0 8px 12px;display:grid;gap:8px}
 .rows-track{position:relative;display:grid;gap:4px;align-content:start;min-height:calc(var(--nrows,3)*var(--rowh) + (var(--nrows,3) - 1)*4px);transition:transform .24s ease}
 #rowEnd{margin-top:8px}
 .prow{display:grid;gap:4px;align-content:start;min-height:var(--rowh);box-shadow:inset 0 0 0 transparent;transition:opacity .24s ease,background-color 1.1s ease,box-shadow 1.1s ease}
@@ -2257,7 +2257,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.60.0';                           /* shown beside the title */
+const VERSION='0.60.2';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2505,7 +2505,8 @@ const latencySec=()=>(S.latency==null?40:S.latency)/1000;
 
 /* ---------- audio ---------- */
 let lastStatus='';
-function setStatus(t){if(t===lastStatus)return;lastStatus=t;$('status').textContent=t;}
+let statusRun=false;   /* the message is about the run just played, so it belongs on the Play page only */
+function setStatus(t,run){statusRun=!!run;$('status').hidden=statusRun&&document.body.dataset.tab!=='play';if(t===lastStatus)return;lastStatus=t;$('status').textContent=t;}
 function showMicError(err){
   const n=err&&(err.name||err.message)||'';
   let m;
@@ -2924,9 +2925,9 @@ function endRun(){
   }else{
     const done=r.errs.length,segsDone=r.seg.filter(q=>q.slots>0).length;
     const finished=r.nextFin>=r.plan.slots.length;
-    if(!done)setStatus('Stopped. No strokes were heard. Check the microphone level in Settings, under Device.');
-    else if(S.mode==='routine')setStatus((finished?'Routine finished. ':'Stopped. ')+done+' strokes measured over '+segsDone+(segsDone===1?' exercise':' exercises')+'. Results are below.');
-    else setStatus((finished?'Finished. ':'Stopped. ')+done+' strokes measured.');
+    if(!done)setStatus('Stopped. No strokes were heard. Check the microphone level in Settings, under Device.',true);
+    else if(S.mode==='routine')setStatus((finished?'Routine finished. ':'Stopped. ')+done+' strokes measured over '+segsDone+(segsDone===1?' exercise':' exercises')+'. Results are below.',true);
+    else setStatus((finished?'Finished. ':'Stopped. ')+done+' strokes measured.',true);
   }
   setRunning(false);
   $('runInfo').hidden=true;
@@ -3634,15 +3635,19 @@ function showReview(){
   if(tp>REVIEW_ROWS){$('rowEnd').hidden=false;$('rowEnd').textContent='Showing the first '+REVIEW_ROWS+' of '+tp+' passes.';}
   paintRows(rm,null);
 }
-/* The staff of a saved run on its own page, drawn when asked for and scrolled by hand. */
+/* The staff of a saved run on its own page: a group that opens, drawn the first time it does, and scrolled by hand like the Play page after a run. */
 function staffSection(page,r){
-  const wrap=document.createElement('div');wrap.className='stsec';
-  const btn=actBtn('Show staff',()=>{
+  const det=document.createElement('details');det.className='stdet';
+  const sm=document.createElement('summary');sm.textContent='Staff';
+  const body=document.createElement('div');body.className='stbody';
+  det.append(sm,body);page.appendChild(det);
+  det.addEventListener('toggle',()=>{
+    if(!det.open||body.firstChild)return;
     const rm=reviewModel(r);
-    if(!rm){btn.replaceWith(Object.assign(document.createElement('div'),{className:'key',textContent:'The staff could not be rebuilt for this run.'}));return;}
+    if(!rm){const k=document.createElement('div');k.className='key';k.textContent='The staff could not be rebuilt for this run.';body.appendChild(k);return;}
     const host=document.createElement('div');host.className='rvhost';
     const tr=document.createElement('div');tr.className='rvtrack';host.appendChild(tr);
-    btn.replaceWith(host);
+    body.appendChild(host);
     const W=host.clientWidth||320,tp=Math.min(totalPasses(rm.plan),REVIEW_ROWS);
     for(let g=0;g<tp;g++){
       const o=buildRow(rm.plan,g,W);
@@ -3652,10 +3657,8 @@ function staffSection(page,r){
     }
     let h=0;[...tr.children].slice(0,4).forEach(c=>{h+=c.offsetHeight+4;});
     host.style.height=Math.min(h,tr.scrollHeight)+'px';
-    if(totalPasses(rm.plan)>REVIEW_ROWS){const n=document.createElement('div');n.className='key';n.textContent='Showing the first '+REVIEW_ROWS+' of '+totalPasses(rm.plan)+' passes.';wrap.appendChild(n);}
+    if(totalPasses(rm.plan)>REVIEW_ROWS){const n=document.createElement('div');n.className='key';n.textContent='Showing the first '+REVIEW_ROWS+' of '+totalPasses(rm.plan)+' passes.';body.appendChild(n);}
   });
-  const lbl=document.createElement('div');lbl.className='lbl';lbl.textContent='Staff';
-  wrap.append(lbl,btn);page.appendChild(wrap);
 }
 function previewRows(animate){
   if(S.mode==='routine'){
@@ -3711,6 +3714,7 @@ function showTab(t){
     b.tabIndex=(n===t||(t==='pattern'&&n===TABS[0]))?0:-1;
   });
   document.body.dataset.tab=t;
+  $('status').hidden=statusRun&&t!=='play';
   ($(t==='play'?'stPlay':'stTop')).appendChild($('status'));   /* on Play the message sits under the staff, so the staff never moves */
   if(t==='play'){drawTrace();winKey='';syncWindow(lastCur);}
   if(t==='progress')renderProgress();
