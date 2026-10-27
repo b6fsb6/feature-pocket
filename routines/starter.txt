@@ -1,41 +1,38 @@
-# Starter routines for Stick Timing Trainer. Routines are split by lines of dashes.
+# Starter routines. Each one shows one idea of the routine format. Routines are split by lines of dashes.
 ---
-title: Starter - Singles and doubles
+title: Starter: Four beats of sixteenths
 each: x8
 RLRL RLRL RLRL RLRL
-LRLR LRLR LRLR LRLR
-RRLL RRLL RRLL RRLL
-LLRR LLRR LLRR LLRR
-RRLL RLRL RRLL RLRL
 ---
-title: Starter - Paradiddles
-each: x8
-RLRR LRLL RLRR LRLL
-LRLL RLRR LRLL RLRR
-RLLR LRRL RLLR LRRL
-16t RLRRLL RLRRLL RLRRLL RLRRLL
+title: Starter: Two triplets in one beat
+each: x16
+8t RLR LRL
 ---
-title: Starter - Triplets
-each: x8
-8t RLR LRL RLR LRL
-8t RLL RRL RLL RRL
-8t RRL LLR RRL LLR
+title: Starter: Sixteenths then sextuplets
+each: x12
+16 RLRL 16t RLR LRL
 ---
-title: Starter - Sixteenths and triplets
-each: x6
-16 RLRL 16t RLR LRL 16 RLRL 16t RLR LRL
-16 RRLL 16t RLR LRL 16 RRLL 16t RLR LRL
-16 RLRR 16t RLR LRL 16 LRLL 16t LRL RLR
----
-title: Starter - Rests
+title: Starter: Rests
 each: x8
 16 R _ L _ R _ L _
 16 R L _ R L _ R L
 16 R _ _ L _ _ R L
 16 R R _ L L _ R L
 ---
-title: Starter - Odd meters
-each: x8
+title: Starter: Passes and tempo
+each: x4
+RLRL RLRL RLRL RLRL
+LRLR LRLR LRLR LRLR x8
+RRLL RRLL RRLL RRLL 30s
+RLRR LRLL RLRR LRLL x6 @80
+---
+title: Starter: Mixed subdivisions
+RLRL RLRL RLRL RLRL x6
+8t RLR LRL RLR LRL RLR LRL RLR LRL x6 @70
+16 RLRL 16t RLR LRL x6
+---
+title: Starter: Odd meters
+each: x4
 time: 7/8
 RLRLRLR
 RLRLRLRLRLRLRL
@@ -46,7 +43,7 @@ RLRLRLRLRLRL
 time: 5/4
 RLRLR
 ---
-title: Starter - Cut time
+title: Starter: Cut time
 each: x8
 time: 2/2
 strokes: 8
