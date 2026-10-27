@@ -845,7 +845,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         <li><b>Letter colours:</b> green is on time, blue and slanted is early (leading), pink and underlined is late (dragging), and a faded letter means no hit was heard. The "on-time window" in Settings decides how close counts as green.</li>
         <li><b>A small arrow tag</b> such as →R beside a letter means that stroke was due on the other hand but the app heard R. This needs both sticks calibrated.</li>
         <li><b>The gauge</b> shows your average lead or drag over the last 32 strokes. Left of the middle is leading and right is dragging.</li>
-        <li><b>The level bars</b> appear below the timing trace when a run ends. They show how loud every stroke was compared with your own typical stroke: the middle is typical, higher is louder. Blue bars are left-hand strokes. Scroll sideways to see the whole run. The number is the spread in decibels for the whole run, so smaller is more even, and the line under it says if one hand is quieter. Levels are relative to your own playing, so they do not depend on how loud your pad is. Clipped hits are left out, and keyboard mode has no levels.</li>
+        <li><b>The level bars</b> appear below the timing trace when a run ends. They show how loud every stroke was compared with your own typical stroke: the middle is typical, higher is louder. Blue bars are left-hand strokes. Scroll sideways to see the whole run. The number is the spread in decibels for the whole run, so smaller is more even (with an accent or ghost rule, only the normal strokes count, since accents and ghosts are checked separately), and the line under it says if one hand is quieter. Levels are relative to your own playing, so they do not depend on how loud your pad is. Clipped hits are left out, and keyboard mode has no levels.</li>
         <li><b>On narrow screens</b> a busy pass wraps onto two lines at the barline so the notes stay roomy.</li>
         <li><b>Pause</b> stops the click. Resume counts you in again from the start of that pass. Tapping the notation while playing also pauses, and tapping it again resumes. <b>Restart</b> goes back to your chosen start exercise.</li>
       </ul>
@@ -1312,6 +1312,8 @@ function sd(a){if(a.length<2)return NaN;const m=mean(a);let s=0;for(const v of a
 function strokeDb(pk,raw){return pk>0&&!(raw>=0.98)?20*Math.log10(pk):null;}
 /* items: [{db,hand}]. Evenness is the spread in dB, diff is the left hand minus the right. Needs four strokes. */
 function levelStats(items){
+  const plain=items.filter(x=>x.dy!=='A'&&x.dy!=='g');   /* with an accent or ghost rule, only the normal strokes are judged for evenness; accents and ghosts have their own check */
+  if(plain.length>=4)items=plain;
   const dbs=items.map(x=>x.db);
   if(dbs.length<4)return null;
   const L=items.filter(x=>x.hand==='L').map(x=>x.db),R=items.filter(x=>x.hand==='R').map(x=>x.db);
@@ -2061,14 +2063,15 @@ function dynStats(list){
   };
   /* An accent is measured against the strokes that are not accents. A ghost note is measured against normal strokes if there are some nearby, so a loud accent does not inflate the gap. With only accents about, one accent is enough, so the ghosts after the last accent of a run are still checked. */
   const ref=(i,dy)=>dy==='A'?near(i,d=>d!=='A'):(near(i,d=>d==='n')!==null?near(i,d=>d==='n'):near(i,d=>d!=='g',1));
-  const o={a:{n:0,ok:0,sum:0},g:{n:0,ok:0,sum:0}};
+  const o={a:{n:0,ok:0,sum:0,d:[]},g:{n:0,ok:0,sum:0,d:[]}};
   list.forEach((x,i)=>{
     const q=x.dy==='A'?o.a:(x.dy==='g'?o.g:null);if(!q)return;
     const m=ref(i,x.dy);if(m===null)return;
-    const gap=x.db-m;q.n++;q.sum+=gap;
+    const gap=x.db-m;q.n++;q.sum+=gap;q.d.push(x.db);
     x.v=x.dy==='A'?gap>=ACC_MIN:gap<=-GHOST_MIN;   /* the verdict stays on the stroke, so ACC can count it */
     if(x.v)q.ok++;
   });
+  o.a.sd=o.a.d.length>=3?sd(o.a.d):null;o.g.sd=o.g.d.length>=3?sd(o.g.d):null;   /* how even the accents are with each other, and the ghost notes with each other */
   return o;
 }
 /* A stroke counts toward ACC when it is on time and, where the exercise asks for an accent or a ghost note, played as written. Levels are judged against the strokes around each one, so this can only be done once the run is over. */
@@ -2186,7 +2189,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.46.0';                           /* shown beside the title */
+const VERSION='0.47.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2682,7 +2685,7 @@ function finalizeSlot(i){
     if(sure){r.checked++;Q.checked++;if(wrong){r.bad++;Q.bad++;}}
     r.errs.push(ms);Q.errs.push(ms);r.hand[hand].push(ms);Q.hand[hand].push(ms);
     const db=h.kb?null:strokeDb(h.pk,h.raw);
-    if(db!==null){r.lv.push({db:db,hand:hand});Q.lv.push({db:db,hand:hand});}
+    if(db!==null){r.lv.push({db:db,hand:hand,dy:sl.dy||''});Q.lv.push({db:db,hand:hand,dy:sl.dy||''});}
     const on=Math.abs(ms)<=S.tol;
     if(db!==null&&sl.dy&&!sl.tight)r.dyl.push({db:db,dy:sl.dy,si:sl.seg,ci:Q.sc.length,on:on});
     Q.sc.push(on?'o':'b');   /* o on time, b off time, m missed; s and l (accent too soft, ghost too loud) are set when the run ends */
@@ -3535,6 +3538,7 @@ function showTab(t){
   if(t==='library')renderLibraryPage();
   if(t==='pattern'){renderBuilder();syncInfo();}
 }
+const spreadWord=v=>(v<=2?'even':(v<=4?'a little uneven':'uneven'))+' ±'+v.toFixed(1)+' dB';
 const fmtDb=v=>(Math.abs(v)<0.05?'0':(v>0?'+':'\u2212')+Math.abs(v).toFixed(1));
 /* The headline is the level of the last 32 strokes, or the whole run once it ends. The bars show the whole run against your typical stroke: bar height 50% is the median, the top is 12 dB louder, the bottom 12 dB softer. */
 function updateLevel(r){
@@ -3544,8 +3548,8 @@ function updateLevel(r){
   {
     const ln=$('lvDyn'),ds=done&&r.dyc?dynStats(r.dyl):null,t=[];
     if(ds){
-      if(ds.a.n)t.push('Accents: '+ds.a.ok+' of '+ds.a.n+' clear, '+(ds.a.sum/ds.a.n>=0?'+':'')+(ds.a.sum/ds.a.n).toFixed(0)+' dB against the strokes around them.');
-      if(ds.g.n)t.push('Ghost notes: '+ds.g.ok+' of '+ds.g.n+' clear, '+(ds.g.sum/ds.g.n).toFixed(0)+' dB against the strokes around them.');
+      if(ds.a.n)t.push('Accents: '+ds.a.ok+' of '+ds.a.n+' clear, '+(ds.a.sum/ds.a.n>=0?'+':'')+(ds.a.sum/ds.a.n).toFixed(0)+' dB against the strokes around them'+(ds.a.sd!==null?', '+spreadWord(ds.a.sd):'')+'.');
+      if(ds.g.n)t.push('Ghost notes: '+ds.g.ok+' of '+ds.g.n+' clear, '+(ds.g.sum/ds.g.n).toFixed(0)+' dB against the strokes around them'+(ds.g.sd!==null?', '+spreadWord(ds.g.sd):'')+'.');
       if(!t.length)t.push('Not enough strokes to compare accents and ghost notes.');
     }
     ln.hidden=!t.length;ln.textContent=t.join(' ');
