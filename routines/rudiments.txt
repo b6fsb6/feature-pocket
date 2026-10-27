@@ -1,92 +1,92 @@
 # Standard rudiments, written as sticking. Routines are split by lines of dashes.
 # Rudiments with flams, drags or buzz strokes are left out: this notation has no grace notes.
 ---
-title: Rudiment: Single stroke roll (R lead)
+title: Rudiments: Single stroke roll (R lead)
 RLRL RLRL RLRL RLRL
 ---
-title: Rudiment: Single stroke roll (L lead)
+title: Rudiments: Single stroke roll (L lead)
 LRLR LRLR LRLR LRLR
 ---
-title: Rudiment: Single stroke four
+title: Rudiments: Single stroke four
 RLRL ____ LRLR ____
 ---
-title: Rudiment: Single stroke seven
+title: Rudiments: Single stroke seven
 7/8: 8 RLRLRLR
 ---
-title: Rudiment: Double stroke roll (R lead)
+title: Rudiments: Double stroke roll (R lead)
 RRLL RRLL RRLL RRLL
 ---
-title: Rudiment: Double stroke roll (L lead)
+title: Rudiments: Double stroke roll (L lead)
 LLRR LLRR LLRR LLRR
 ---
-title: Rudiment: Five stroke roll
+title: Rudiments: Five stroke roll
 RRLL R___ LLRR L___
 ---
-title: Rudiment: Seven stroke roll
+title: Rudiments: Seven stroke roll
 RRLL RRL_ LLRR LLR_
 ---
-title: Rudiment: Nine stroke roll
+title: Rudiments: Nine stroke roll
 RRLL RRLL R___ LLRR LLRR L___
 ---
-title: Rudiment: Six stroke roll
+title: Rudiments: Six stroke roll
 16t RLLRRL LRRLLR RLLRRL LRRLLR
 ---
-title: Rudiment: Ten stroke roll
+title: Rudiments: Ten stroke roll
 RRLL RRLL RL__ LLRR LLRR LR__
 ---
-title: Rudiment: Eleven stroke roll
+title: Rudiments: Eleven stroke roll
 RRLL RRLL RRL_ LLRR LLRR LLR_
 ---
-title: Rudiment: Thirteen stroke roll
+title: Rudiments: Thirteen stroke roll
 RRLL RRLL RRLL R___ LLRR LLRR LLRR L___
 ---
-title: Rudiment: Fifteen stroke roll
+title: Rudiments: Fifteen stroke roll
 RRLL RRLL RRLL RRL_ LLRR LLRR LLRR LLR_
 ---
-title: Rudiment: Seventeen stroke roll
+title: Rudiments: Seventeen stroke roll
 RRLL RRLL RRLL RRLL R___ LLRR LLRR LLRR LLRR L___
 ---
-title: Rudiment: Triple stroke roll
+title: Rudiments: Triple stroke roll
 8t RRR LLL RRR LLL
 ---
-title: Rudiment: Single paradiddle
+title: Rudiments: Single paradiddle
 RLRR LRLL RLRR LRLL
 ---
-title: Rudiment: Double paradiddle
+title: Rudiments: Double paradiddle
 16t RLRLRR LRLRLL
 ---
-title: Rudiment: Triple paradiddle
+title: Rudiments: Triple paradiddle
 RLRL RLRR LRLR LRLL
 ---
-title: Rudiment: Paradiddle-diddle
+title: Rudiments: Paradiddle-diddle
 16t RLRRLL RLRRLL RLRRLL RLRRLL
 ---
-title: Rudiment: Inverted paradiddle (RLLR)
+title: Rudiments: Inverted paradiddle (RLLR)
 RLLR LRRL RLLR LRRL
 ---
-title: Rudiment: Reversed paradiddle (RRLR)
+title: Rudiments: Reversed paradiddle (RRLR)
 RRLR LLRL RRLR LLRL
 ---
-title: Rudiment: Alternating lead switch (RLRL LRLR)
+title: Rudiments: Alternating lead switch (RLRL LRLR)
 RLRL LRLR RLRL LRLR
 ---
-title: Rudiment: Three right, one left
+title: Rudiments: Three right, one left
 RRRL RRRL RRRL RRRL
 ---
-title: Rudiment: Three left, one right
+title: Rudiments: Three left, one right
 LLLR LLLR LLLR LLLR
 ---
-title: Rudiment: One right, three left
+title: Rudiments: One right, three left
 RLLL RLLL RLLL RLLL
 ---
-title: Rudiment: One left, three right
+title: Rudiments: One left, three right
 LRRR LRRR LRRR LRRR
 ---
-title: Rudiment: Four-hand groups (RRRR LLLL)
+title: Rudiments: Four-hand groups (RRRR LLLL)
 RRRR LLLL RRRR LLLL
 ---
-title: Rudiment: Single stroke triplets
+title: Rudiments: Single stroke triplets
 8t RLR LRL RLR LRL
 ---
-title: Rudiment: Triplet double strokes
+title: Rudiments: Triplet double strokes
 16t RRLLRR LLRRLL RRLLRR LLRRLL
