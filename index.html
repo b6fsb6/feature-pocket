@@ -69,7 +69,7 @@ h3{font:600 12px var(--font-body);letter-spacing:.09em;text-transform:uppercase;
 .btn.primary.running{background:var(--ink);color:var(--bg)}
 .btn:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:14px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
 .field{display:grid;gap:5px;min-width:0}
 .field>label,.lbl{font:600 11px var(--font-body);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
 .field output{color:var(--ink);font-family:var(--font-data);letter-spacing:0;text-transform:none;margin-left:6px}
@@ -240,7 +240,7 @@ body[data-tab=pattern] header,body[data-tab=pattern] .tabs{display:none}   /* th
 .etitle b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .etitle .hint{margin:0;font-size:12px}
 .rtname{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
-.rtname b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rtname b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}.rtname .linkbtn{flex:none}
 body[data-review="1"] header,body[data-review="1"] .tabs,body[data-review="1"] .cfg,body[data-review="1"] .transport,body[data-review="1"] .notice{display:none}
 .advmain{margin-top:10px}
 .advmain .btn{min-height:48px;font-weight:700}
@@ -389,7 +389,7 @@ body[data-mode="routine"] .single-only{display:none}
 #editList{height:184px;max-height:none}
 .patrow{display:flex;gap:12px;align-items:center;justify-content:space-between}
 .patrow .btn{flex:none}
-.patrow .hint{margin:0}
+.patrow .hint{margin:0;min-width:0}
 .patline{margin:0;font:600 18px var(--font-data);letter-spacing:.1em;overflow-wrap:anywhere}
 .patline:empty{display:none}
 .erow .seq{letter-spacing:.1em;font-weight:600;overflow-wrap:anywhere}
@@ -2206,7 +2206,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.53.0';                           /* shown beside the title */
+const VERSION='0.53.2';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -4704,6 +4704,7 @@ function frame(){
   let bigText=null,ciK=0;
   if(r.ci){if(heard<r.ci.ps)ciK=clamp(Math.ceil((r.ci.ps-heard)/r.ci.beat),1,r.ci.n);else r.ci=null;}
   if(ciK){bigText=String(ciK);setStatus('Count-in · '+ciK);}
+  else if(s===0&&heard<0){setStatus('Get ready…');}   /* the short wait before the first click: no number yet, so the first number appears with the first click */
   else if(heard<sg.t0){
     const k=clamp(Math.ceil((sg.t0-heard)/sg.beat),1,Math.max(1,sg.leadBeats));
     setStatus((s===0?'Count-in · ':'Next exercise · ')+k);
