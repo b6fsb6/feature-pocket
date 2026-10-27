@@ -420,6 +420,7 @@ body[data-mode="routine"] .single-only{display:none}
 .bfields textarea,.bfields input{width:100%}
 .bfields textarea[readonly],.bfields input[readonly]{cursor:default}
 #bReadP{font:600 clamp(16px,5.3vw,24px) var(--font-data);letter-spacing:.06em;text-transform:uppercase}
+.xrow{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)} .xrow:last-child{border-bottom:0} .xrow input{margin-top:3px;width:20px;height:20px;flex:none} .xrow small{color:var(--muted);font-size:12px}
 .modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:16px}
 .mbox{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;width:min(560px,100%);max-height:92vh;display:grid;gap:12px;overflow:hidden}
 .ln{display:flex;align-items:flex-start;border:1px solid var(--line);border-radius:8px;background:var(--bg);overflow:hidden}
@@ -1272,6 +1273,14 @@ RLRR LRLL RLRR LRLL</pre>
     <div class="mhead"><h3 id="cfTitle"></h3></div>
     <p class="hint" id="cfText"></p>
     <div class="btns"><button class="btn" id="cfSave" type="button">Save</button><button class="btn" id="cfDiscard" type="button">Don't save</button><button class="btn" id="cfCancel" type="button">Cancel</button></div>
+  </div>
+</div>
+
+<div class="modal" id="expModal" role="dialog" aria-modal="true" aria-labelledby="exTitle" hidden>
+  <div class="mbox">
+    <div class="mhead"><h3 id="exTitle">Export</h3></div>
+    <div id="exOpts"></div>
+    <div class="btns"><button class="btn" id="exGo" type="button">Export</button><button class="btn" id="exCancel" type="button">Cancel</button></div>
   </div>
 </div>
 
@@ -2209,7 +2218,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.56.1';                           /* shown beside the title */
+const VERSION='0.58.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2261,6 +2270,8 @@ S.pulse=S.pulse!==false;
 S.palette=S.palette==='cb'?'cb':'std';
 if(typeof S.libId!=='string')S.libId='';
 S.startExercise=1;
+const PORTABLE=['bpm','tol','step','accent','others','vol','click','eachUnit','eachVal','gap','pulse','palette','theme'];   /* settings that travel in an export. Microphone, latency and sensitivity belong to the device and stay out. */
+S.expSel=(S.expSel&&typeof S.expSel==='object')?{hist:S.expSel.hist!==false,lib:S.expSel.lib!==false,lists:S.expSel.lists!==false,set:S.expSel.set!==false}:{hist:true,lib:true,lists:true,set:true};   /* what the Export dialog ticks, remembered */
 if(!isFinite(+S.lastExport))S.lastExport=0;
 if(!isFinite(+S.expRuns))S.expRuns=0;
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({settings:S,cal:cal}));}catch(e){}};
@@ -2336,16 +2347,24 @@ function unpackRecs(o){
   if(o.names&&typeof o.names==='object')Object.keys(o.names).forEach(k=>{if(typeof o.names[k]==='string'&&o.names[k].trim())names[k.slice(0,40)]=o.names[k].trim().slice(0,80);});
   return {runs:runs,sum:sum,names:names,nu:Math.max(1,Math.round(num(o.nu))||1),lib:cleanLib(o.lib,items,o.v)};
 }
-function packRecs(){
+function packRecs(sel){   /* sel says which parts to include; none given means the records as kept in this browser (no settings) */
+  sel=sel||{hist:true,lib:true,lists:true,set:false};
   const items={},hk=t=>{const h=hashOf(t);items[h]=t;return h;};
-  const runs=recs.runs.map(r=>{
+  const runs=(sel.hist?recs.runs:[]).map(r=>{
     const o=Object.assign({},r,{exercises:r.exercises.map(b=>Object.assign({},b,{k:hk(b.k)}))});
     if(r.sk)o.sk=r.sk.map(b=>({i:b.i,k:hk(b.k)}));
     if(r.rp)o.rp=Object.assign({},r.rp,{x:hk(r.rp.x)});
     return o;
   });
-  const q=recs.sum;
-  return {v:2,lists:S.lists.map(l=>({url:l.url,name:l.name||undefined})),items:items,names:recs.names,nu:recs.nu,lib:recs.lib.map(e=>({id:e.id,x:hk(e.x),t:e.t})),runs:runs,sum:{runs:q.runs,sec:q.sec,sw:q.sw||0,pf:q.pf||0,days:q.days,rt:q.rt,pat:Object.keys(q.pat).map(k=>Object.assign({},q.pat[k],{k:hk(q.pat[k].k)}))}};
+  const q=recs.sum,out={v:2};
+  if(sel.hist)out.sum={runs:q.runs,sec:q.sec,sw:q.sw||0,pf:q.pf||0,days:q.days,rt:q.rt,pat:Object.keys(q.pat).map(k=>Object.assign({},q.pat[k],{k:hk(q.pat[k].k)}))};
+  if(sel.lib)out.lib=recs.lib.map(e=>({id:e.id,x:hk(e.x),t:e.t}));
+  if(sel.lists)out.lists=S.lists.map(l=>({url:l.url,name:l.name||undefined}));
+  if(sel.set){out.settings={};PORTABLE.forEach(k=>{out.settings[k]=S[k];});}
+  if(sel.hist||sel.lib){out.names=recs.names;out.nu=recs.nu;}
+  if(sel.hist)out.runs=runs;
+  out.items=items;
+  return out;
 }
 try{
   const o=JSON.parse(localStorage.getItem(RKEY)||'null');
@@ -4572,11 +4591,19 @@ function applyDy(code){
   $('accent').value=S.accent;$('others').value=S.others;save();pushDet();
 }
 /* Hands text to the browser as a download. */
-function saveFile(name,type,text){
+/* On iPhone and iPad the file goes to the share sheet, where Save to Files (iCloud Drive) is one of the choices. Elsewhere it downloads. Resolves false if the share sheet was dismissed. */
+async function saveFile(name,type,text){
+  if(isApple()&&navigator.share&&navigator.canShare){
+    try{
+      const f=new File([text],name,{type:type});
+      if(navigator.canShare({files:[f]})){await navigator.share({files:[f]});return true;}
+    }catch(e){if(e&&e.name==='AbortError')return false;}   /* any other failure falls through to a download */
+  }
   const url=URL.createObjectURL(new Blob([text],{type:type})),a=document.createElement('a');
   a.href=url;a.download=name;
   document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),2000);
+  return true;
 }
 function stamp(withTime){
   const d=new Date(),p=n=>String(n).padStart(2,'0');
@@ -4613,10 +4640,30 @@ function syncBackup(){
   if(S.lastExport)t+=(t?' ':'')+'Last copy saved '+new Date(S.lastExport).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})+'.';
   $('storeMsg').textContent=t;
 }
-function exportRecs(){
-  S.lastExport=Date.now();S.expRuns=totalRuns();save();syncBackup();
-  saveFile('pocket-records-'+stamp()+'.json','application/json',JSON.stringify(packRecs()));
-  $('recMsg').textContent='Exported '+totalRuns()+(totalRuns()===1?' run':' runs')+' and '+recs.lib.length+(recs.lib.length===1?' routine':' routines')+'.';$('recMsg').classList.add('flash');
+/* The Export dialog: tick what to include. The ticks are remembered for next time. */
+const EXP_PARTS=[['hist','History and scores',()=>totalRuns()+(totalRuns()===1?' run':' runs')],['lib','Routines',()=>recs.lib.length+(recs.lib.length===1?' routine':' routines')],['lists','Routine lists',()=>S.lists.length+(S.lists.length===1?' list':' lists')],['set','Settings',()=>'tempo, click, accents, theme']];
+function openExport(){
+  const box=$('exOpts');box.textContent='';
+  EXP_PARTS.forEach(([k,name,det])=>{
+    const l=document.createElement('label');l.className='xrow';
+    const c=document.createElement('input');c.type='checkbox';c.checked=!!S.expSel[k];c.dataset.k=k;
+    const t=document.createElement('span');t.textContent=name;const d=document.createElement('small');d.textContent=det();t.appendChild(document.createElement('br'));t.appendChild(d);
+    c.addEventListener('change',()=>{$('exGo').disabled=!box.querySelector('input:checked');});
+    l.append(c,t);box.appendChild(l);
+  });
+  $('exGo').disabled=!box.querySelector('input:checked');
+  $('expModal').hidden=false;$('exGo').focus();
+}
+async function exportRecs(){
+  const sel={};$('exOpts').querySelectorAll('input').forEach(c=>{sel[c.dataset.k]=c.checked;});
+  S.expSel=sel;save();$('expModal').hidden=true;
+  const saved=await saveFile('pocket-records-'+stamp()+'.json','application/json',JSON.stringify(packRecs(sel)));
+  if(!saved){$('recMsg').textContent='Export cancelled.';return;}
+  if(sel.hist){S.lastExport=Date.now();S.expRuns=totalRuns();save();}
+  syncBackup();
+  const pl=(n,w)=>n+' '+w+(n===1?'':'s'),bits=[];
+  if(sel.hist)bits.push(pl(totalRuns(),'run'));if(sel.lib)bits.push(pl(recs.lib.length,'routine'));if(sel.lists)bits.push(pl(S.lists.length,'list'));if(sel.set)bits.push('settings');
+  $('recMsg').textContent='Exported '+bits.join(', ')+'.';$('recMsg').classList.add('flash');
 }
 async function importRecs(file){
   if(!file)return;
@@ -4624,7 +4671,7 @@ async function importRecs(file){
   if(file.size>5e6){say('That file is too large.');return;}
   try{
     const o=JSON.parse(await file.text());
-    if(!o||(!Array.isArray(o.runs)&&!Array.isArray(o.lib)))throw 0;
+    if(!o||(!Array.isArray(o.runs)&&!Array.isArray(o.lib)&&!Array.isArray(o.lists)&&!(o.settings&&typeof o.settings==='object')))throw 0;
     const u=unpackRecs(o),fresh=!recs.runs.length&&!recs.sum.runs;
     if(fresh&&u.sum.runs)recs.sum=u.sum;
     const have=new Set(recs.runs.map(x=>x.id));let add=0;
@@ -4636,11 +4683,14 @@ async function importRecs(file){
     let addS=0;(Array.isArray(o.lists)?o.lists:[]).forEach(l=>{if(l&&typeof l.url==='string'&&l.url.length<=500&&httpUrl(l.url)&&S.lists.length<20&&!S.lists.some(q=>q.url===l.url||listName(q).toLowerCase()===listName({url:l.url,name:typeof l.name==='string'?l.name:''}).toLowerCase())){S.lists.push({url:l.url,name:typeof l.name==='string'?l.name.slice(0,60):'',t:0});addS++;}});
     /* The file is a saved copy: dated when it was written, and holding as many runs as it holds. A fresh install that imports its old records is not 'unsaved'. */
     const ids=new Set(u.runs.map(x=>x.id));let savedCopy=false;
-    if((file.lastModified||0)>S.lastExport){S.lastExport=file.lastModified;S.expRuns=recs.runs.filter(x=>ids.has(x.id)).length+(fresh?(u.sum.runs||0):0);savedCopy=true;}
-    if(addS||savedCopy)save();
+    if(Array.isArray(o.runs)&&(file.lastModified||0)>S.lastExport){S.lastExport=file.lastModified;S.expRuns=recs.runs.filter(x=>ids.has(x.id)).length+(fresh?(u.sum.runs||0):0);savedCopy=true;}
+    let setN=0;   /* settings from the file: only the ones that travel, and only of the right kind. The page reloads so everything is read back through the usual checks. */
+    if(o.settings&&typeof o.settings==='object')PORTABLE.forEach(k=>{const v=o.settings[k];if(v!==undefined&&typeof v===typeof S[k]){S[k]=v;setN++;}});
+    if(addS||savedCopy||setN)save();
     saveRecs();renderProgress();
+    if(setN){say('Imported settings. Reloading…');setTimeout(()=>location.reload(),900);return;}
     const dup=u.runs.length-add+u.lib.length-addL,pl=(n,w)=>n+' '+w+(n===1?'':'s');
-    say(add||addL||addS||dup?'Imported '+pl(add,'new run')+(u.lib.length?' and '+pl(addL,'routine'):'')+(addS?' and '+pl(addS,'shared list'):'')+(dup?' ('+dup+' already here)':'')+'.':'That file has no runs or routines in it.');
+    say(add||addL||addS||dup?'Imported '+pl(add,'new run')+(u.lib.length?' and '+pl(addL,'routine'):'')+(addS?' and '+pl(addS,'shared list'):'')+(dup?' ('+dup+' already here)':'')+'.':'That file has nothing new in it.');
   }catch(e){say('That file is not a records export.');}
 }
 let clearArm=0;
@@ -5798,8 +5848,11 @@ function wire(){
   $('hvEx').addEventListener('click',()=>{hview='ex';histShown=20;histStack=[];renderHistory();});
   $('hfAll').addEventListener('click',()=>{histFilter='all';histShown=20;histDays=7;renderHistory();});
   $('hfSaved').addEventListener('click',()=>{histFilter='saved';histShown=20;histDays=7;renderHistory();});
-  $('recExport').addEventListener('click',exportRecs);
-  $('bakGo').addEventListener('click',exportRecs);
+  $('recExport').addEventListener('click',openExport);
+  $('bakGo').addEventListener('click',openExport);
+  $('exGo').addEventListener('click',exportRecs);
+  $('exCancel').addEventListener('click',()=>{$('expModal').hidden=true;});
+  $('expModal').addEventListener('click',e=>{if(e.target===$('expModal'))$('expModal').hidden=true;});
   $('recImport').addEventListener('click',()=>$('recFile').click());
   $('recFile').addEventListener('change',async e=>{await importRecs(e.target.files&&e.target.files[0]);e.target.value='';});
   $('recClear').addEventListener('click',clearRecs);
