@@ -420,6 +420,7 @@ body[data-mode="routine"] .single-only{display:none}
 .bfields textarea,.bfields input{width:100%}
 .bfields textarea[readonly],.bfields input[readonly]{cursor:default}
 #bReadP{font:600 clamp(16px,5.3vw,24px) var(--font-data);letter-spacing:.06em;text-transform:uppercase}
+.xlist{max-height:40vh;overflow:auto;border-top:1px solid var(--line);margin-left:32px} .xlist .xrow:last-child{border-bottom:0}
 .xrow{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)} .xrow:last-child{border-bottom:0} .xrow input{margin-top:3px;width:20px;height:20px;flex:none} .xrow small{color:var(--muted);font-size:12px}
 .modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:16px}
 .mbox{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;width:min(560px,100%);max-height:92vh;display:grid;gap:12px;overflow:hidden}
@@ -2218,7 +2219,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.58.0';                           /* shown beside the title */
+const VERSION='0.58.1';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -4642,7 +4643,9 @@ function syncBackup(){
 }
 /* The Export dialog: tick what to include. The ticks are remembered for next time. */
 const EXP_PARTS=[['hist','History and scores',()=>totalRuns()+(totalRuns()===1?' run':' runs')],['lib','Routines',()=>recs.lib.length+(recs.lib.length===1?' routine':' routines')],['lists','Routine lists',()=>S.lists.length+(S.lists.length===1?' list':' lists')],['set','Settings',()=>'tempo, click, accents, theme']];
+let exMode='recs';
 function openExport(){
+  exMode='recs';$('exTitle').textContent='Export';
   const box=$('exOpts');box.textContent='';
   EXP_PARTS.forEach(([k,name,det])=>{
     const l=document.createElement('label');l.className='xrow';
@@ -5233,11 +5236,35 @@ async function loadLibrary(){
 }
 /* Adds every routine in the list that is not already in the library. Routines with errors are skipped, since they need fixing first. */
 /* The whole library as one shared-list file: routines split by lines of dashes. Importing it again adds only what is missing. */
+/* The Library export dialog: all routines, or tick the ones to take. */
 function exportLibrary(){
   if(!recs.lib.length)return;
-  const all=recs.lib.slice().sort((a,b)=>entryName(a).localeCompare(entryName(b),undefined,{sensitivity:'base'}));
-  saveFile('pocket-library-'+stamp()+'.txt','text/plain',all.map(e=>entryText(e).trim()).join('\n---\n')+'\n');
-  $('libMsg').textContent='Exported '+all.length+(all.length===1?' routine':' routines')+'. Import it as a file, or host it as a shared list.';
+  exMode='lib';$('exTitle').textContent='Export routines';
+  const box=$('exOpts');box.textContent='';
+  const row=(label,detail,id)=>{
+    const l=document.createElement('label');l.className='xrow';
+    const c=document.createElement('input');c.type='checkbox';c.checked=true;if(id)c.dataset.id=id;
+    const t=document.createElement('span');t.textContent=label;if(detail){const d=document.createElement('small');d.textContent=detail;t.appendChild(document.createElement('br'));t.appendChild(d);}
+    l.append(c,t);return {l:l,c:c};
+  };
+  const all=row('All routines',recs.lib.length+(recs.lib.length===1?' routine':' routines'),'');
+  box.appendChild(all.l);
+  const list=document.createElement('div');list.className='xlist';
+  const items=recs.lib.slice().sort((a,b)=>entryName(a).localeCompare(entryName(b),undefined,{sensitivity:'base'})).map(e=>{const n=exerciseCount(e.x),r=row(entryName(e),n+(n===1?' exercise':' exercises'),e.id);list.appendChild(r.l);return r;});
+  box.appendChild(list);
+  const sync=()=>{$('exGo').disabled=!items.some(r=>r.c.checked);all.c.checked=items.every(r=>r.c.checked);};
+  all.c.addEventListener('change',()=>{items.forEach(r=>{r.c.checked=all.c.checked;});sync();});
+  items.forEach(r=>r.c.addEventListener('change',sync));
+  sync();$('expModal').hidden=false;$('exGo').focus();
+}
+function doLibExport(){
+  const ids=new Set([...$('exOpts').querySelectorAll('input[data-id]:checked')].map(c=>c.dataset.id));
+  $('expModal').hidden=true;
+  const all=recs.lib.filter(e=>ids.has(e.id)).sort((a,b)=>entryName(a).localeCompare(entryName(b),undefined,{sensitivity:'base'}));
+  if(!all.length)return;
+  saveFile('pocket-library-'+stamp()+'.txt','text/plain',all.map(e=>entryText(e).trim()).join('\n---\n')+'\n').then(ok=>{
+    $('libMsg').textContent=ok?'Exported '+all.length+(all.length===1?' routine':' routines')+'. Import it as a file, or host it as a shared list.':'Export cancelled.';
+  });
 }
 function addItems(items){
   const o={added:0,had:0,bad:0,full:false};
@@ -5850,7 +5877,7 @@ function wire(){
   $('hfSaved').addEventListener('click',()=>{histFilter='saved';histShown=20;histDays=7;renderHistory();});
   $('recExport').addEventListener('click',openExport);
   $('bakGo').addEventListener('click',openExport);
-  $('exGo').addEventListener('click',exportRecs);
+  $('exGo').addEventListener('click',()=>{if(exMode==='lib')doLibExport();else exportRecs();});
   $('exCancel').addEventListener('click',()=>{$('expModal').hidden=true;});
   $('expModal').addEventListener('click',e=>{if(e.target===$('expModal'))$('expModal').hidden=true;});
   $('recImport').addEventListener('click',()=>$('recFile').click());
