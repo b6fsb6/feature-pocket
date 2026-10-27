@@ -184,6 +184,7 @@ body[data-input="mic"] .kb-only{display:none}
 .wsteps li{padding-left:2px}
 .wsteps li>span:first-child{display:block;margin-bottom:6px}
 body[data-run="1"] #welcome{display:none}
+#welcome{gap:10px}#welcome h3,#welcome p{margin:0}#welcome p{font-size:14.5px;line-height:1.5}
 .hscw{position:relative;min-width:0}
 .hscroll{overflow-x:auto;overscroll-behavior-x:contain;height:170px}
 .hscroll.lv{height:56px}
@@ -1103,6 +1104,7 @@ RLRR LRLL RLRR LRLL</pre>
     <p class="notice" id="calNote" hidden>Latency is not calibrated, so lead and drag readings will be off. <button class="linkbtn" id="calGo" type="button">Calibrate</button></p>
     <section class="panel" id="welcome" aria-label="Getting started" hidden>
       <h3>Getting started</h3>
+      <p>Pocket plays a click and listens to your pad through the microphone. It measures how early (<b>leading</b>) or late (<b>dragging</b>) each hit is, in milliseconds. Nothing is uploaded. Everything stays in this browser.</p>
       <ol class="wsteps">
         <li><span>Set up the microphone so your strokes are heard.</span><button class="btn small" id="wMic" type="button">Open Settings</button></li>
         <li><span>Get something to play. A starter pattern is loaded, or add routines.</span><span class="btns"><button class="btn small" id="wStarter" type="button">Starter routines</button><button class="btn small" id="wRudiments" type="button">Rudiments</button><button class="btn small" id="wImport" type="button">Import your own</button></span></li>
@@ -2267,7 +2269,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.61.6';                           /* shown beside the title */
+const VERSION='0.61.8';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
