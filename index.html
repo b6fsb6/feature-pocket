@@ -79,8 +79,11 @@ input[type=range]{width:100%;accent-color:var(--accent);min-height:32px}
 .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
 .tempo{display:grid;grid-template-columns:44px 1fr 44px;gap:8px;align-items:center}
 .tempo .btn{padding:0;font-size:22px;min-height:44px}
-.tc{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.6fr);gap:12px;align-items:end}
-.tc select{font-size:14px;padding-left:8px;padding-right:4px}
+.tc{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.6fr);gap:12px;align-items:start}   /* both columns: a label line, then a 44px control, so the two lines meet */
+.tc .field>label{display:flex;align-items:center;height:20px;line-height:20px;overflow:hidden}
+.tc .field output{line-height:20px}
+.tc select{font-size:14px;padding-left:8px;padding-right:4px;height:44px;box-sizing:border-box}
+.tc .tempo{min-height:44px}
 .tc .tempo{grid-template-columns:36px 1fr 36px;gap:4px}
 .tc .tempo .btn{min-width:0;width:36px}
 .err{color:var(--late);font-size:13px;margin:0;min-height:0}
@@ -383,6 +386,9 @@ html.pgopen{overflow:hidden}
 body[data-mode="single"] .routine-only{display:none}
 body[data-mode="routine"] .single-only{display:none}
 .urlrow{display:grid;grid-template-columns:1fr auto;gap:8px}
+#libUrl{word-break:break-all}
+.lnk{display:grid;gap:8px;margin:0 0 14px}
+.lnk input{min-width:0}.lnk .lnkurl{word-break:break-all;color:var(--muted,inherit);font-size:.9em}.lnk .btns{margin:0}
 .exercises{max-height:288px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
 .erow{cursor:pointer;display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:8px;padding:7px 10px;border-bottom:1px solid var(--line);font:13px var(--font-data);align-items:baseline}
 .erow:last-child{border-bottom:0}
@@ -420,6 +426,13 @@ body[data-mode="routine"] .single-only{display:none}
 .bfields textarea,.bfields input{width:100%}
 .bfields textarea[readonly],.bfields input[readonly]{cursor:default}
 #bReadP{font:600 clamp(16px,5.3vw,24px) var(--font-data);letter-spacing:.06em;text-transform:uppercase}
+/* click level diagrams in Help */
+.clk{display:grid;grid-template-columns:64px repeat(var(--c),1fr);gap:3px;align-items:center;margin:10px 0 2px}
+.clk .clt{grid-column:1/-1;font:600 11px var(--font-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.clk .cln{font-size:12px;color:var(--muted)}
+.clk i{display:block;aspect-ratio:1;border-radius:3px;border:1px solid var(--line);background:transparent}
+.clk i.on{background:var(--fill);border-color:var(--fill)}
+.clc{font-size:12px;color:var(--muted);margin:2px 0 8px}
 .xlist{max-height:40vh;overflow:auto;border-top:1px solid var(--line);margin-left:32px} .xlist .xrow:last-child{border-bottom:0}
 .xrow{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)} .xrow:last-child{border-bottom:0} .xrow input{margin-top:3px;width:20px;height:20px;flex:none} .xrow small{color:var(--muted);font-size:12px}
 .modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:16px}
@@ -630,6 +643,11 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <p class="hint" id="recMsg"></p>
       <p class="hint" id="storeMsg"></p>
     </section>
+    <section class="panel" aria-label="Library links" id="lnkBox" hidden>
+      <h3>Library links</h3>
+      <p class="hint">Libraries you loaded from a web address. Edit changes a name or address. Update saves it and Cancel leaves it as it was.</p>
+      <div id="lnkList"></div>
+    </section>
     </div>
   </div>
 
@@ -643,7 +661,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <h3>Your routines</h3>
       <div class="seg hfilter" role="group" aria-label="Sort by"><button class="on" id="lsRecent" type="button" aria-pressed="true">Recent</button><button id="lsName" type="button" aria-pressed="false">Name</button></div>
       <div class="hist" id="libPage"></div>
-      <p class="hint" id="libEmpty" hidden>Nothing saved yet. New starts a routine. Import brings one in from a file, a link or a shared list.</p>
+      <p class="hint" id="libEmpty" hidden>Nothing saved yet. New starts a routine. Import brings one in from a file or a link.</p>
     </section>
   </div>
 
@@ -844,9 +862,9 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <h3>The four pages and the editor</h3>
       <ul>
         <li><b>Play:</b> how long it plays, tempo, click level, Start, Pause, Restart and Stop, the notation, the lead/drag gauge and your results. With a routine loaded, scroll or swipe the rows (or press ↑ ↓) to choose which exercise to start at.</li>
-        <li><b>Library:</b> your saved routines, each with Edit and Play. <b>New</b> starts a routine and <b>Import</b> adds one from a file, a link or a shared list. <b>Export</b> saves your whole library as one file, which Import reads back in one go and which can also be hosted as a shared list. What you are working on is the <b>scratch pad</b>: it is kept as you type, but a saved routine only changes when you press Save in the editor. The app asks before you open another routine and lose unsaved work. The editor opens full screen from Edit on the Play page or in the Library, and Back returns you.</li>
+        <li><b>Library:</b> your saved routines, each with Edit and Play. <b>New</b> starts a routine and <b>Import</b> adds one from a file or a link. <b>Export</b> saves your whole library as one file, which Import reads back in one go and which can also be hosted as a library. What you are working on is the <b>scratch pad</b>: it is kept as you type, but a saved routine only changes when you press Save in the editor. The app asks before you open another routine and lose unsaved work. The editor opens full screen from Edit on the Play page or in the Library, and Back returns you.</li>
         <li><b>Stats:</b> three views. <b>History</b> lists your last runs by exercise or routine, with Play. <b>Scores</b> shows each exercise, weakest first, and each routine, with tempo, accuracy, trend, lead or drag and evenness. <b>Achievements</b> shows your practice days for the last four weeks, a streak that forgives one rest day a week, and your badges.</li>
-        <li><b>Settings:</b> <b>Preferences</b> has the on-time window, visual pulse and click volume, and the colours. <b>Device</b> has the input, microphone level, stick calibration and latency. <b>Data</b> has export, import and clear.</li>
+        <li><b>Settings:</b> <b>Preferences</b> has the on-time window, visual pulse and click volume, and the colours. <b>Device</b> has the input, microphone level, stick calibration and latency. <b>Data</b> has export, import and clear, and the addresses of your library links.</li>
       </ul>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
@@ -863,6 +881,14 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         <li><b>On narrow screens</b> a busy pass wraps onto two lines at the barline so the notes stay roomy.</li>
         <li><b>Pause</b> stops the click. Resume counts you in again from the start of that pass. Tapping the notation while playing also pauses, and tapping it again resumes. <b>Restart</b> goes back to your chosen start exercise.</li>
       </ul>
+      <div class="ex">
+        <h4>Click levels</h4>
+        <pre>RLRR LRLL RLRR LRLL</pre>
+        <div class="clk" style="--c:16"><div class="clt">4/4: one bar, sixteen strokes</div><span class="cln">Easy</span><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><span class="cln">Medium</span><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><span class="cln">Hard</span><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><span class="cln">Extreme</span><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></div><p class="clc">Each mark is one stroke. A filled mark has a click.</p>
+        <div class="clk" style="--c:6"><div class="clt">6/8: one bar, six eighths</div><span class="cln">Medium</span><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><span class="cln">Hard</span><i class="on"></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><span class="cln">Extreme</span><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></div><p class="clc">Hard follows the two groups of three. Easy is every stroke, as above.</p>
+        <p>Choose the click level on the Play page: Easy clicks every stroke, Medium every beat, Hard on the strong beats (1 and 3, or each group), Extreme on beat 1 of each bar.</p>
+        <button class="btn small" type="button" data-try="single" data-text="RLRR LRLL RLRR LRLL">Try it</button>
+      </div>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
 
@@ -876,12 +902,6 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         <pre>RLRL RLRL RLRL RLRL</pre>
         <p>Four groups of four. Each group is one beat. The notation shows a barline every two beats.</p>
         <button class="btn small" type="button" data-try="single" data-text="RLRL RLRL RLRL RLRL">Try it</button>
-      </div>
-      <div class="ex">
-        <h4>Click levels</h4>
-        <pre>RLRR LRLL RLRR LRLL</pre>
-        <p>Choose the click level on the Play page: Easy clicks every stroke, Medium every beat, Hard on 1 and 3, Extreme on 1 only.</p>
-        <button class="btn small" type="button" data-try="single" data-text="RLRR LRLL RLRR LRLL">Try it</button>
       </div>
       <div class="ex">
         <h4>Two triplets in one beat</h4>
@@ -989,14 +1009,14 @@ LRLR LRLR LRLR LRLR  x8</pre>
       <p><b>Visual pulse</b> (in Settings, under Preferences) makes the moving line swell on every click, bigger on the first beat of each pass, so you can see the click as well as hear it. Turn it off for a plain moving line.</p>
       <p><b>Colours</b> (in Settings, under Preferences) switches to a colour-blind safe set: blue for leading, orange for dragging and grey for on time. Early notes also lean and late notes are underlined, and results at or above your target carry a tick, so colour is never the only signal.</p>
       <h4>Saving and importing</h4>
-      <p><b>Save</b> keeps the routine in <b>your library</b>. Saving again updates it, so the runs you already played still replay as they were. The <b>&#8942;</b> beside Save has <b>Save as new</b>, which keeps your changes as a second routine and leaves the original as it was, and <b>Download file</b>, a .txt you can send to someone. On the Library page, <b>Import</b> adds a routine from a .txt, .json or .csv file straight to your library, or opens one from a link or a shared list in the editor for you to review and Save. Text with errors opens in the editor too, so you can fix it. <b>New</b> starts again with an empty exercise. In History, the bookmark on a routine saves it or removes it from your library, and <b>Saved</b> shows your library, including routines you have not played yet. JSON also works: a list such as <b>["RLRR LRLL", {"sticking":"RLRL RLRL","passes":16}]</b>, or an object with <b>title</b>, <b>each</b> and <b>exercises</b>.</p>
+      <p><b>Save</b> keeps the routine in <b>your library</b>. Saving again updates it, so the runs you already played still replay as they were. The <b>&#8942;</b> beside Save has <b>Save as new</b>, which keeps your changes as a second routine and leaves the original as it was, and <b>Download file</b>, a .txt you can send to someone. On the Library page, <b>Import</b> adds a routine from a .txt, .json or .csv file straight to your library, or opens one from a link in the editor for you to review and Save. Text with errors opens in the editor too, so you can fix it. <b>New</b> starts again with an empty exercise. In History, the bookmark on a routine saves it or removes it from your library, and <b>Saved</b> shows your library, including routines you have not played yet. JSON also works: a list such as <b>["RLRR LRLL", {"sticking":"RLRL RLRL","passes":16}]</b>, or an object with <b>title</b>, <b>each</b> and <b>exercises</b>.</p>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
 
     <section class="panel" id="help-library">
-      <h3>Shared lists</h3>
-      <p>On the Library page you can import from a web address. Press <b>Import</b>, choose <b>Add a link…</b> under <b>Link or shared list</b>, paste the address (and a name if you like) and press <b>Load</b>. If the file is one routine, it opens in the editor to look over, and then you press <b>Save</b> to add it or <b>Back</b> to leave it. If the file holds several routines, it becomes a <b>shared list</b> in the dropdown. The dropdown keeps every list you have loaded, up to 20, so you can switch between them. <b>Rename</b> and <b>Forget</b> change the chosen one, and Export saves your lists with your records. Each routine in a list is tagged <b>New</b> or <b>In library</b>, whatever its source. Tap one to open it in the editor, then press <b>Save</b> to add it, or press <b>Import all</b> to add every routine that is not already in your library at once. Routines with errors are skipped. A list you loaded recently is shown without a request until you press Load again. The <b>Starter routines</b> button on the Play page, shown until you have saved or played something, loads a small list of plain practice routines that is hosted next to the app. Beyond that, this app does not come with any routines. You choose the list.</p>
-      <h4>The list file</h4>
+      <h3>Libraries and links</h3>
+      <p>On the Library page you can import from a web address. Press <b>Import</b>, choose <b>Add a link…</b> under <b>Routine or library link</b>, paste the address (and a name if you like) and press <b>Load</b>. If the file is one routine, it opens in the editor to look over, and then you press <b>Save</b> to add it or <b>Back</b> to leave it. If the file holds several routines, it is saved as a <b>library</b> in the dropdown. The dropdown keeps every library you have loaded, up to 20, so you can switch between them. To rename one, change its address or remove it, open <b>Settings &rsaquo; Data &rsaquo; Library links</b>. Export saves your libraries with your records. Each routine in a list is tagged <b>New</b> or <b>In library</b>, whatever its source. Tap one to open it in the editor, then press <b>Save</b> to add it, or press <b>Import all</b> to add every routine that is not already in your library at once. Routines with errors are skipped. A library you loaded recently is shown without a request until you press Load again. The <b>Starter routines</b> button on the Play page, shown until you have saved or played something, loads a small library of plain practice routines that is hosted next to the app. Beyond that, this app does not come with any routines. You choose the library.</p>
+      <h4>The library file</h4>
       <p>One plain text file. Write each routine as you would in the editor, with its own <b>title:</b> line, and put a line of three or more dashes (or an em dash) between routines. A routine without a title is named by its place in the file. Up to 100 routines are read.</p>
       <pre>title: Singles
 RLRL RLRL RLRL RLRL
@@ -1035,7 +1055,7 @@ RLRR LRLL RLRR LRLL</pre>
         <li><b>Stick calibration:</b> hit the same spot of the pad with one stick only, at normal strength, until the count finishes. Do it for both sticks.</li>
         <li><b>Test left vs right:</b> after calibrating, press it and hit once with whichever hand is shown, 20 times in a shuffled order. It reports how often the app named the right stick, how each hand did, and how many hits would be tagged with the wrong hand in a run. Below 90% is worth recalibrating.</li>
         <li><b>Latency:</b> sound reaches the page late, and the click reaches your ears late. Press Auto calibrate once on each device. It plays clicks through the speakers and times when the mic hears them, so you don't play. Calibrate by playing is the second choice: hit right on each click and keep going until the number settles, then stop (80 hits or more). It assumes you were on the click on average. You can also type a number.</li>
-        <li><b>Click level:</b> Easy clicks on every stroke (none on rests). Medium clicks on every beat. Hard clicks on beats 1 and 3, or every second beat from the start of the bar. Extreme clicks only on the first beat of each bar. Count-in only clicks just the count-in and is not scored in your stats. Every level is scored against the same grid, and each level is cleared on its own. Use headphones, or the click will be picked up as strokes.</li>
+        <li><b>Click level:</b> Easy clicks on every stroke (none on rests). Medium clicks on every beat. Hard clicks on the strong beats: 1 and 3 in a bar of four, and on the start of each group in other bars (1 and 4 in 6/8), or just beat 1 when the bar is a single group of three. Extreme clicks only on the first beat of each bar. Count-in only clicks just the count-in and is not scored in your stats. Every level is scored against the same grid, and each level is cleared on its own. Use headphones, or the click will be picked up as strokes.</li>
         <li><b>Accent and Other strokes:</b> on the Play page, these lay accents and ghost (soft) notes over whatever exercise is loaded. Accent picks which strokes are loud: the first of each group, each beat, each bar, every 2nd to 7th stroke (counted across passes, so the accent drifts when the count does not divide the pass), or just the right or left hand. Rests are never accented. Other strokes can be Normal or Ghost. The staff shows accents with a &gt; and ghost notes in brackets. With the microphone, Results compares each accent with the strokes around it and each ghost note with its neighbours, and reports how many were clear: an accent needs to be about 4 dB louder, a ghost note about 6 dB quieter. Strokes less than 60 ms apart are not judged. Ghost notes are heard down to a floor 14 dB below the trigger line (the dashed line on the Settings meter), kept at least 6 dB above the room noise from your last Mic check. A quiet hit only counts on a ghost note, so room noise elsewhere is ignored. The rule is saved with each run, and an exercise played with a different rule has its own scores and its own History group. Keyboard input does not judge loudness.</li>
       </ul>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
@@ -1088,8 +1108,8 @@ RLRR LRLL RLRR LRLL</pre>
         <select id="click">
           <option value="strokes">Easy: every stroke</option>
           <option value="beat">Medium: the beat</option>
-          <option value="half">Hard: 1 and 3</option>
-          <option value="bar">Extreme: 1 only</option>
+          <option value="half">Hard: strong beats</option>
+          <option value="bar">Extreme: 1 of each bar</option>
           <option value="off">Count-in only: not scored</option>
         </select></div>
       <div class="field">
@@ -1253,18 +1273,19 @@ RLRR LRLL RLRR LRLL</pre>
       <input type="file" id="routineFile" accept=".txt,.json,.csv,text/plain,application/json" hidden>
     </div>
     <p class="err" id="openErr" role="alert"></p>
-    <div class="osec" id="libBox"><div class="olbl">Link or shared list</div>
+    <div class="osec" id="libBox"><div class="olbl">Routine or library link</div>
       <div class="urlrow">
-        <select id="libSel" aria-label="Shared list"></select>
+        <select id="libSel" aria-label="Library"></select>
         <button class="btn" id="libGo" type="button">Load</button>
       </div>
-      <input type="text" id="libraryUrl" aria-label="Link to a routine or a shared list" inputmode="url" autocomplete="off" autocorrect="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" spellcheck="false" placeholder="https://example.com/my-routines.txt" hidden>
-      <input type="text" id="libName" aria-label="Shared list name" autocomplete="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" maxlength="60" placeholder="Name (optional)" hidden>
+      <input type="text" id="libraryUrl" aria-label="Link to a routine or a library" inputmode="url" autocomplete="off" autocorrect="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" spellcheck="false" placeholder="https://example.com/my-routines.txt" hidden>
+      <input type="text" id="libName" aria-label="Library name" autocomplete="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" maxlength="60" placeholder="Name (optional)" hidden>
       <p class="err" id="libErr" role="alert"></p>
+      <p class="hint" id="libUrl"></p>
       <p class="hint" id="libInfo"></p>
       <button class="btn small" id="libAll" type="button" hidden>Import all</button>
-      <div class="exercises" id="libList" role="list" aria-label="Routines in the list" hidden></div>
-      <p class="hint">A shared list is one text file of routines split by lines of dashes. <button class="btn small" id="openHelp" type="button" data-help="help-library">Help</button> <button class="linkbtn" id="libRen" type="button" hidden>Rename</button> <button class="linkbtn" id="libClear" type="button" hidden>Forget</button></p>
+      <div class="exercises" id="libList" role="list" aria-label="Routines in the library" hidden></div>
+      <p class="hint">A library is one text file of routines, split by lines of dashes. A link can point to one routine or to a library. <button class="btn small" id="openHelp" type="button" data-help="help-library">Help</button></p>
     </div>
   </div>
 </div>
@@ -1650,9 +1671,10 @@ function buildPlan(exercises,o){
       }
     }
     if(o.clickMode==='half'||o.clickMode==='bar'){
-      /* Hard: every second beat from the start of the bar (1 and 3 in 4/4). Extreme: the first beat of the bar only. */
-      const B=sig?sig.n:4,step=o.clickMode==='half'?2:B,nb=Math.ceil(totalBeats-1e-9);
-      for(let j=0;j<nb;j++){const q=j%B;if(q%step===0)clicks.push({t:t0+j*beat,a:q===0?2:1});}
+      /* Extreme: the first beat of every bar. Hard: the start of each group when the bar has two or more (1 and 4 in 6/8), else 1 and 3 in a bar of even length (4/4), else just beat 1 (3/4). */
+      const B=sig?sig.n:4,nb=Math.ceil(totalBeats-1e-9),gs=sig?groupStarts(sig,sig.n):[0];
+      const on=q=>o.clickMode==='bar'?q===0:(gs.length>=2?gs.indexOf(q)>=0:(B%2===0?q%2===0:q===0));
+      for(let j=0;j<nb;j++){const q=j%B;if(on(q))clicks.push({t:t0+j*beat,a:q===0?2:1});}
     }
     /* cells are every position, rests included. slots are the strokes that are expected to sound. */
     for(let p=0;p<b.passes;p++)for(let i=0;i<N;i++){
@@ -2194,7 +2216,7 @@ function loopResult(clicks,hits){
   return out;
 }
 /* ---------- routine library ---------- */
-/* A shared list is one text file of routines. A line of only dashes (---, or an em or en dash) starts the next routine. A file without
+/* A library is one text file of routines. A line of only dashes (---, or an em or en dash) starts the next routine. A file without
    such a line is a single routine. Returns {items:[{title,text}], errors:[], bundle}. */
 const LIB_MAX=100;
 function parseLibrary(text,max){
@@ -2219,7 +2241,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.58.2';                           /* shown beside the title */
+const VERSION='0.59.9';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2254,7 +2276,7 @@ S.accent=/^[gbm2-7RL]?$/.test(S.accent)?S.accent:'';   /* which strokes are acce
 S.others=S.others==='g'?'g':'n';                          /* the other strokes: normal or ghost */
 S.noise=typeof S.noise==='number'&&isFinite(S.noise)?clamp(Math.round(S.noise),-90,-10):null;   /* room noise in dB from the last Mic check, on this device */
 S.settle=clamp(Math.round(+S.settle)||40,20,120);
-/* Saved shared lists: address, name, and the last loaded routines (kept for the three newest loads only). */
+/* Saved libraries: address, name, and the last loaded routines (kept for the three newest loads only). */
 S.lists=Array.isArray(S.lists)?S.lists.filter((l,i,a)=>l&&typeof l.url==='string'&&l.url.length<=500&&a.findIndex(q=>q&&q.url===l.url)===i).slice(0,20).map(l=>({url:l.url,name:typeof l.name==='string'?l.name.slice(0,60):'',t:+l.t||0,items:Array.isArray(l.items)?l.items.filter(i=>i&&typeof i.title==='string'&&typeof i.text==='string').slice(0,100).map(i=>({title:i.title.slice(0,80),text:i.text.slice(0,20000)})):undefined})):(starterHref()?[{url:starterHref(),name:'Starter routines',t:0}]:[]);
 S.listSel=typeof S.listSel==='string'&&S.lists.some(l=>l.url===S.listSel)?S.listSel:'';
 S.lists.filter(l=>l.items).sort((x,y)=>y.t-x.t).slice(3).forEach(l=>{delete l.items;});
@@ -4642,7 +4664,7 @@ function syncBackup(){
   $('storeMsg').textContent=t;
 }
 /* The Export dialog: tick what to include. The ticks are remembered for next time. */
-const EXP_PARTS=[['hist','History and scores',()=>totalRuns()+(totalRuns()===1?' run':' runs')],['lib','Routines',()=>recs.lib.length+(recs.lib.length===1?' routine':' routines')],['lists','Routine lists',()=>S.lists.length+(S.lists.length===1?' list':' lists')],['set','Settings',()=>'tempo, click, accents, theme']];
+const EXP_PARTS=[['hist','History and scores',()=>totalRuns()+(totalRuns()===1?' run':' runs')],['lib','Routines',()=>recs.lib.length+(recs.lib.length===1?' routine':' routines')],['lists','Linked libraries',()=>S.lists.length+(S.lists.length===1?' library':' libraries')],['set','Settings',()=>'tempo, click, accents, theme']];
 let exMode='recs';
 function openExport(){
   exMode='recs';$('exTitle').textContent='Export';
@@ -4665,7 +4687,7 @@ async function exportRecs(){
   if(sel.hist){S.lastExport=Date.now();S.expRuns=totalRuns();save();}
   syncBackup();
   const pl=(n,w)=>n+' '+w+(n===1?'':'s'),bits=[];
-  if(sel.hist)bits.push(pl(totalRuns(),'run'));if(sel.lib)bits.push(pl(recs.lib.length,'routine'));if(sel.lists)bits.push(pl(S.lists.length,'list'));if(sel.set)bits.push('settings');
+  if(sel.hist)bits.push(pl(totalRuns(),'run'));if(sel.lib)bits.push(pl(recs.lib.length,'routine'));if(sel.lists)bits.push(pl(S.lists.length,'library'));if(sel.set)bits.push('settings');
   $('recMsg').textContent='Exported '+bits.join(', ')+'.';$('recMsg').classList.add('flash');
 }
 async function importRecs(file){
@@ -4693,7 +4715,7 @@ async function importRecs(file){
     saveRecs();renderProgress();
     if(setN){say('Imported settings. Reloading…');setTimeout(()=>location.reload(),900);return;}
     const dup=u.runs.length-add+u.lib.length-addL,pl=(n,w)=>n+' '+w+(n===1?'':'s');
-    say(add||addL||addS||dup?'Imported '+pl(add,'new run')+(u.lib.length?' and '+pl(addL,'routine'):'')+(addS?' and '+pl(addS,'shared list'):'')+(dup?' ('+dup+' already here)':'')+'.':'That file has nothing new in it.');
+    say(add||addL||addS||dup?'Imported '+pl(add,'new run')+(u.lib.length?' and '+pl(addL,'routine'):'')+(addS?' and '+pl(addS,'library'):'')+(dup?' ('+dup+' already here)':'')+'.':'That file has nothing new in it.');
   }catch(e){say('That file is not a records export.');}
 }
 let clearArm=0;
@@ -4701,7 +4723,7 @@ function clearRecs(){
   const b=$('recClear');
   if(!clearArm){clearArm=setTimeout(()=>{clearArm=0;b.textContent='Clear all';},4000);b.textContent='Click again to clear everything';return;}
   clearTimeout(clearArm);clearArm=0;b.textContent='Clear all';
-  /* Everything you made: runs and scores, saved routines and their names, shared lists and the scratch pad. Device settings and calibration stay. The page reloads so every screen starts clean. */
+  /* Everything you made: runs and scores, saved routines and their names, linked libraries and the scratch pad. Device settings and calibration stay. The page reloads so every screen starts clean. */
   recs.runs.length=0;recs.sum=newSum();recs.names={};recs.nu=1;recs.lib=[];
   S.lists=[];S.listSel='';S.libId='';S.routineText=STARTER;S.startExercise=1;S.lastExport=0;S.expRuns=0;
   save();saveRecs();location.reload();
@@ -4955,7 +4977,7 @@ async function fetchText(href,max){
     return txt;
   }catch(e){
     if(e&&e.name==='AbortError')throw new Error('it took too long to answer');
-    if(e instanceof TypeError)throw new Error('it could not be reached, or it does not allow other sites to read it');
+    if(e instanceof TypeError)throw new Error('it could not be reached. Check the address, or the host may not allow other sites to read it');
     throw e;
   }finally{clearTimeout(timer);}
 }
@@ -5013,7 +5035,7 @@ function saveAsNew(){
     S.libId='';save();saySaved('This is now a separate copy. Change it, then Save as new.');syncInfo();
   }else saveToLibrary();
 }
-/* A routine from a link or a shared list opens in the scratch pad to review. Save adds it to the library. */
+/* A routine from a link or a library opens in the scratch pad to review. Save adds it to the library. */
 function reviewImport(txt){
   txt=plainText(txt);
   guard(()=>{
@@ -5161,7 +5183,7 @@ function renderLibraryPage(){
 }
 const exerciseCount=x=>parseRoutine(x).exercises.length;
 /* ---------- routine library (a list of routine files on the web) ---------- */
-let lib={items:[],loaded:false,busy:false,cur:''},libMode='';   /* libMode: '' | 'add' | 'rename' */
+let lib={items:[],loaded:false,busy:false,cur:''},libMode='';   /* libMode: '' | 'add' */
 const itemKey=it=>textKey(setHeader(it.text,'title','').trim(),S.subdiv);
 const inLib=it=>{const k=itemKey(it);return !!k&&!!libFor(k);};
 const curList=()=>S.lists.find(l=>l.url===S.listSel)||null;
@@ -5172,15 +5194,50 @@ function suggestName(){
   $('libName').placeholder=u?listName({url:u.href,name:''}):'Name (optional)';
 }
 const addMode=()=>libMode==='add'||!S.lists.length;
+/* Settings > Data: every saved library link. Read-only until Edit; one row is edited at a time. A changed address forgets the copy kept from the old one. */
+let lnkEdit=null;
+function renderLinks(){
+  const box=$('lnkList');$('lnkBox').hidden=!S.lists.length;box.textContent='';
+  if(lnkEdit&&!S.lists.includes(lnkEdit))lnkEdit=null;
+  const mk=(t,f,c)=>{const b=document.createElement('button');b.type='button';b.className='btn small';b.textContent=t;b.addEventListener('click',f);return b;};
+  S.lists.forEach(l=>{
+    const row=document.createElement('div');row.className='lnk';
+    if(l!==lnkEdit){
+      const nm=document.createElement('b'),ur=document.createElement('span'),ac=document.createElement('div');
+      nm.textContent=listName(l);ur.className='lnkurl';ur.textContent=l.url;ac.className='btns';
+      ac.append(mk('Edit',()=>{lnkEdit=l;renderLinks();}),mk('Remove',()=>{S.lists=S.lists.filter(q=>q!==l);if(S.listSel===l.url){S.listSel='';lib={items:[],loaded:false,busy:false,cur:''};}libMode='';save();renderLibrary();}));
+      row.append(nm,ur,ac);
+    }else{
+      const nm=document.createElement('input'),ur=document.createElement('input'),ac=document.createElement('div'),er=document.createElement('p');
+      [nm,ur].forEach(i=>{i.type='text';i.autocomplete='off';i.spellcheck=false;i.setAttribute('data-lpignore','true');i.setAttribute('data-1p-ignore','');});
+      nm.value=l.name||'';nm.placeholder=listName(l);nm.maxLength=60;nm.setAttribute('aria-label','Library name');
+      ur.value=l.url;ur.inputMode='url';ur.maxLength=500;ur.setAttribute('aria-label','Library address');
+      er.className='err';er.setAttribute('role','alert');ac.className='btns';
+      ac.append(mk('Update',()=>{
+        const u=httpUrl(ur.value.trim());
+        if(!u){er.textContent=URL_HINT;return;}
+        if(u.href!==l.url&&S.lists.some(q=>q.url===u.href)){er.textContent='That address is already in the list.';return;}
+        l.name=nm.value.trim().slice(0,60);
+        if(S.listSel===l.url)S.listSel=u.href;
+        if(u.href!==l.url){l.url=u.href;delete l.items;l.t=0;lib={items:[],loaded:false,busy:false,cur:''};}
+        lnkEdit=null;save();renderLibrary();
+      }),mk('Cancel',()=>{lnkEdit=null;renderLinks();}));
+      row.append(nm,ur,ac,er);
+      setTimeout(()=>nm.focus(),0);
+    }
+    box.appendChild(row);
+  });
+}
 function renderLibrary(){
-  const box=$('libList'),sel=$('libSel'),cl=curList(),add=addMode(),ren=libMode==='rename'&&!!cl;
+  renderLinks();
+  const box=$('libList'),sel=$('libSel'),cl=curList(),add=addMode();
   sel.textContent='';
-  if(!cl&&S.lists.length){const o=document.createElement('option');o.value='';o.textContent='Choose a list…';o.disabled=true;sel.appendChild(o);}
+  if(!cl&&S.lists.length){const o=document.createElement('option');o.value='';o.textContent='Choose a library…';o.disabled=true;sel.appendChild(o);}
   S.lists.forEach(l=>{const o=document.createElement('option');o.value=l.url;o.textContent=listName(l);sel.appendChild(o);});
   const o=document.createElement('option');o.value='+';o.textContent='Add a link…';sel.appendChild(o);
   sel.value=add?'+':(cl?cl.url:'');
-  $('libraryUrl').hidden=!add;$('libName').hidden=!(add||ren);
-  $('libRen').hidden=!cl||add||ren;$('libClear').hidden=!cl||add;
+  $('libraryUrl').hidden=!add;$('libName').hidden=!add;
+  $('libUrl').textContent=cl&&!add?cl.url:'';
   box.textContent='';
   lib.items.forEach(it=>{
     const b=document.createElement('button');
@@ -5195,10 +5252,10 @@ function renderLibrary(){
   });
   box.hidden=!lib.items.length;
   $('libAll').hidden=!lib.items.length;$('libAll').disabled=lib.busy||!!(run&&!run.ended)||!lib.items.some(it=>itemKey(it)&&!inLib(it));
-  $('libGo').disabled=lib.busy||ren||(add?!$('libraryUrl').value.trim():!cl);
+  $('libGo').disabled=lib.busy||(add?!$('libraryUrl').value.trim():!cl);
   if(!lib.busy){
     const have=lib.items.filter(inLib).length,n=lib.items.length;
-    $('libInfo').textContent=n?(!lib.loaded&&cl&&cl.items?'Last loaded '+dayWord(cl.t)+'. ':'')+n+(n===1?' routine, ':' routines, ')+have+' in your library. Tap one to review it.':(lib.loaded?'The list has no routines in it.':(cl&&!add?'Press Load to fetch this list.':''));
+    $('libInfo').textContent=n?(!lib.loaded&&cl&&cl.items?'Last loaded '+dayWord(cl.t)+'. ':'')+n+(n===1?' routine, ':' routines, ')+have+' in your library. Tap one to review it.':(lib.loaded?'The library has no routines in it.':(cl&&!add?'Press Load to fetch this library.':''));
   }
 }
 function pickList(url){
@@ -5213,10 +5270,10 @@ async function loadLibrary(){
   if(add){
     const u=httpUrl($('libraryUrl').value.trim());
     if(!u){$('libErr').textContent=URL_HINT;return;}
-    if(!S.lists.some(l=>l.url===u.href)&&S.lists.length>=20){$('libErr').textContent='You can keep 20 lists. Forget one first.';return;}
+    if(!S.lists.some(l=>l.url===u.href)&&S.lists.length>=20){$('libErr').textContent='You can keep 20 libraries. Remove one in Settings first.';return;}
     href=u.href;
   }else{const l=curList();if(!l)return;href=l.url;}
-  lib.busy=true;$('libInfo').textContent='Loading the list…';renderLibrary();
+  lib.busy=true;$('libInfo').textContent='Loading the library…';renderLibrary();
   try{
     const raw=await fetchText(href,MAX_TEXT),res=parseLibrary(raw);
     if(!res.bundle){   /* one routine: review it, and do not keep the address */
@@ -5233,12 +5290,12 @@ async function loadLibrary(){
     $('libErr').textContent=res.errors.join(' ');
   }catch(e){
     lib.items=[];lib.loaded=false;
-    $('libErr').textContent='Could not load the list ('+(e&&e.message?e.message:'blocked')+').';
+    $('libErr').textContent='Could not load '+href+' ('+(e&&e.message?e.message:'blocked')+').';
     $('libInfo').textContent='';
   }finally{lib.busy=false;renderLibrary();}
 }
 /* Adds every routine in the list that is not already in the library. Routines with errors are skipped, since they need fixing first. */
-/* The whole library as one shared-list file: routines split by lines of dashes. Importing it again adds only what is missing. */
+/* The whole library as one library file: routines split by lines of dashes. Importing it again adds only what is missing. */
 /* The Library export dialog: all routines, or tick the ones to take. */
 function exportLibrary(){
   if(!recs.lib.length)return;
@@ -5266,7 +5323,7 @@ function doLibExport(){
   const all=recs.lib.filter(e=>ids.has(e.id)).sort((a,b)=>entryName(a).localeCompare(entryName(b),undefined,{sensitivity:'base'}));
   if(!all.length)return;
   saveFile('pocket-library-'+stamp()+'.txt','text/plain',all.map(e=>entryText(e).trim()).join('\n---\n')+'\n').then(ok=>{
-    $('libMsg').textContent=ok?'Exported '+all.length+(all.length===1?' routine':' routines')+'. Import it as a file, or host it as a shared list.':'Export cancelled.';
+    $('libMsg').textContent=ok?'Exported '+all.length+(all.length===1?' routine':' routines')+'. Import it as a file, or host it as a library.':'Export cancelled.';
   });
 }
 function addItems(items){
@@ -5300,19 +5357,9 @@ function showCachedList(){
   const l=curList();
   if(l&&l.items&&!lib.loaded&&!lib.busy&&!lib.items.length)lib.items=l.items;
 }
-function clearLibrary(){
-  S.lists=S.lists.filter(l=>l.url!==S.listSel);S.listSel='';libMode='';save();
-  lib={items:[],loaded:false,busy:false,cur:''};$('libErr').textContent='';
-  renderLibrary();
-}
-function renameLibrary(ok){
-  const l=curList();if(libMode!=='rename'||!l)return;
-  if(ok){const v=$('libName').value.trim().slice(0,60);l.name=v;save();}
-  libMode='';$('libName').value='';renderLibrary();
-}
 
 /* ---------- controls ---------- */
-const LOCKED=['accent','others','pulse','bpm','bpmDown','bpmUp','subdiv','click','inputMode','routineText','fileBtn','openBtn','clearRoutine','playChange','libSel','libraryUrl','libName','libGo','libAll','libRen','libClear','eachVal','eachUnit','gap'];
+const LOCKED=['accent','others','pulse','bpm','bpmDown','bpmUp','subdiv','click','inputMode','routineText','fileBtn','openBtn','clearRoutine','playChange','libSel','libraryUrl','libName','libGo','libAll','eachVal','eachUnit','gap'];
 function syncRunUI(){
   const on=!!(run&&!run.ended),play=on&&run.mode==='play',paused=on&&!!run.paused;
   const b=$('startBtn');
@@ -5814,15 +5861,12 @@ function wire(){
   });
   $('routineFile').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];await loadFile(f);e.target.value='';});
   $('libGo').addEventListener('click',loadLibrary);
-  $('libClear').addEventListener('click',clearLibrary);
   $('libAll').addEventListener('click',importAll);
   $('exportLib').addEventListener('click',exportLibrary);
   $('libSel').addEventListener('change',()=>{const v=$('libSel').value;if(v==='+'){libMode='add';$('libErr').textContent='';lib={items:[],loaded:false,busy:false,cur:''};renderLibrary();$('libraryUrl').focus();}else pickList(v);});
-  $('libRen').addEventListener('click',()=>{const l=curList();if(!l)return;libMode='rename';renderLibrary();$('libName').value=l.name;$('libName').focus();});
   $('libraryUrl').addEventListener('input',()=>{suggestName();renderLibrary();});
   $('libraryUrl').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();loadLibrary();}});
-  $('libName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(libMode==='rename')renameLibrary(true);else loadLibrary();}else if(e.key==='Escape'&&libMode==='rename'){e.stopPropagation();renameLibrary(false);}});
-  $('libName').addEventListener('blur',()=>{if(libMode==='rename')renameLibrary(true);});
+  $('libName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();loadLibrary();}});
   $('clearRoutine').addEventListener('click',()=>guard(()=>{bLine=0;setRoutineText('');openEditor('library');}));
   $('lsRecent').addEventListener('click',()=>{libSort='recent';renderLibraryPage();});
   $('lsName').addEventListener('click',()=>{libSort='name';renderLibraryPage();});
@@ -5831,6 +5875,7 @@ function wire(){
   $('wStarter').addEventListener('click',()=>{
     const href=starterHref();
     if(!href){openOpen();$('libErr').textContent='The starter routines need the app to be opened from its web address.';return;}
+    S.lists=S.lists.filter(l=>l.url===href||l.name!=='Starter routines');   /* a copy saved from another address is replaced */
     if(!S.lists.some(l=>l.url===href)){if(S.lists.length>=20)S.lists.pop();S.lists.unshift({url:href,name:'Starter routines',t:0});}
     openOpen();pickList(href);loadLibrary();
   });
