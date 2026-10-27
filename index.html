@@ -344,7 +344,7 @@ html.pgopen{overflow:hidden}
 .srow .sn small{color:var(--muted);font:11px var(--font-body);letter-spacing:.04em;margin-left:3px}
 .srow .sn .muted{color:var(--muted)} .srow .sn .ok{color:var(--ok)} .srow .sn .late{color:var(--late)} .srow .sn .early{color:var(--early)}
 .srow .ib{flex:none;margin:-6px 0}
-.srow .sq .seq{flex:1;min-width:0;overflow-wrap:anywhere} #rtList .srow{cursor:pointer} #rtList .srow .rtruns{cursor:default}
+.srow .sq .seq{flex:1;min-width:0;overflow-wrap:anywhere} #rtList .srow{cursor:pointer} .lexs{cursor:default} .lexs .erow{cursor:default;grid-template-columns:30px minmax(0,1fr) 40px;align-items:center} .lexs .muted{color:var(--muted)} #rtList .srow .rtruns{cursor:default}
 .hgrp .tablewrap td,.hgrp .tablewrap th{padding-left:6px;padding-right:6px}
 .hgrp .tablewrap .ib{min-width:40px;height:40px;padding:0;margin:-8px -6px}
 .hgrp .tablewrap .ib svg{width:17px;height:17px}
@@ -2209,7 +2209,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.55.1';                           /* shown beside the title */
+const VERSION='0.56.1';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -4406,6 +4406,8 @@ function runLevelText(r){   /* the level card of the play results, from what a r
   });
   return t.join(' ');
 }
+/* Plays one exercise of a run, at the level and accent rule it was played with. */
+function practiseBtn(k,i,r){const b=iconBtn('play','Play exercise '+(i||''),()=>practisePattern(k,r.lv==='off'?'':r.lv,r.dy));b.style.alignSelf='center';b.style.flex='none';return b;}
 function renderRunPage(r){
   const page=document.createElement('div');page.className='rp';
   const t=runTitle(r),key=r.mode==='routine'?(r.rk||''):r.exercises[0].k,off=r.lv==='off';
@@ -4437,7 +4439,7 @@ function renderRunPage(r){
         const w=document.createElement('div');w.className='wr';
         const n=document.createElement('div');n.className='seq';n.textContent=showKey(x.b.k);
         const c=accCell(pctOf(x)),ac=document.createElement('div');ac.className='ac '+c[1];ac.textContent=c[0];const u=document.createElement('small');u.textContent='ACC';ac.appendChild(u);
-        w.appendChild(n);w.appendChild(ac);page.appendChild(w);});
+        w.appendChild(n);w.appendChild(ac);w.appendChild(practiseBtn(x.b.k,x.i,r));page.appendChild(w);});
     }
     page.appendChild(lbl('All exercises'));
     played.forEach(x=>{
@@ -4452,7 +4454,7 @@ function renderRunPage(r){
       const hd=heardEnough(b);
       stat(hd&&typeof b.avg==='number'?fmtMs(b.avg,1):'—','ms',hd&&typeof b.avg==='number'?biasCls(b.avg):'muted');
       stat(hd&&typeof b.ls==='number'?'±'+b.ls.toFixed(1):'—','dB');
-      eb.appendChild(sn);row.appendChild(en);row.appendChild(eb);page.appendChild(row);});
+      eb.appendChild(sn);eb.style.flex='1';eb.style.minWidth='0';row.appendChild(en);row.appendChild(eb);row.appendChild(practiseBtn(b.k,x.i,r));page.appendChild(row);});
     const sk=items.length-played.length;
     if(sk){const e=document.createElement('div');e.className='sb';e.style.padding='8px 0';e.textContent=sk+(sk===1?' exercise was':' exercises were')+' not played and '+(sk===1?'is':'are')+' not listed.';page.appendChild(e);}
   }
@@ -4532,6 +4534,26 @@ function loadRun(r){
   save();syncInfo();
   setStatus('Loaded from history. Press Start to play it again.');
   showTab('play');
+}
+/* The exercises of a routine in order, each with a Play button that loads just that exercise on the Play page. */
+function routineText(rk){
+  const e=libFor(rk);if(e)return e.x;
+  const r=recs.runs.slice().reverse().find(q=>q.rk===rk&&q.rp);return r?r.rp.x:'';
+}
+function exerciseListEl(text,lv,dy){
+  if(!text)return null;
+  let ex;
+  try{const p=parseRoutine(text);ex=resolveExercises(p.exercises,p.each||{unit:'pass',v:1},{bpm:S.bpm,subdiv:S.subdiv}).map(b=>({i:b.idx,k:patKey(b.notes,b.groupStart,b.subs,b.defSub,b.sig)}));}catch(e){return null;}
+  if(!ex.length)return null;
+  const box=document.createElement('div');box.className='exercises lexs';
+  ex.forEach(x=>{
+    const r=document.createElement('div');r.className='erow';
+    const n=document.createElement('span');n.className='muted';n.textContent=String(x.i);
+    const q=document.createElement('span');q.className='seq';q.textContent=showKey(x.k);
+    r.append(n,q,iconBtn('play','Play exercise '+x.i,()=>practisePattern(x.k,lv,dy)));
+    box.appendChild(r);
+  });
+  return box;
 }
 function practisePattern(k,lv,dy){
   if(run&&!run.ended)return;
@@ -5068,6 +5090,7 @@ function renderLibraryPage(){
     ac.append(ed,pl);
     sm.append(n,hs,ac);det.appendChild(sm);
     const body=document.createElement('div');body.className='hb';
+    const exl=isRoutineKey(k)?exerciseListEl(e.x):null;if(exl)body.appendChild(exl);
     const acts=document.createElement('div');acts.className='btns';
     if(isRoutineKey(k))acts.appendChild(textBtn('Rename',()=>{det.open=true;renameBtn(n,k).click();}));
     acts.appendChild(textBtn('Download',()=>{
