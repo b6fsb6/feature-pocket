@@ -2219,7 +2219,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.58.1';                           /* shown beside the title */
+const VERSION='0.58.2';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -4699,9 +4699,12 @@ async function importRecs(file){
 let clearArm=0;
 function clearRecs(){
   const b=$('recClear');
-  if(!clearArm){clearArm=setTimeout(()=>{clearArm=0;b.textContent='Clear all';},4000);b.textContent='Click again to clear';return;}
+  if(!clearArm){clearArm=setTimeout(()=>{clearArm=0;b.textContent='Clear all';},4000);b.textContent='Click again to clear everything';return;}
   clearTimeout(clearArm);clearArm=0;b.textContent='Clear all';
-  recs.runs.length=0;recs.sum=newSum();saveRecs();lastRun=null;renderProgress();
+  /* Everything you made: runs and scores, saved routines and their names, shared lists and the scratch pad. Device settings and calibration stay. The page reloads so every screen starts clean. */
+  recs.runs.length=0;recs.sum=newSum();recs.names={};recs.nu=1;recs.lib=[];
+  S.lists=[];S.listSel='';S.libId='';S.routineText=STARTER;S.startExercise=1;S.lastExport=0;S.expRuns=0;
+  save();saveRecs();location.reload();
 }
 
 /* ---------- results by exercise ---------- */
