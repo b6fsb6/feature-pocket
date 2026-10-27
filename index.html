@@ -313,7 +313,7 @@ html.pgopen{overflow:hidden}
 .rp .stats .v{font:700 20px var(--font-data)} .rp .stats .k{font:600 11px var(--font-body);letter-spacing:.08em;color:var(--muted);margin-top:2px}
 .rp .stats .v.ok{color:var(--ok)} .rp .stats .v.late{color:var(--late)} .rp .stats .v.muted{color:var(--muted)}
 .rp .lbl{font:600 11px var(--font-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px}
-.rp .cell.sel{outline:2px solid var(--ink);outline-offset:1px} .rp .cell{cursor:pointer} .rp .lvbars{display:flex;align-items:flex-end;gap:1px;height:56px;border-bottom:1px solid var(--line)} .rp .lvbars i{flex:1;min-width:1px;background:var(--early);cursor:pointer} .rp .lvbars i.sel{background:var(--fill)} .rp .tapinfo{padding:8px 0}
+.rp .cell.sel{outline:2px solid var(--ink);outline-offset:1px} .rp .cell{cursor:pointer} .rp .lvbars{display:flex;align-items:flex-end;gap:1px;height:56px;border-bottom:1px solid var(--line)} .rp .lvbars i{flex:1;min-width:1px;background:var(--early);cursor:pointer} .rp .lvbars i.acc{background:var(--fill)} .rp .lvbars i.sel{background:var(--ink);box-shadow:0 0 0 2px var(--ink);position:relative} .rp .tapinfo{padding:8px 0}
 .rp .strip{display:grid;grid-template-columns:repeat(12,1fr);gap:4px}
 .rp .cell{aspect-ratio:1;border-radius:4px;background:var(--line)} .rp .cell.ok{background:var(--ok)} .rp .cell.late{background:var(--late)} .rp .cell.skip{background:transparent;border:1px dashed var(--line)} .rp .cell.lvl{background:var(--fill);color:#14110a;font:700 10px/1 var(--font-body);display:grid;place-items:center}
 .rp .key{font-size:12px;color:var(--muted);margin-top:8px}
@@ -1313,12 +1313,18 @@ function sd(a){if(a.length<2)return NaN;const m=mean(a);let s=0;for(const v of a
 function strokeDb(pk,raw){return pk>0&&!(raw>=0.98)?20*Math.log10(pk):null;}
 /* items: [{db,hand}]. Evenness is the spread in dB, diff is the left hand minus the right. Needs four strokes. */
 function levelStats(items){
-  const plain=items.filter(x=>x.dy!=='A'&&x.dy!=='g');   /* with an accent or ghost rule, only the normal strokes are judged for evenness; accents and ghosts have their own check */
-  if(plain.length>=4)items=plain;
-  const dbs=items.map(x=>x.db);
-  if(dbs.length<4)return null;
-  const L=items.filter(x=>x.hand==='L').map(x=>x.db),R=items.filter(x=>x.hand==='R').map(x=>x.db);
-  return {n:dbs.length,sd:sd(dbs),med:median(dbs),diff:(L.length>=3&&R.length>=3)?mean(L)-mean(R):null};
+  /* With an accent or ghost rule, evenness is judged among the normal strokes only. If the rule leaves fewer than four normals (every stroke is an accent or a ghost note), there is no overall spread (sd is null), and the hands are compared within each class. */
+  const ruled=items.some(x=>x.dy==='A'||x.dy==='g'),plain=items.filter(x=>x.dy!=='A'&&x.dy!=='g');
+  const hd=a=>{const L=a.filter(x=>x.hand==='L').map(x=>x.db),R=a.filter(x=>x.hand==='R').map(x=>x.db);return L.length>=3&&R.length>=3?mean(L)-mean(R):null;};
+  if(!ruled||plain.length>=4){
+    if(ruled)items=plain;
+    const d2=items.map(x=>x.db);
+    if(d2.length<4)return null;
+    return {n:d2.length,sd:sd(d2),med:median(d2),diff:hd(items)};
+  }
+  if(items.length<4)return null;
+  const ds=['A','g','n'].map(c=>hd(items.filter(x=>(x.dy||'n')===c))).filter(v=>v!==null);
+  return {n:items.length,sd:null,med:median(items.map(x=>x.db)),diff:ds.length?ds.reduce((a,v)=>a+v,0)/ds.length:null};
 }
 function median(a){if(!a.length)return NaN;const b=[...a].sort((x,y)=>x-y),m=b.length>>1;return b.length%2?b[m]:(b[m-1]+b[m])/2;}
 function fmtMs(v,dec){
@@ -2190,7 +2196,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.49.0';                           /* shown beside the title */
+const VERSION='0.50.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2269,6 +2275,7 @@ function cleanRun(x){
       ls:typeof b.ls==='number'&&isFinite(b.ls)?b.ls:null,ld:typeof b.ld==='number'&&isFinite(b.ld)?b.ld:null,
       da:+b.da>0?Math.floor(+b.da):undefined,dg:+b.dg>0?Math.floor(+b.dg):undefined,st:typeof b.st==='string'&&/^[obmsl]{1,240}$/.test(b.st)?b.st:undefined,
       tm:typeof b.tm==='string'&&/^[-\d,]{1,1500}$/.test(b.tm)?b.tm:undefined,lb:typeof b.lb==='string'&&/^[-\d,]{1,1500}$/.test(b.lb)?b.lb:undefined,
+      dc:typeof b.dc==='string'&&/^[Agn]{1,240}$/.test(b.dc)?b.dc:undefined,
       an:+b.an>0?Math.floor(+b.an):undefined,ac:+b.ac>0?Math.floor(+b.ac):undefined,as:typeof b.as==='number'&&isFinite(b.as)?b.as:undefined,
       gn:+b.gn>0?Math.floor(+b.gn):undefined,gc:+b.gc>0?Math.floor(+b.gc):undefined,gs:typeof b.gs==='number'&&isFinite(b.gs)?b.gs:undefined});
   });
@@ -2634,7 +2641,7 @@ function beginRun(mode,only){
     nextClick:0,pulseIdx:-1,nextFin:0,pending:new Map(),cur:-1,showSeg:0,gridSeg:-1,
     errs:[],lv:[],seq:[],hand:{L:[],R:[]},within:0,slots:0,miss:0,extras:0,streak:0,best:0,checked:0,bad:0,trace:[],res:new Map(),showG:0,missRun:0,trail:[],live:'',
     fin:new Set(),paused:false,ci:null,dyc:lat?'':dynCode(),dyl:[],
-    seg:plan.segs.map(sg=>({errs:[],lv:[],hand:{L:[],R:[]},within:0,slots:0,miss:0,extras:0,checked:0,bad:0,sc:[],sm:[],sb:[],da:0,dg:0,
+    seg:plan.segs.map(sg=>({errs:[],lv:[],hand:{L:[],R:[]},within:0,slots:0,miss:0,extras:0,checked:0,bad:0,sc:[],sm:[],sb:[],sy:[],da:0,dg:0,
       posSum:new Array(sg.N).fill(0),posCnt:new Array(sg.N).fill(0)})),
     dirty:true,ended:false,totalExercises:routineParsed.exercises.length,only:only||null,
     startExercise:only?Math.min.apply(null,only):(S.mode==='routine'?S.startExercise:1)
@@ -2678,7 +2685,7 @@ function finalizeSlot(i){
   const redo=r.fin.has(i);r.fin.add(i);
   if(!redo){r.slots++;Q.slots++;}
   r.dirty=true;
-  if(!hits.length){if(!redo){r.miss++;Q.miss++;Q.sc.push('m');Q.sm.push(null);Q.sb.push(null);r.streak=0;r.missRun++;r.seq.push({db:null});if(r.seq.length>STRIP_MAX)r.seq.shift();}r.res.set(i,{miss:true});return;}
+  if(!hits.length){if(!redo){r.miss++;Q.miss++;Q.sc.push('m');Q.sy.push(sl.dy||'n');Q.sm.push(null);Q.sb.push(null);r.streak=0;r.missRun++;r.seq.push({db:null});if(r.seq.length>STRIP_MAX)r.seq.shift();}r.res.set(i,{miss:true});return;}
   const h=pickBest(hits),ex=hits.length-1;
   const ms=h.e*1000,det=h.det;
   const sure=!!det&&(h.kb||det.conf>=0.2);
@@ -2692,7 +2699,7 @@ function finalizeSlot(i){
     if(db!==null){r.lv.push({db:db,hand:hand,dy:sl.dy||''});Q.lv.push({db:db,hand:hand,dy:sl.dy||''});}
     const on=Math.abs(ms)<=S.tol;
     if(db!==null&&sl.dy&&!sl.tight)r.dyl.push({db:db,dy:sl.dy,si:sl.seg,ci:Q.sc.length,on:on});
-    Q.sm.push(Math.round(ms));Q.sb.push(db===null?null:Math.round(db));
+    Q.sy.push(sl.dy||'n');Q.sm.push(Math.round(ms));Q.sb.push(db===null?null:Math.round(db));
     Q.sc.push(on?'o':'b');   /* o on time, b off time, m missed; s and l (accent too soft, ghost too loud) are set when the run ends */
     r.seq.push({db:db,hand:hand,dy:sl.dy||''});if(r.seq.length>STRIP_MAX)r.seq.shift();   /* one entry per stroke due, so a miss leaves a gap in the level bars */
     r.missRun=0;if(r.mode==='lat')latLive(r);
@@ -3560,6 +3567,8 @@ function updateLevel(r){
     ln.hidden=!t.length;ln.textContent=t.join(' ');
   }
   if(!st){$('lvVal').textContent='—';$('lvWord').textContent='Waiting for strokes';return;}
+  const hw=st.diff!==null&&Math.abs(st.diff)>=3?(st.diff<0?'left':'right')+' hand '+Math.abs(st.diff).toFixed(0)+' dB quieter':'';
+  if(st.sd===null){$('lvVal').textContent='\u2014';$('lvWord').textContent=hw?hw.replace(/^./,c=>c.toUpperCase()):'Judged by accents and ghost notes';return;}
   $('lvVal').textContent='±'+st.sd.toFixed(1);
   const w=st.sd<=2?'Even':(st.sd<=4?'A little uneven':'Uneven');
   $('lvWord').textContent=w+(st.diff!==null&&Math.abs(st.diff)>=3?', '+(st.diff<0?'left':'right')+' hand '+Math.abs(st.diff).toFixed(0)+' dB quieter':'');
@@ -3616,7 +3625,7 @@ function updateStats(r){
   $('sStick').textContent=r&&r.checked?Math.round((1-r.bad/r.checked)*100)+'%':'off';
   $('sExtra').textContent=r?String(r.extras):'—';
   const ls=r?levelStats(r.lv):null;
-  $('sLevel').textContent=ls?ls.sd.toFixed(1):'—';
+  $('sLevel').textContent=ls&&ls.sd!==null?ls.sd.toFixed(1):'—';
   $('sLR').textContent=ls&&ls.diff!==null?fmtDb(ls.diff):'—';
   $('insight').textContent=insightText(r);
 }
@@ -3758,9 +3767,9 @@ function recordRun(r){
     rk:all?routineKeyOf(all):null,ne:all?all.length:1,bpm:S.bpm,tol:S.tol,lv:S.click,dy:r.dyc||'',rp:replaySnap(r),sec:Math.max(0,Math.min(14400,Math.round((Date.now()-(r.w0||Date.now()))/1000))),
     exercises:rows.map(x=>({k:x.key,bpm:x.bpm,due:x.due,within:Math.round(x.pct*x.due),heard:x.heard,
       avg:isNaN(x.avg)?null:x.avg,sd:isNaN(x.spread)?null:x.spread,miss:x.miss,i:x.idx,
-      ls:x.lvl?Math.round(x.lvl.sd*10)/10:null,ld:x.lvl&&x.lvl.diff!==null?Math.round(x.lvl.diff*10)/10:null,
+      ls:x.lvl&&x.lvl.sd!==null?Math.round(x.lvl.sd*10)/10:null,ld:x.lvl&&x.lvl.diff!==null?Math.round(x.lvl.diff*10)/10:null,
       da:x.da||undefined,dg:x.dg||undefined,st:rows.length===1&&x.sc.length<=240?x.sc:undefined,
-      tm:rows.length===1&&x.sc.length<=240?x.sm.map(v=>v===null?'':v).join(','):undefined,lb:rows.length===1&&x.sc.length<=240?x.sb.map(v=>v===null?'':v).join(','):undefined,...dynSaved(r,x.si)}))};
+      tm:rows.length===1&&x.sc.length<=240?x.sm.map(v=>v===null?'':v).join(','):undefined,lb:rows.length===1&&x.sc.length<=240?x.sb.map(v=>v===null?'':v).join(','):undefined,dc:rows.length===1&&x.sc.length<=240&&r.dyc?x.sy:undefined,...dynSaved(r,x.si)}))};
   if(all){   /* exercises of the routine that were not played, so a partial run still shows the whole routine */
     const played=new Set(rows.map(x=>x.idx));
     run.sk=all.map((k,i)=>({i:i+1,k:k})).filter(b=>!played.has(b.i));
@@ -4347,9 +4356,9 @@ function runStrokes(page,r){
     if(ds.length>=4){
       const med=ds[ds.length>>1],l3=document.createElement('div');l3.className='lbl';l3.textContent='Level';page.appendChild(l3);
       const bx=document.createElement('div');bx.className='lvbars';
-      D.forEach((v,i)=>{const e=document.createElement('i');e.style.height=v===null?'0':Math.round(clamp(50+(v-med)/24*100,6,100))+'%';e.onclick=()=>pick(i);bars.push(e);bx.appendChild(e);});
+      D.forEach((v,i)=>{const e=document.createElement('i');if(b.dc&&b.dc.length===D.length&&b.dc[i]==='A')e.className='acc';e.style.height=v===null?'0':Math.round(clamp(50+(v-med)/24*100,6,100))+'%';e.onclick=()=>pick(i);bars.push(e);bx.appendChild(e);});
       page.appendChild(bx);
-      const k2=document.createElement('div');k2.className='key';k2.textContent='Each bar is one stroke against your typical stroke. Middle is typical, higher is louder.';page.appendChild(k2);
+      const k2=document.createElement('div');k2.className='key';k2.textContent='Each bar is one stroke against your typical stroke. Middle is typical, higher is louder.'+(b.dc&&b.dc.length===D.length&&b.dc.includes('A')?' Amber bars are accents.':'');page.appendChild(k2);
     }
   }
   if(!ruled)return;
@@ -4601,7 +4610,7 @@ function exerciseRows(r){
     if(!Q.slots)return;
     rows.push({si:si,idx:sg.idx,key:patKey(sg.notes,sg.groupStart,sg.subs,sg.defSub,sg.sig),seq:showPattern(sg.notes,sg.groupStart,sg.subs,sg.defSub,sg.sig,sg.src),bpm:sg.bpm,
       passes:Math.floor(Q.slots/sg.strokes),due:Q.slots,heard:Q.errs.length,
-      pct:Q.within/Q.slots,avg:Q.errs.length?mean(Q.errs):NaN,spread:sd(Q.errs),miss:Q.miss,da:Q.da,dg:Q.dg,sc:Q.sc.join(''),sm:Q.sm,sb:Q.sb,
+      pct:Q.within/Q.slots,avg:Q.errs.length?mean(Q.errs):NaN,spread:sd(Q.errs),miss:Q.miss,da:Q.da,dg:Q.dg,sc:Q.sc.join(''),sm:Q.sm,sb:Q.sb,sy:Q.sy.join(''),
       L:Q.hand.L.length?mean(Q.hand.L):NaN,R:Q.hand.R.length?mean(Q.hand.R):NaN,lvl:levelStats(Q.lv)});
   });
   return rows;
@@ -4615,7 +4624,7 @@ function renderResults(r){
   fillTable($('resTable'),['Exercise','Sticking','Passes','On time','Best before','Avg ms','Spread','Level','Miss'],rows.map(x=>[
     String(x.idx),[x.seq,'seq'],String(x.passes),accCell(x.pct),
     x.passes<1?'—':(prevBest&&prevBest.has(x.key)?(x.pct>prevBest.get(x.key)+1e-9?'new best':Math.round(prevBest.get(x.key)*100)+'%'):'first run'),
-    [fmtMs(x.avg,1),biasCls(x.avg)],isNaN(x.spread)?'—':x.spread.toFixed(1),x.lvl?'±'+x.lvl.sd.toFixed(1)+' dB':'—',String(x.miss)]));
+    [fmtMs(x.avg,1),biasCls(x.avg)],isNaN(x.spread)?'—':x.spread.toFixed(1),x.lvl&&x.lvl.sd!==null?'±'+x.lvl.sd.toFixed(1)+' dB':'—',String(x.miss)]));
   const rated=rows.filter(x=>x.heard>=8&&!isNaN(x.avg));
   const parts=[];
   if(rated.length>=2){
