@@ -92,6 +92,32 @@ input[type=range]{width:100%;accent-color:var(--accent);min-height:32px}
 .notice{font-size:14px;margin:8px 0 0;padding:8px 12px;border:1px solid var(--accent);border-left-width:4px;border-radius:8px;background:var(--surface)}
 .linkbtn{font:600 15px var(--font-body);color:var(--accent);background:none;border:0;padding:8px 2px;text-decoration:none;cursor:pointer;min-height:40px}
 body[data-run="1"] .notice{display:none}
+/* Desktop layout: the Play page puts the controls in a column beside the staff and results. Other pages stay a readable width. */
+:root[data-layout=desktop] .app{max-width:1200px}
+:root[data-layout=desktop] .page:not(#pagePlay){max-width:760px;margin-inline:auto;width:100%}
+:root[data-layout=desktop] #pagePlay{grid-template-columns:minmax(300px,380px) minmax(0,1fr);column-gap:28px;align-items:start}
+:root[data-layout=desktop] #pagePlay>*{grid-column:1/-1}
+:root[data-layout=desktop] #pagePlay>.pcol{display:grid;gap:22px;align-content:start;min-width:0}
+:root[data-layout=desktop] #pagePlay>.pctl{grid-column:1;position:sticky;top:16px}
+:root[data-layout=desktop] #pagePlay>.pview{grid-column:2}
+:root[data-layout=desktop] .pctl .transport{order:-1}   /* Start stays at the top of the controls, in view */
+.htools{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 12px}
+.htools .seg{margin:0}
+.htools .seg button{min-height:34px;padding:0 12px;font-size:12px}
+/* Desktop: Library, Scores, Achievements and Settings use the width; History and Help stay one column */
+:root[data-layout=desktop] .page#pageSetup,:root[data-layout=desktop] .page#pageLibrary,:root[data-layout=desktop] .page#pageProgress{max-width:1100px}
+:root[data-layout=desktop] #pvStats:not([hidden]),:root[data-layout=desktop] #pvAch:not([hidden]){grid-template-columns:minmax(280px,340px) minmax(0,1fr);column-gap:28px;align-items:start}
+:root[data-layout=desktop] .pv>.pcol{display:grid;gap:22px;align-content:start;min-width:0}
+:root[data-layout=desktop] #pvAch .pside{position:sticky;top:16px}
+:root[data-layout=desktop] #badges{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;align-content:start;align-items:start}
+:root[data-layout=desktop] #svPref:not([hidden]),:root[data-layout=desktop] #svDev:not([hidden]),:root[data-layout=desktop] #svData:not([hidden]){display:block;columns:2 340px;column-gap:22px}
+:root[data-layout=desktop] #svPref>*,:root[data-layout=desktop] #svDev>*,:root[data-layout=desktop] #svData>*{break-inside:avoid;margin-bottom:22px}
+.lhead{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px}
+.lhead h3{margin:0}
+:root[data-layout=desktop] #libPage .gb{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;align-items:start}
+/* Playing and reviewing use one centred column; two columns are for setting up */
+:root[data-layout=desktop] body:not([data-state=idle]) #pagePlay{grid-template-columns:minmax(0,860px);justify-content:center}
+:root[data-layout=desktop] body:not([data-state=idle]) #pagePlay>.pctl,:root[data-layout=desktop] body:not([data-state=idle]) #pagePlay>.pview{grid-column:1;position:static}
 
 .hand{width:26px;height:26px;display:grid;place-items:center;border-radius:50%;font:800 20px/1 var(--font-display)}
 .hand.L{border:2px solid var(--ink);color:var(--ink)}
@@ -247,6 +273,7 @@ body[data-run="1"][data-rm="play"] header,body[data-run="1"][data-rm="play"] .ta
 .switch.tabs button{font-size:15px;padding:0 2px;min-height:44px;border:0;margin:0;border-radius:8px}
 .switch.tabs button[aria-selected=true]{background:var(--fill);color:var(--accent-ink)}
 .switch.three button{font-size:14px;padding:0 2px;letter-spacing:.04em}
+.pcol{display:contents}   /* the Play page groups its controls and its view; on a phone the groups add nothing */
 .page{display:grid;gap:22px}
 .page>*{min-width:0}
 body:not([data-state="done"]) #after,body:not([data-state="done"]) #advice{display:none}
@@ -585,6 +612,9 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <h3>Appearance</h3>
       <div class="field"><label for="palette">Colours</label>
         <select id="palette"><option value="std">Standard</option><option value="cb">Colour-blind safe</option></select></div>
+      <div class="field"><label for="layout">Layout</label>
+        <select id="layout"><option value="auto">Automatic</option><option value="phone">Phone</option><option value="desktop">Desktop</option></select>
+        <p class="hint">Automatic uses the desktop layout on a wide window. This is kept on this device only.</p></div>
     </section>
 
     </div>
@@ -680,12 +710,9 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 
   <!-- ===== Library: your saved routines, and where routines come from ===== -->
   <div class="page" id="pageLibrary" role="tabpanel" aria-labelledby="tabLibrary" hidden>
-    <section class="panel" aria-label="Add a routine">
-      <div class="btns"><button class="btn small" id="clearRoutine" type="button">New</button><button class="btn small" id="openBtn" type="button">Import</button><button class="btn small" id="exportLib" type="button">Export</button></div>
-      <p class="hint" id="libMsg" aria-live="polite"></p>
-    </section>
     <section class="panel" aria-label="Your routines">
-      <h3>Your routines</h3>
+      <div class="lhead"><h3>Your routines</h3><div class="btns"><button class="btn small" id="clearRoutine" type="button">New</button><button class="btn small" id="openBtn" type="button">Import</button><button class="btn small" id="exportLib" type="button">Export</button></div></div>
+      <p class="hint" id="libMsg" aria-live="polite"></p>
       <div class="seg hfilter" role="group" aria-label="Sort by"><button class="on" id="lsRecent" type="button" aria-pressed="true">Recent</button><button id="lsName" type="button" aria-pressed="false">Name</button></div>
       <div class="hist" id="libPage"></div>
       <p class="hint" id="libEmpty" hidden>Nothing saved yet. New starts a routine. Import brings one in from a file or a link.</p>
@@ -821,15 +848,18 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <button type="button" id="pvBtnAch" aria-pressed="false">Achievements</button>
     </div>
     <div class="pv" id="pvAch" hidden>
+    <div class="pcol pside">
     <section class="panel" aria-label="Practice days">
       <h3>Practice</h3>
       <p class="insight" id="streakLine"></p>
       <div class="strip" id="strip" role="img" aria-label="Last four weeks of practice"></div>
       <p class="hint" id="stripHint"></p>
     </section>
-    <div class="badges" id="badges"></div>
+    </div>
+    <div class="badges pmain" id="badges"></div>
     </div>
     <div class="pv" id="pvStats" hidden>
+    <div class="pcol pside">
     <section class="panel" aria-label="Summary" id="scoreSumBox" hidden>
       <h3>Summary</h3>
       <div id="scoreSum" class="sum"></div>
@@ -847,6 +877,8 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <p class="hint hl"><b>ms</b> lead (&minus;) or drag (+), against your usual</p>
       <p class="hint hl"><b>dB</b> loudness spread, lower is more even</p>
     </section>
+    </div>
+    <div class="pcol pmain">
     <section class="panel" aria-label="Rudiments" id="scoreEx">
       <h3>Exercises</h3>
       <p class="hint" id="progHint"></p>
@@ -857,11 +889,14 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <div class="slist" id="rtList"></div>
     </section>
     </div>
+    </div>
     <div class="pv" id="pvHist">
       <section aria-label="History">
-        <div class="seg hfilter" role="group" aria-label="View"><button class="on" id="hvDay" type="button" aria-pressed="true">By day</button><button id="hvEx" type="button" aria-pressed="false">By exercise</button></div>
+        <div class="htools">
+          <div class="seg hfilter" role="group" aria-label="View"><button class="on" id="hvDay" type="button" aria-pressed="true">By day</button><button id="hvEx" type="button" aria-pressed="false">By exercise</button></div>
+          <div class="seg hfilter" role="group" aria-label="Show"><button class="on" id="hfAll" type="button" aria-pressed="true">All</button><button id="hfSaved" type="button" aria-pressed="false">Saved</button></div>
+        </div>
         <p class="hint" id="histHint"></p>
-        <div class="seg hfilter" role="group" aria-label="Show"><button class="on" id="hfAll" type="button" aria-pressed="true">All</button><button id="hfSaved" type="button" aria-pressed="false">Saved</button></div>
         <div class="hist" id="histList"></div>
         <div class="btns"><button class="btn small" id="histMore" type="button" hidden>Show more</button></div>
       </section>
@@ -1131,6 +1166,7 @@ RLRR LRLL RLRR LRLL</pre>
       </ol>
       <div class="btns"><button class="btn small" id="wDone" type="button">Got it</button></div>
     </section>
+    <div class="pcol pctl">
     <section class="panel cfg" aria-label="Exercises">
       <div class="rtname"><b id="playName"></b><button class="linkbtn" id="playChange" type="button">Change</button></div>
       <div class="patrow"><p class="patline single-only" id="playPat"></p><p class="hint routine-only" id="routineInfo"></p><button class="btn small" id="editPlay" type="button">Edit</button></div>
@@ -1197,7 +1233,9 @@ RLRR LRLL RLRR LRLL</pre>
         <button class="btn small" id="stopBtn" type="button">Stop</button>
       </div>
     </div>
+    </div>
 
+    <div class="pcol pview">
     <div id="runInfo" class="runinfo" hidden>
       <div class="progress" aria-hidden="true"><div id="progFill"></div></div>
       <div class="runline"><span id="timeLeft"></span></div>
@@ -1296,6 +1334,7 @@ RLRR LRLL RLRR LRLL</pre>
         <p class="insight" id="resInsight"></p>
         <div class="btns"><button class="btn small" id="csvBtn" type="button">Download CSV</button></div>
       </section>
+    </div>
     </div>
   </div>
 </main>
@@ -2314,7 +2353,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.62.5';                           /* shown beside the title */
+const VERSION='0.64.2';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2365,6 +2404,7 @@ S.eachVal=S.eachUnit==='pass'?clamp(Math.round(+S.eachVal)||8,1,200):clamp(+S.ea
 S.gap=+S.gap===0?0:4;
 S.pulse=S.pulse!==false;
 S.palette=S.palette==='cb'?'cb':'std';
+S.layout=S.layout==='phone'||S.layout==='desktop'?S.layout:'auto';
 if(typeof S.libId!=='string')S.libId='';
 S.startExercise=1;
 const PORTABLE=['bpm','tol','step','accent','others','vol','click','eachUnit','eachVal','gap','pulse','palette','theme'];   /* settings that travel in an export. Microphone, latency and sensitivity belong to the device and stay out. */
@@ -6074,6 +6114,16 @@ function setInputMode(){
   $('inputMode').value=S.input;
   syncMicBtn();
 }
+/* Phone or desktop layout. ?layout=phone or ?layout=desktop wins for the visit, then the setting, and Automatic follows the window width. The staff lays itself out again when it changes. */
+const wideMQ=window.matchMedia?matchMedia('(min-width:960px)'):null;
+function syncLayout(){
+  const q=new URLSearchParams(location.search).get('layout');
+  const want=q==='phone'||q==='desktop'?q:(S.layout!=='auto'?S.layout:(wideMQ&&wideMQ.matches?'desktop':'phone'));
+  if(document.documentElement.dataset.layout===want)return;
+  const first=!document.documentElement.dataset.layout;
+  document.documentElement.dataset.layout=want;
+  if(!first)window.dispatchEvent(new Event('resize'));
+}
 function applyTheme(){
   const d=S.theme==='dark',b=$('themeBtn');
   document.documentElement.dataset.theme=S.theme;
@@ -6143,6 +6193,8 @@ function wire(){
   });
   $('gap').addEventListener('change',e=>{S.gap=+e.target.value===0?0:4;save();syncInfo();});
   $('palette').addEventListener('change',e=>{S.palette=e.target.value;applyTheme();save();});
+  $('layout').addEventListener('change',e=>{S.layout=e.target.value;save();syncLayout();});
+  if(wideMQ)wideMQ.addEventListener('change',syncLayout);
   $('pulse').addEventListener('change',e=>{S.pulse=e.target.value==='on';save();if(!S.pulse)clearPulse();});
   $('csvBtn').addEventListener('click',downloadCsv);
   document.querySelectorAll('[data-help]').forEach(b=>b.addEventListener('click',()=>{
@@ -6295,7 +6347,7 @@ function init(){
   $('click').value=S.click;$('accent').value=S.accent;$('others').value=S.others;
   $('tol').value=String(S.tol);$('step').value=String(S.step);
   $('gap').value=String(S.gap);
-  $('pulse').value=S.pulse?'on':'off';$('palette').value=S.palette;
+  $('pulse').value=S.pulse?'on':'off';$('palette').value=S.palette;$('layout').value=S.layout;
   syncEach();
   $('ver').textContent='v'+VERSION;
   /* Line the version up with the right end of the title's longest line, however the title wraps. */
@@ -6310,7 +6362,7 @@ function init(){
   $('vol').value=S.vol;$('volOut').textContent=S.vol+'%';
   $('latency').value=S.latency==null?'':S.latency;
   initStrips();initTaps();wireBuilder();setInputMode();updateCalUI();
-  wire();applyTheme();
+  wire();applyTheme();syncLayout();
   showTab('play');
   onRoutineChanged();
 }
