@@ -483,6 +483,7 @@ body[data-edit=type] .buildonly{display:none}
 .bkey.wide{grid-column:span 4;min-height:44px}
 .bkey.wide2{grid-column:span 2}
 .bkey[aria-pressed=true]{border-color:var(--accent);color:var(--accent)}
+.bkey:disabled{opacity:.35;cursor:not-allowed}
 .bkey.R{color:var(--accent)}
 .bkey.L{color:var(--early)}
 .bkey,.bcode{background:color-mix(in srgb,var(--ink) 6%,var(--surface));border-color:color-mix(in srgb,var(--ink) 18%,var(--surface))}   /* keys a touch lighter than the panel */
@@ -2308,7 +2309,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.62.0';                           /* shown beside the title */
+const VERSION='0.62.1';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -5710,9 +5711,17 @@ function bPut(raw){
 }
 /* Flam and drag are held keys: the next R or L tap becomes fR or dL and the key lets go. The text never holds half a flam. */
 let bGrace='';
-function bGraceKeys(){document.querySelectorAll('.bkey[data-k=flam],.bkey[data-k=drag]').forEach(k=>k.setAttribute('aria-pressed',String(k.dataset.k===bGrace)));}
+/* While a grace is waiting, only R, L and the two grace keys work. The rest are greyed out until it is used or toggled off. */
+function bGraceKeys(){
+  document.querySelectorAll('.bkey').forEach(k=>{
+    const d=k.dataset.k;
+    if(d==='flam'||d==='drag')k.setAttribute('aria-pressed',String(d===bGrace));
+    k.disabled=!!bGrace&&d!=='R'&&d!=='L'&&d!=='flam'&&d!=='drag';
+  });
+  if(bGrace)document.querySelectorAll('.bcode').forEach(k=>{k.disabled=true;});
+}
 function bEdit(act){
-  if(act==='flam'||act==='drag'){bGrace=bGrace===act?'':act;bGraceKeys();return;}
+  if(act==='flam'||act==='drag'){bGrace=bGrace===act?'':act;bGraceKeys();if(!bGrace)renderBuilder();return;}
   if(bGrace&&(act==='R'||act==='L'))act=(bGrace==='flam'?'f':'d')+act;
   bGrace='';bGraceKeys();
   const p=lineParts(bGet());
@@ -5916,6 +5925,7 @@ function renderBuilder(){
     btn.addEventListener('click',()=>bEdit('code:'+c));
     codes.appendChild(btn);
   });
+  bGraceKeys();
 }
 /* Reorders the exercises. Only the exercise lines swap places, so title, time and strokes lines stay where they are. */
 function bMoveEx(how){
