@@ -783,7 +783,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
     </section>
     <section class="panel" aria-label="Library links" id="lnkBox">
       <h3>Library links</h3>
-      <p class="hint">Libraries loaded from a web address. The pencil edits a link; the ⋮ menu removes it.</p>
+      <p class="hint">Libraries loaded from a web address. The pencil edits a link; the ⋮ menu deletes it.</p>
       <div id="lnkList"></div>
     </section>
     </div>
@@ -1166,7 +1166,7 @@ LRLR LRLR LRLR LRLR  x8</pre>
       <p><b>Colours</b> (Settings &rsaquo; Preferences) switches to a colour-blind safe set: blue for leading, orange for dragging, grey for on time. Early notes also lean, late notes are underlined, and results at or above target carry a tick, so colour is never the only signal.</p>
       <h4>Saving and importing</h4>
       <p><b>Save</b> keeps the routine in <b>your library</b>. If you change only the title, Save renames it. If you change the exercises, Save keeps the original and adds a new routine, so past runs still replay as played. The <b>&#8942;</b> beside Save has <b>Save as new</b> (a copy without changes) and <b>Download file</b> (a .txt to send).</p>
-      <p>On the Library page, <b>Import</b> adds a routine from a .txt, .json or .csv file, or opens one from a link in the editor to review and Save. Text with errors opens in the editor to fix. <b>New</b> starts an empty exercise. In History, the bookmark on a routine saves it or removes it from your library, and <b>In library</b> lists your library, including routines you have not played. A title such as "Rudiment: Single stroke roll" groups it under Rudiment on the Library page.</p>
+      <p>On the Library page, <b>Import</b> adds a routine from a .txt, .json or .csv file, or opens one from a link in the editor to review and Save. Text with errors opens in the editor to fix. <b>New</b> starts an empty exercise. In History, the bookmark on a routine saves it or deletes it from your library, and <b>In library</b> lists your library, including routines you have not played. A title such as "Rudiment: Single stroke roll" groups it under Rudiment on the Library page.</p>
       <p>JSON also works: a list such as <b>["RLRR LRLL", {"sticking":"RLRL RLRL","passes":16}]</b>, or an object with <b>title</b>, <b>each</b> and <b>exercises</b>.</p>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
@@ -1174,7 +1174,7 @@ LRLR LRLR LRLR LRLR  x8</pre>
     <section class="panel" id="help-library">
       <h3>Libraries and links</h3>
       <p>On the Library page, press <b>Import</b>, choose <b>Add a link&hellip;</b> under <b>Routine or library link</b>, paste the address (and a name if you like) and press <b>Load</b>. A file with one routine opens in the editor to look over. Press <b>Save</b> to add it or <b>Back</b> to leave. A file with several routines is kept as a <b>library</b> in the dropdown, up to 20.</p>
-      <p>Each routine in a library is tagged <b>New</b> or <b>In library</b>. Tap one to open it in the editor and Save it, or press <b>Import all</b> to add every routine not already in your library (routines with errors are skipped). A library you loaded recently shows without a request until you press Load. To rename a library, change its address or remove it, use <b>Settings &rsaquo; Data &rsaquo; Library links</b>. Export includes them.</p>
+      <p>Each routine in a library is tagged <b>New</b> or <b>In library</b>. Tap one to open it in the editor and Save it, or press <b>Import all</b> to add every routine not already in your library (routines with errors are skipped). A library you loaded recently shows without a request until you press Load. To rename a library, change its address or delete it, use <b>Settings &rsaquo; Data &rsaquo; Library links</b>. Export includes them.</p>
       <p>The <b>Starter routines</b> and <b>Rudiments</b> buttons on the Play page (shown until you have saved or played something) load two small libraries hosted next to the app: examples of the routine format, and the standard rudiments that can be written as sticking. The app has no other routines. You choose the library.</p>
       <h4>The library file</h4>
       <p>One plain text file. Write each routine as in the editor, with its own <b>title:</b> line, and put a line of three or more dashes (or an em dash) between routines. A routine without a title is named by its place in the file. Up to 100 routines are read.</p>
@@ -1202,7 +1202,7 @@ RLRR LRLL RLRR LRLL</pre>
         <li><b>Practise weak exercises:</b> after a routine run, this plays only the exercises below target. Restart repeats the same ones. A partial run never counts as clearing the routine.</li>
         <li><b>Tempo guidance:</b> each exercise in the start list shows the tempo it has cleared, or "new". The summary shows where the whole routine has been cleared.</li>
         <li><b>Staff of a run:</b> each run keeps the result of every stroke. A run's page has a <b>Staff</b> group showing the notation with each stroke coloured and read out, and the Play page rebuilds its review from the same record.</li>
-        <li><b>History:</b> on the Progress page, switch to History for your last 300 runs, by exercise or routine, newest first. Tap a group for its runs and a run for its exercises. <b>Play</b> loads the same routine, tempo, click level and settings, ready to start. <b>Delete</b> removes the run. An untitled routine is called "Untitled 1", "Untitled 2" and so on. The pencil renames it everywhere, and a title typed in the editor replaces it. Runs beyond 300 are folded into your totals, streaks, achievements and cleared tempos, which are kept for good, but they can no longer be replayed.</li>
+        <li><b>History:</b> on the Progress page, switch to History for your last 300 runs, by exercise or routine, newest first. Tap a group for its runs and a run for its exercises. <b>Play</b> loads the same routine, tempo, click level and settings, ready to start. <b>Delete</b> deletes the run. An untitled routine is called "Untitled 1", "Untitled 2" and so on. The pencil renames it everywhere, and a title typed in the editor replaces it. Runs beyond 300 are folded into your totals, streaks, achievements and cleared tempos, which are kept for good, but they can no longer be replayed.</li>
       </ul>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
@@ -2460,7 +2460,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.78.0';                           /* shown beside the title */
+const VERSION='0.78.1';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -4610,8 +4610,8 @@ function markBtn(key,text){
     if(e)removeLibEntry(e);
     else if(text&&recs.lib.length<MAX_LIB)recs.lib.push({id:libId(),x:text,t:Date.now()});
     saveRecs();renderProgress();
-  },b=iconBtn(e?'marked':'mark',e?'Remove from your library':'Save to your library',e?()=>{}:go);
-  if(e)arm(b,go,'Remove');   /* removing asks for a second tap; saving does not */
+  },b=iconBtn(e?'marked':'mark',e?'Delete from your library':'Save to your library',e?()=>{}:go);
+  if(e)arm(b,go,'Delete');   /* deleting asks for a second tap; saving does not */
   if(!e&&!text){b.disabled=true;b.title='This run was saved without its text.';}
   return b;
 }
@@ -5502,7 +5502,7 @@ function removeLibEntry(e){
 /* The Delete button has already asked for a second tap; Undo follows in the message line. */
 /* Removing an entry with no runs also forgets its name, so the name is kept here and put back by Undo. */
 function libUndo(e,wasOpen,name,label){
-  const m=$('libMsg');m.textContent='Removed “'+label+'”. Its runs stay in History. ';
+  const m=$('libMsg');m.textContent='Deleted “'+label+'”. Its runs stay in History. ';
   m.appendChild(textBtn('Undo',()=>{
     if(!libFor(libKey(e))&&recs.lib.length<MAX_LIB)recs.lib.push(e);
     if(name&&!recs.names[libKey(e)])recs.names[libKey(e)]=name;
@@ -5704,7 +5704,7 @@ function renderLinks(){
     const nm=document.createElement('b'),ur=document.createElement('span'),ac=document.createElement('span');
     nm.textContent=listName(l);ur.className='lnkurl';ur.textContent=l.url;ac.className='ha';
     ac.appendChild(iconBtn('edit','Edit',()=>{lnkEdit=l;renderLinks();}));
-    ac.appendChild(kebab('More actions',[{t:'Remove',fn:()=>{S.lists=S.lists.filter(q=>q!==l);if(S.listSel===l.url){S.listSel='';lib={items:[],loaded:false,busy:false,cur:''};}libMode='';save();renderLibrary();},arm:true,danger:true}]));
+    ac.appendChild(kebab('More actions',[{t:'Delete',fn:()=>{S.lists=S.lists.filter(q=>q!==l);if(S.listSel===l.url){S.listSel='';lib={items:[],loaded:false,busy:false,cur:''};}libMode='';save();renderLibrary();},arm:true,danger:true}]));
     const inner=document.createElement('div');inner.className='lnkrow';inner.append(nm,ur,ac);
     box.appendChild(inner);
   });
@@ -5753,7 +5753,7 @@ async function loadLibrary(){
   if(add){
     const u=httpUrl($('libraryUrl').value.trim());
     if(!u){$('libErr').textContent=URL_HINT;return;}
-    if(!S.lists.some(l=>l.url===u.href)&&S.lists.length>=20){$('libErr').textContent='You can keep 20 libraries. Remove one in Settings first.';return;}
+    if(!S.lists.some(l=>l.url===u.href)&&S.lists.length>=20){$('libErr').textContent='You can keep 20 libraries. Delete one in Settings first.';return;}
     href=u.href;
   }else{const l=curList();if(!l)return;href=l.url;}
   lib.busy=true;$('libInfo').textContent='Loading the library…';renderLibrary();
