@@ -1945,12 +1945,14 @@ function streakOf(days,now){
 }
 /* Achievements: three tracks, each with levels. Worked out from the saved runs, so discarding a run takes its credit back. */
 const BADGES=[{id:'ses',name:'Runs',unit:'runs',at:[5,10,25,50,100,250,500]},{id:'str',name:'Days in a row',unit:'days in a row',at:[5,10,20,30,60,100,180,365]}];
-LEVELS.forEach(l=>BADGES.push({id:'l'+l.v,lv:l.v,name:l.n,unit:'exercises cleared on '+l.n,at:[1,5,10,20,30,50]}));
-BADGES.push({id:'all',name:'On all four levels',unit:'exercises cleared on all four levels',at:[1]});
-BADGES.push({id:'dyn',name:'Accents and ghosts',unit:'accent or ghost exercises cleared',one:'accent or ghost exercise cleared',at:[1,5,10,20,30,50]});
+/* A book holds hundreds of exercises, so counts of exercises run from 1 up to 1000. */
+const LADDER=[1,5,10,25,50,100,250,500,750,1000];
+LEVELS.forEach(l=>BADGES.push({id:'l'+l.v,lv:l.v,name:l.n,unit:'exercises cleared on '+l.n,at:LADDER}));
+BADGES.push({id:'all',name:'On all four levels',unit:'exercises cleared on all four levels',at:LADDER});
+BADGES.push({id:'dyn',name:'Accents and ghosts',unit:'accent or ghost exercises cleared',one:'accent or ghost exercise cleared',at:LADDER});
 BADGES.push({id:'rtc',name:'Routines cleared',unit:'routines cleared',one:'routine cleared',at:[1,3,5,10,25]});
 BADGES.push({id:'swp',name:'Clean routine runs',unit:'clean routine runs',one:'clean routine run',at:[1,5,10,25,50]});
-BADGES.push({id:'prf',name:'Perfect exercises',unit:'perfect exercises',one:'perfect exercise',at:[1,5,10,25,50,100]});
+BADGES.push({id:'prf',name:'Perfect exercises',unit:'perfect exercises',one:'perfect exercise',at:LADDER});
 BADGES.push({id:'tmp',name:'Fastest clear',lead:'Fastest clear',suf:' BPM',unit:'BPM, fastest exercise cleared',at:[40,60,80,100,120,140,160]});
 const BGROUPS=[{name:'Runs',d:'Runs where at least one exercise was played through once and scored.',ids:['ses']},
   {name:'Days in a row',d:'Your longest run of practice days. A day counts at 5 minutes or more. One rest day a week does not break it.',ids:['str']},
@@ -2312,7 +2314,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.62.4';                           /* shown beside the title */
+const VERSION='0.62.5';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
