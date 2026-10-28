@@ -211,7 +211,7 @@ body[data-input="mic"] .kb-only{display:none}
 .wsteps li{display:grid;gap:6px;justify-items:start}
 .wsteps li.ok{display:block;color:var(--muted)}.wsteps li.ok::before{content:"\2713\00a0";font-weight:700}
 body[data-run="1"] #setup{display:none}
-#setup{gap:10px}#setup h3,#setup p{margin:0}#setup p{font-size:14.5px;line-height:1.5}
+#setup{gap:10px;padding-bottom:16px;border-bottom:1px solid var(--line)}#setup h3,#setup p{margin:0}#setup p{font-size:14.5px;line-height:1.5}
 .hscw{position:relative;min-width:0}
 .hscroll{overflow-x:auto;overscroll-behavior-x:contain;height:170px}
 .hscroll.lv{height:56px}
@@ -552,8 +552,8 @@ button.pill{cursor:pointer;color:var(--ink);font-weight:700;min-height:32px;padd
 button.pill:disabled{opacity:.5;cursor:not-allowed}
 button.pill.on{color:var(--ok)}
 #micPill{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:6px 12px;font-weight:700}
-#micPill.off{color:var(--accent);border-color:var(--accent)}
-#micPill[hidden]{display:none}
+#micPill[hidden]{display:inline-flex;visibility:hidden}   /* keeps its place so Help and the theme button do not jump */
+body[data-input="kb"] #micPill{display:none}
 #micDot{width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.35;transition:opacity .08s}
 button.pill.warn{color:var(--accent);border-color:var(--accent)}
 .help p,.help li{font-size:14.5px;line-height:1.55;margin:6px 0}
@@ -650,7 +650,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
   <header>
     <div class="head">
       <h1>Pocket</h1>
-      <span class="headbtns"><button class="pill" id="helpBtn" type="button" data-help="help-how">Help</button><button class="pill" id="themeBtn" type="button"></button><span class="pill off" id="micPill" role="status"><i id="micDot"></i><span id="micTxt">Mic off</span></span></span>
+      <span class="headbtns"><button class="pill" id="helpBtn" type="button" data-help="help-how">Help</button><button class="pill" id="themeBtn" type="button"></button><span class="pill on" id="micPill" role="status" hidden><i id="micDot"></i><span id="micTxt">Mic on</span></span></span>
     </div>
     <p class="sub"><span>Go from trailing to nailing the beat</span><small class="ver" id="ver"></small></p>
   </header>
@@ -729,7 +729,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         <input type="range" id="settle" min="20" max="120" step="5">
         <p class="hint">How long the app ignores the pad after a hit. Raise it if one stroke counts twice.</p>
       </div>
-      <div class="btns"><button class="btn small" id="testMic" type="button">Turn microphone on</button><button class="btn small" id="micCheck" type="button">Mic check</button><span class="heard" id="heard" aria-live="off"></span></div>
+      <div class="btns"><button class="btn small" id="testMic" type="button">Test microphone</button><button class="btn small" id="micCheck" type="button">Mic check</button><button class="btn small" id="redoSetup" type="button">Redo setup</button><span class="heard" id="heard" aria-live="off"></span></div>
       <p class="err" id="micMsg" role="alert"></p>
       <p class="chkmsg" id="chkMsg" aria-live="polite"></p>
       <ul class="chkout" id="chkOut"></ul>
@@ -999,7 +999,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
     <section class="panel" id="help-start">
       <h3>Quick start</h3>
       <ol>
-        <li><b>Settings:</b> pick a tempo, use headphones for the click, turn the microphone on and hit the pad. The level bar should cross the trigger line on every stroke. Calibrating each stick is optional, but lets the app tell L from R.</li>
+        <li><b>Settings:</b> pick a tempo, use headphones for the click, tap Test microphone and hit the pad. The level bar should cross the trigger line on every stroke. Calibrating each stick is optional, but lets the app tell L from R.</li>
         <li><b>Library:</b> press <b>New</b> to write a routine or <b>Import</b> to bring one in. One exercise plays on its own. Two or more make a routine, played in order.</li>
         <li><b>Play:</b> set the tempo, click level and how long each exercise plays, then press Start. After the count-in, play on the moving line and press Stop when you are done. Your result appears first, with <b>Again</b>, <b>Next tempo</b> (when you cleared the target) and <b>Done</b>. The staff keeps its colours and numbers so you can see which strokes were off. Done brings the controls back.</li>
       </ol>
@@ -2464,7 +2464,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.79.1';                           /* shown beside the title */
+const VERSION='0.81.1';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2477,7 +2477,7 @@ const HOSTED={wStarter:['routines/starter.txt','Starter routines'],wRudiments:['
 const hostedHref=path=>{try{return new URL(path,location.href).href;}catch(e){return '';}};
 const hostedLists=()=>Object.keys(HOSTED).map(id=>({url:hostedHref(HOSTED[id][0]),name:HOSTED[id][1],t:0})).filter(l=>l.url);
 const S={mode:'single',routineText:STARTER,eachUnit:'min',eachVal:1,gap:0,pulse:true,startExercise:1,
-  bpm:60,subdiv:4,click:'beat',lastExport:0,expRuns:0,tol:20,sens:-30,settle:40,accent:'',others:'n',noise:null,vol:60,latency:null,latCal:false,input:'mic',editTab:'build',theme:'',palette:'std',libId:''};
+  bpm:60,subdiv:4,click:'beat',lastExport:0,expRuns:0,tol:20,sens:-30,settle:40,accent:'',others:'n',noise:null,micOk:false,vol:60,latency:null,latCal:false,input:'mic',editTab:'build',theme:'',palette:'std',libId:''};
 let cal={L:[],R:[]},model=null;
 try{
   const o=JSON.parse(localStorage.getItem(KEY)||'null');
@@ -2489,7 +2489,7 @@ try{
 S.theme=S.theme==='light'||S.theme==='dark'?S.theme:(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
 S.mode=S.mode==='routine'?'routine':'single';
 S.seeded=S.seeded===true;                         /* the routines that ship with the app have been added to the Library */
-S.latCal=S.latCal===true;                          /* set once a calibration has run or a number was typed */
+S.micOk=S.micOk===true;S.latCal=S.latCal===true;                          /* set once a calibration has run or a number was typed */
 S.editTab=S.editTab==='type'?'type':'build';       /* Build or Type, remembered on each device. Build is first. */
 S.bpm=clamp(Math.round(+S.bpm)||60,40,220);
 S.subdiv=4;                                        /* strokes with no note code are sixteenths */
@@ -2727,7 +2727,9 @@ function showMicError(err){
   showSetup('dev');$('micMsg').textContent=m;
 }
 let audioFresh=false;   /* the output was just started or the microphone just opened, so the first click needs a little more time */
+let opening=0;   /* a microphone is being opened, so it must not be put away yet */
 async function ensureAudio(needMic){
+  opening++;
   try{
     if(!ctx)ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'});
     if(ctx.state!=='running'){await ctx.resume();audioFresh=true;}
@@ -2773,16 +2775,18 @@ async function ensureAudio(needMic){
       setMicUI(micLive());
       if(!micLive()){await new Promise(r=>setTimeout(r,300));setMicUI(micLive());}
       if(!micLive())throw {name:'muted'};
+      if(!S.micOk){S.micOk=true;save();}
     }
     return true;
   }catch(err){showMicError(err);return false;}
+  finally{opening--;}
 }
 function micLive(){const t=stream&&stream.getAudioTracks()[0];return !!(node&&t&&t.readyState==='live'&&!t.muted);}
 function setMicUI(on){
   const p=$('micPill');
-  $('micTxt').textContent=on?'Mic on':'Mic off';p.classList.toggle('on',on);p.classList.toggle('off',!on);
+  p.hidden=!on;
   if(!on)$('micDot').style.opacity='';
-  $('testMic').textContent=on?'Turn microphone off':'Turn microphone on';
+  $('testMic').textContent=micTest?'Stop test':'Test microphone';
   if(!on){$('mFill').style.width='0%';$('heard').textContent='';}
   syncInfo();
 }
@@ -2800,18 +2804,26 @@ function micOff(force){
   sendDet=null;
   setMicUI(false);
 }
+/* The microphone is open only while something needs it: a run, Mic check, a calibration or this test. Anything else puts it away and quiets the audio. */
+let micTest=false;
+const micBusy=()=>!!((run&&!run.ended)||chk||calMode||calTest||loop||listen||micTest);
+function idleMic(){
+  if(opening||micBusy())return;
+  if(node||stream)micOff(true);
+  if(ctx&&ctx.state==='running')ctx.suspend().catch(()=>{});
+}
 async function toggleMic(){
   if(run&&!run.ended)return;
-  if(node&&micLive()){micOff();setStatus('Microphone turned off.');}
-  else if(await ensureAudio(true))setStatus('Microphone is on. Hit the pad and watch the level bar.');
+  if(micTest){micTest=false;idleMic();syncMicBtn();setStatus('Microphone test stopped.');return;}
+  if(await ensureAudio(true)){micTest=true;syncMicBtn();setStatus('Microphone test. Hit the pad and watch the level bar.');}
 }
 function syncMicBtn(){
   const busy=!!(run&&!run.ended);
-  $('micPill').hidden=S.input==='kb';
   $('testMic').disabled=busy||S.input==='kb'||!!chk||!!calTest;
   $('micCheck').disabled=busy||!!calMode||S.input==='kb'||!!calTest||!!loop;
   $('micCheck').textContent=chk?'Cancel check':'Mic check';
-  syncInfo();
+  $('testMic').textContent=micTest?'Stop test':'Test microphone';
+  syncInfo();idleMic();
 }
 /* ---------- mic check ---------- */
 let chk=null;
@@ -3242,13 +3254,14 @@ async function startLoop(){
   const t0=ctx.currentTime+1,T=[];
   for(let k=0;k<LOOP.n;k++){T.push(t0+k*LOOP.gap);loopClick(T[k]);}
   loop={T:T,hits:[],timer:setTimeout(finishLoop,(1+LOOP.n*LOOP.gap+0.5)*1000)};
-  $('latMsg').textContent='Auto calibrate: playing '+LOOP.n+' clicks through the speakers. Keep quiet and do not play.';
+  const show=()=>{$('latMsg').textContent='Auto calibrate: playing '+LOOP.n+' clicks through the speakers. Keep quiet and do not play. '+T.filter(t=>t<=ctx.currentTime).length+'/'+LOOP.n;};
+  show();loop.tick=setInterval(show,200);
   setStatus('Auto calibrate running.');
   updateCalUI();syncMicBtn();
 }
 function endLoop(msg){
   if(!loop)return;
-  clearTimeout(loop.timer);loop=null;
+  clearTimeout(loop.timer);clearInterval(loop.tick);loop=null;
   if(msg){setStatus(msg);$('latMsg').textContent=msg;}
   updateCalUI();syncMicBtn();
 }
@@ -3958,6 +3971,7 @@ function editFromPlayPage(){
 }
 function showTab(t){
   curTab=t;
+  if(t!=='setup'&&micTest){micTest=false;syncMicBtn();}
   closePages();
   closeListen();
   $('pagePattern').hidden=t!=='pattern';
@@ -5912,7 +5926,7 @@ function syncSetup(){
     if(setupWas){   /* the last step just finished: say so for a few seconds */
       setupWas=false;box.hidden=false;
       $('setN').textContent='';$('setSteps').textContent='';
-      ['Microphone on','Mic check done','Latency calibrated'].forEach(t=>{const li=document.createElement('li');li.className='ok';li.textContent=t;$('setSteps').appendChild(li);});
+      ['Microphone allowed','Mic check done','Latency set'].forEach(t=>{const li=document.createElement('li');li.className='ok';li.textContent=t;$('setSteps').appendChild(li);});
       const m=document.createElement('li');m.textContent='You\u2019re all set. Press Start.';m.style.fontWeight='700';$('setSteps').appendChild(m);
       clearTimeout(setupTimer);setupTimer=setTimeout(()=>{box.hidden=true;setupTimer=0;},6000);
     }else if(!setupTimer)box.hidden=true;
@@ -5920,9 +5934,9 @@ function syncSetup(){
   }
   setupWas=true;clearTimeout(setupTimer);setupTimer=0;box.hidden=false;
   const steps=[
-    {done:micLive(),ok:'Microphone on',label:'Allow the microphone.',go:toggleMic,btn:'Turn microphone on',msg:()=>$('micMsg').textContent},
+    {done:S.micOk,ok:'Microphone allowed',label:'Allow the microphone.',go:async()=>{if(await ensureAudio(true))idleMic();},btn:'Allow microphone',msg:()=>$('micMsg').textContent},
     {done:S.noise!==null,ok:'Mic check done',label:'Mic check: stay quiet for two seconds, then hit the pad ten times.',go:toggleCheck,btn:chk?'Cancel check':'Mic check',msg:()=>$('chkMsg').textContent},
-    {done:S.latCal,ok:'Latency calibrated',label:'Calibrate latency. It plays clicks for about 20 seconds, so keep quiet.',go:startLoop,btn:loop?'Cancel':'Auto calibrate',msg:()=>$('latMsg').textContent}
+    {done:S.latCal,ok:'Latency set',label:'Calibrate latency. It plays clicks for about 20 seconds, so keep quiet.',go:startLoop,btn:loop?'Cancel':'Auto calibrate',skip:loop?null:()=>{loop&&endLoop('');markCal();setStatus('Latency calibration skipped. Set it by hand in Settings, under Device, if clicks and hits seem off.');},msg:()=>$('latMsg').textContent}
   ];
   const list=$('setSteps');list.textContent='';
   let cur=-1;
@@ -5932,8 +5946,11 @@ function syncSetup(){
     cur=i;
     const t=document.createElement('span');t.textContent=st.label;
     const b=document.createElement('button');b.type='button';b.className='btn small';b.textContent=st.btn;b.addEventListener('click',st.go);
+    const sk=st.skip?document.createElement('button'):null;
+    if(sk){sk.type='button';sk.className='btn small';sk.textContent='Skip';sk.addEventListener('click',st.skip);}
     const m=document.createElement('p');m.className='hint';m.setAttribute('aria-live','polite');m.textContent=st.msg();
-    li.append(t,b,m);list.appendChild(li);return false;
+    const bt=document.createElement('div');bt.className='btns';bt.append(b);if(sk)bt.append(sk);
+    li.append(t,bt,m);list.appendChild(li);return false;
   });
   $('setN').textContent=cur<0?'':'· step '+(cur+1)+' of 3';
 }
@@ -6105,7 +6122,7 @@ function bFillSelect(sel,values,label,cur){
 let listen=null;
 function stopListen(){
   if(!listen)return;
-  clearTimeout(listen.timer);cancelAnimationFrame(listen.raf);listen=null;silenceTones();
+  clearTimeout(listen.timer);cancelAnimationFrame(listen.raf);listen=null;silenceTones();idleMic();
   const box=$('lsStaff');
   if(box){box.classList.remove('listening');box.querySelectorAll('.ph').forEach(e=>e.setAttribute('visibility','hidden'));}
   syncListen();
@@ -6535,6 +6552,7 @@ function wire(){
   $('latency').addEventListener('change',e=>{const v=e.target.value;S.latency=v===''?null:clamp(Math.round(+v)||0,0,400);if(v!=='')S.latCal=true;save();syncInfo();});
   $('themeBtn').addEventListener('click',()=>{S.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';applyTheme();save();});
   $('testMic').addEventListener('click',toggleMic);
+  $('redoSetup').addEventListener('click',()=>{micOff(true);S.micOk=false;S.noise=null;S.latCal=false;save();location.reload();});   /* shows the Set up card again */
   $('calL').addEventListener('click',()=>startCal('L'));
   $('calR').addEventListener('click',()=>startCal('R'));
   $('calReset').addEventListener('click',()=>{cal={L:[],R:[]};rebuildModel();save();$('calTestOut').textContent='';updateCalUI();});
@@ -6547,7 +6565,8 @@ function wire(){
   $('startBtn').addEventListener('click',()=>{
     if(run&&!run.ended){
       if(run.mode!=='play'){stopRun();return;}
-      if(run.paused)resumeRun();else pauseRun();
+      if(!run.paused)pauseRun();
+      else(S.input==='mic'&&!micLive()?ensureAudio(true):Promise.resolve(true)).then(ok=>{if(ok&&run&&!run.ended&&run.paused)resumeRun();});   /* the mic may have been lost while away */
       return;
     }
     startPlay();
@@ -6619,7 +6638,7 @@ function wire(){
   });
   $('updLater').addEventListener('click',()=>{updLater=true;showUpd();});
   setTimeout(checkUpdate,2000);
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden){checkUpdate();if(run&&!run.ended)lockScreen();}});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){micTest=false;if(run&&!run.ended)pauseRun();idleMic();}if(!document.hidden){checkUpdate();if(run&&!run.ended)lockScreen();}});
   let lastW=0,rzT=0;
   window.addEventListener('resize',()=>{
     drawTrace();
