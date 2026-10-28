@@ -1,5 +1,5 @@
 # Standard rudiments, written as sticking. Routines are split by lines of dashes.
-# Rudiments with flams, drags or buzz strokes are left out: this notation has no grace notes.
+# Flams and drags are written fR and dL: f or d in front of a stroke. Buzz strokes are left out.
 ---
 title: Rudiments: Single stroke roll (R lead)
 RLRL RLRL RLRL RLRL
@@ -90,3 +90,24 @@ title: Rudiments: Single stroke triplets
 ---
 title: Rudiments: Triplet double strokes
 16t RRLLRR LLRRLL RRLLRR LLRRLL
+---
+title: Rudiments: Flam
+8 fR fL fR fL
+---
+title: Rudiments: Flam accent
+8t fR L R fL R L
+---
+title: Rudiments: Flam tap
+16 fR R fL L fR R fL L
+---
+title: Rudiments: Flam paradiddle
+16 fR L R R fL R L L
+---
+title: Rudiments: Flam paradiddle-diddle
+16 fR L R R L L fL R L L R R
+---
+title: Rudiments: Single drag tap
+8 dR L dL R dR L dL R
+---
+title: Rudiments: Single ratamacue
+8t dR L R q L 8t dL R L q R

@@ -75,7 +75,7 @@ h3{font:600 12px var(--font-body);letter-spacing:.09em;text-transform:uppercase;
 .field output{color:var(--ink);font-family:var(--font-data);letter-spacing:0;text-transform:none;margin-left:6px}
 input[type=text],input[type=number],select{font:500 16px var(--font-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:44px;width:100%}
 input[type=range]{width:100%;accent-color:var(--accent);min-height:32px}
-#pattern{font:600 24px var(--font-data);letter-spacing:.1em;text-transform:uppercase}
+#pattern{font:600 24px var(--font-data);letter-spacing:.1em}
 .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
 .tempo{display:grid;grid-template-columns:44px 1fr 44px;gap:8px;align-items:center}
 .tempo .btn{padding:0;font-size:22px;min-height:44px}
@@ -136,6 +136,9 @@ body[data-run="1"] .notice{display:none}
 .staff .nh{fill:var(--ink)}
 .staff .clef{fill:var(--ink)}
 .staff .stem{stroke:var(--ink);stroke-width:1.6}
+.staff .gn{fill:var(--ink)}
+.staff .gstem{stroke:var(--ink);stroke-width:1.1}
+.staff .gbeam{stroke:var(--ink);stroke-width:2}
 .staff .beam{fill:var(--ink)}
 .staff .flag{stroke:var(--ink);stroke-width:2.2;fill:none}
 .staff .br{stroke:var(--muted);stroke-width:1.3;fill:none}
@@ -436,7 +439,7 @@ body[data-mode="routine"] .single-only{display:none}
 .bfields{flex:1;min-width:0}
 .bfields textarea,.bfields input{width:100%}
 .bfields textarea[readonly],.bfields input[readonly]{cursor:default}
-#bReadP{font:600 clamp(16px,5.3vw,24px) var(--font-data);letter-spacing:.06em;text-transform:uppercase}
+#bReadP{font:600 clamp(16px,5.3vw,24px) var(--font-data);letter-spacing:.06em}
 /* click level diagrams in Help */
 .clk{display:grid;grid-template-columns:64px repeat(var(--c),1fr);gap:3px;align-items:center;margin:10px 0 2px}
 .clk .clt{grid-column:1/-1;font:600 11px var(--font-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
@@ -478,6 +481,8 @@ body[data-edit=type] .buildonly{display:none}
 .bkey{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;min-height:56px;cursor:pointer;font:700 14px var(--font-data)}
 .bkey.R,.bkey.L{grid-column:span 2;min-height:64px;font:800 32px var(--font-display)}
 .bkey.wide{grid-column:span 4;min-height:44px}
+.bkey.wide2{grid-column:span 2}
+.bkey[aria-pressed=true]{border-color:var(--accent);color:var(--accent)}
 .bkey.R{color:var(--accent)}
 .bkey.L{color:var(--early)}
 .bkey,.bcode{background:color-mix(in srgb,var(--ink) 6%,var(--surface));border-color:color-mix(in srgb,var(--ink) 18%,var(--surface))}   /* keys a touch lighter than the panel */
@@ -771,11 +776,13 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
           <div class="bkeys" role="group" aria-label="Strokes">
             <button class="bkey R" type="button" data-k="R" aria-label="Right">R</button>
             <button class="bkey L" type="button" data-k="L" aria-label="Left">L</button>
+            <button class="bkey sm" type="button" data-k="flam" aria-pressed="false" aria-label="Flam: the next R or L gets a grace note before it">flam</button>
+            <button class="bkey sm" type="button" data-k="drag" aria-pressed="false" aria-label="Drag: the next R or L gets two grace notes before it">drag</button>
             <button class="bkey sm" type="button" data-k="_" aria-label="Rest">rest _</button>
             <button class="bkey sm" type="button" data-k="group" aria-label="New group">space</button>
             <button class="bkey sm" type="button" data-k="back" aria-label="Delete the last stroke">&#9003;</button>
             <button class="bkey sm" type="button" data-k="swap" aria-label="Swap left and right">L&#8644;R</button>
-            <button class="bkey sm wide" type="button" data-k="clear" aria-label="Clear the strokes of this exercise">clear</button>
+            <button class="bkey sm wide2" type="button" data-k="clear" aria-label="Clear the strokes of this exercise">clear</button>
           </div>
         </div>
         </section>
@@ -786,6 +793,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
             <code>q 8 16 32</code><span>quarter to thirty-second notes</span>
             <code>8t 16t</code><span>triplets</span>
             <code>5t 7t</code><span>quintuplets, septuplets</span>
+            <code>fR dL</code><span>flam, drag (grace notes first)</span>
             <code>_</code><span>rest</span>
             <code>space</code><span>starts a new group</span>
             <code>7/8 (3+2+2):</code><span>time signature, at the start of a line</span>
@@ -942,8 +950,14 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         <p>A rest takes time but expects no hit. A hit during a rest counts as an extra.</p>
         <button class="btn small" type="button" data-try="single" data-text="16 R _ L _ R L _ L">Try it</button>
       </div>
+      <div class="ex">
+        <h4>Flams and drags</h4>
+        <pre>8 fR fL dR dL</pre>
+        <p><b>f</b> in front of a stroke is a flam and <b>d</b> a drag (two grace notes). The other hand plays the grace, so <b>fR</b> is a left grace into a right stroke. Play the main stroke on the click and the grace just before it, softer.</p>
+        <button class="btn small" type="button" data-try="single" data-text="8 fR fL dR dL">Try it</button>
+      </div>
       <h4>Using the editor</h4>
-      <p>You do not have to type any of this. <b>Builder</b> and <b>Text</b> are two views of one routine. In Builder, pick a note code, then tap R, L, rest and space to add strokes. Each exercise has a <b>&#8942;</b> menu to insert, clone, move or delete it. In Text you edit the whole routine, one exercise per line, with line numbers beside any errors. The editor remembers your last view on each device.</p>
+      <p>You do not have to type any of this. <b>Builder</b> and <b>Text</b> are two views of one routine. In Builder, pick a note code, then tap R, L, rest and space to add strokes. Tap <b>flam</b> or <b>drag</b> first to put grace notes on the next stroke. Each exercise has a <b>&#8942;</b> menu to insert, clone, move or delete it. In Text you edit the whole routine, one exercise per line, with line numbers beside any errors. The editor remembers your last view on each device.</p>
       <p>The &#9654; beside Save plays the routine as it stands. The speaker button plays the exercise as clicks over the staff (Close or Esc to leave). In a routine, <b>Title</b>, <b>Each exercise plays for</b>, <b>Time</b>, <b>Grouping</b> and <b>Default note</b> apply to every exercise, and <b>This exercise</b> overrides them for the one you are editing.</p>
       <h4>The routine format</h4>
       <p>A routine is plain text, one exercise per line. A line starting with <b>#</b> is a note to yourself, and a name before a colon (<b>Exercise 4:</b>) is ignored. This app has no book content. You supply the exercises.</p>
@@ -1083,6 +1097,7 @@ RLRR LRLL RLRR LRLL</pre>
         <li><b>Latency:</b> sound reaches the page late, and the click reaches your ears late. Press <b>Auto calibrate</b> once on each device. It plays clicks through the speakers and times when the mic hears them, so you do not play. <b>Calibrate by playing</b> is the second choice: hit on each click, 80 hits or more, until the number settles. It assumes you were on the click on average. You can also type a number.</li>
         <li><b>Accent and Other strokes</b> (Play page) lay accents and ghost notes over the loaded exercise. Accent picks the loud strokes: the first of each group, each beat, each bar, every 2nd to 7th stroke (counted across passes, so it drifts if the count does not divide the pass), or the right or left hand. Rests are never accented. Other strokes can be Normal or Ghost. The staff shows accents with &gt; and ghost notes in brackets.</li>
         <li><b>How accents are scored:</b> with the microphone, each accent is compared with the strokes around it and each ghost note with its neighbours. An accent must be about 4 dB louder and a ghost note about 6 dB quieter. Strokes less than 60 ms apart are not judged. Ghost notes are heard down to 14 dB below the trigger line (the dashed line on the Settings meter), kept at least 6 dB above the room noise from your last Mic check. A quiet hit counts only on a ghost note, so room noise elsewhere is ignored. The rule is saved with each run, and an exercise played with a different rule has its own scores and History group. Keyboard input does not judge loudness.</li>
+        <li><b>Flams and drags:</b> only the main stroke is scored, as early or late against the click. Hits just before it (up to 80 ms for a flam, 120 ms for a drag) are its grace notes and are not counted as extras. While an exercise has them, the microphone also accepts a clearly louder strike soon after a hit, so a soft grace does not hide the main stroke. A grace as loud as the main stroke can, so play it softer. Keyboard play has no graces, so use one key per main stroke.</li>
         <li><b>Records and storage:</b> records are saved in this browser only. Export keeps a copy or moves it to another device, and Import brings it back. The app reminds you if you have never exported, or the last copy is two weeks old. On iPhone and iPad, Safari can clear a site's data after about a week without use, so add the page to your Home Screen. <b>Settings &rsaquo; Data &rsaquo; Storage</b> shows what takes space. Stroke detail (what rebuilds a run's staff) may use about 40% of what the browser allows. Past that, the oldest runs lose their detail first and keep their totals.</li>
       </ul>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
@@ -1343,10 +1358,15 @@ const MAXSTROKES=64;                              /* longest exercise, in stroke
    of d (4 = quarter), 16ths are 16/d strokes per pulse, so in 2/2 (d = 2) they are 8 and eighths are 4. */
 const NV_SRC='\\b(?:8t|16t|5t|7t|q|8|16|32)\\b';
 const NV_VAL={q:4,'8':8,'16':16,'32':32,'8t':12,'16t':24,'5t':20,'7t':28};     /* strokes per quarter-note beat x 4 */
+/* A flam or drag is written in front of its main stroke: fR is a flam on the right (a left grace note first), dL a drag on the left. A note is then 'L', 'R', '_', 'fL', 'fR', 'dL' or 'dR'. */
+const GRACE_ERR='f (flam) and d (drag) go directly in front of an L or R, like fR or dL';
+const hnd=n=>n.slice(-1);                         /* the hand that plays the main stroke */
+const graceOf=n=>n.length>1?(n[0]==='f'?1:2):0;   /* grace notes before it: 1 flam, 2 drag */
+const graceHand=n=>hnd(n)==='R'?'L':'R';
 function parseStrokes(str,pd){
   const dd=pd||4;
   const notes=[],gs=[],subs=[],src=String(str),re=new RegExp('\\/\\s*(\\d+)|(\\/)|('+NV_SRC+')|((?:(?!'+NV_SRC+')[^\\/])+)','gi');
-  let cur=null,ng=true,m;
+  let cur=null,ng=true,m,gr='';
   while((m=re.exec(src))){
     if(m[1]!==undefined){
       return {err:'write the note without a slash: q, 8, 16, 32, 8t, 16t, 5t or 7t'};
@@ -1358,14 +1378,17 @@ function parseStrokes(str,pd){
     else{
       /* A lone hyphen between spaces is a rest. A hyphen joined to strokes still separates groups. */
       const txt=m[4].replace(/(^|\s)-(?=\s|$)/g,'$1_');
-      if(!/^[LRlr_\s,\-|.]+$/.test(txt))return {err:'only L, R and _ (rest) are allowed, plus spaces and the note codes q, 8, 16, 32, 8t, 16t, 5t, 7t'};
+      if(!/^[LRlrFfDd_\s,\-|.]+$/.test(txt))return {err:'only L, R and _ (rest) are allowed, with f or d in front of a stroke for a flam or drag (fR), plus spaces and the note codes q, 8, 16, 32, 8t, 16t, 5t, 7t'};
       for(const ch of txt){
         const c=ch.toUpperCase();
-        if(c==='L'||c==='R'||c==='_'){notes.push(c);gs.push(ng);subs.push(cur);ng=false;}
+        if(c==='F'||c==='D'){if(gr)return {err:GRACE_ERR};gr=c.toLowerCase();continue;}
+        if(gr&&c!=='L'&&c!=='R')return {err:GRACE_ERR};
+        if(c==='L'||c==='R'||c==='_'){notes.push(gr?gr+c:c);gs.push(ng);subs.push(cur);ng=false;gr='';}
         else ng=true;
       }
     }
   }
+  if(gr)return {err:GRACE_ERR};
   const total=notes.length,rawGs=gs.slice(0,MAXSTROKES);
   /* A run of strokes under one marker with no spaces is grouped by four, or by six for triplets (two triplets joined),
      or by the subdivision above that. */
@@ -1572,13 +1595,15 @@ function setHeader(text,key,value){
 function builderApply(body,act){
   const b=String(body);
   if(act==='R'||act==='L'||act==='_')return b+act;
+  if(/^[fd][LR]$/.test(act))return b+act;
   if(act==='clear')return '';
   if(act==='group')return /\s$|^$/.test(b)?b:b+' ';
   /* Swap only the stroke groups (letters L, R and rests). Note codes and any other words stay as typed. */
-  if(act==='swap')return b.replace(/\S+/g,w=>/^[LRlr_]+$/.test(w)?w.replace(/[LRlr]/g,c=>({L:'R',R:'L',l:'r',r:'l'})[c]):w);
+  if(act==='swap')return b.replace(/\S+/g,w=>/^[LRlrFfDd_]+$/.test(w)?w.replace(/[LRlr]/g,c=>({L:'R',R:'L',l:'r',r:'l'})[c]):w);
   const t=b.replace(/\s+$/,''),m=CODE_TAIL.exec(t);
   if(act==='back'){
     if(!b)return b;
+    if(/[fd][LR]$/i.test(b))return b.slice(0,-2);
     if(m&&/\s$/.test(b)){const base=t.slice(0,t.length-m[2].length).replace(/\s+$/,'');return base?base+' ':'';}
     return b.slice(0,-1);
   }
@@ -1714,12 +1739,12 @@ function buildPlan(exercises,o){
           :ru==='b'?((sig&&sig.d===8)?b.groupStart[i]:isInt(off[i]))
           :ru==='m'?(i===0||(sig&&isInt(off[i]/sig.n)))
           :/^[2-7]$/.test(ru)?ord%(+ru)===0
-          :(ru==='R'||ru==='L')?b.notes[i]===ru:false;
+          :(ru==='R'||ru==='L')?hnd(b.notes[i])===ru:false;
         dy=hit?'A':(dyo.oth==='g'?'g':'n');
       }
       if(!rest)ord++;
       cells.push({t:st,seg:si,pos:i,k:p*N+i,rest:rest,d:beat/b.subs[i],g:g0+p,slot:rest?-1:slots.length,dy:dy});
-      if(!rest)slots.push({t:st,seg:si,pos:i,k:p*N+i,w:Math.min(beat/b.subs[i]*0.5,0.15),dy:dy});
+      if(!rest)slots.push({t:st,seg:si,pos:i,k:p*N+i,w:Math.min(beat/b.subs[i]*0.5,0.15),dy:dy,gr:graceOf(b.notes[i])});
       if(o.clickMode==='note'||(o.clickMode==='strokes'&&!rest)){
         /* Strong at the start of the bar, lighter at group starts. Inside triplets every beat start is lighter too,
            and inside sextuplets every half beat (1 2 3, 1 2 3), whatever the beaming. */
@@ -1741,6 +1766,15 @@ function nearestSlot(slots,t){
   while(lo<hi){const mid=(lo+hi)>>1;if(slots[mid].t<t)lo=mid+1;else hi=mid;}
   if(lo>0&&Math.abs(slots[lo-1].t-t)<=Math.abs(slots[lo].t-t))return lo-1;
   return lo;
+}
+/* How long before its main stroke the grace notes of a flam (1) or drag (2) can fall, in seconds. */
+const graceSpan=g=>g>1?0.12:0.08;
+/* The next slot after time t, when it is a flam or drag that t falls just before. Otherwise -1. */
+function graceSlot(slots,t,from){
+  let lo=0,hi=slots.length;
+  while(lo<hi){const m=(lo+hi)>>1;if(slots[m].t<=t)lo=m+1;else hi=m;}
+  const s=slots[lo];
+  return s&&lo>=from&&s.gr&&s.t-t>=0.012&&s.t-t<=graceSpan(s.gr)?lo:-1;
 }
 function fmtTime(s){
   s=Math.max(0,Math.round(s));
@@ -2028,7 +2062,7 @@ function looAccuracy(L,R){
 class OnsetDetector{
   constructor(sr,emit){
     this.sr=sr;this.emit=emit;
-    this.thr=0.03;this.refrac=Math.round(0.04*sr);
+    this.thr=0.03;this.refrac=Math.round(0.04*sr);this.flam=0;this.curPk=0;
     this.hp=0;this.px=0;this.ef=0;this.es=0.001;
     this.armed=true;this.since=1e9;
     this.cap=null;this.capN=0;this.capT=0;this.capLen=1024;this.capPk=0;this.capRaw=0;
@@ -2041,6 +2075,7 @@ class OnsetDetector{
     if(!o)return;
     if(o.thr!==undefined)this.thr=o.thr;
     if(o.refrac!==undefined)this.refrac=Math.round(o.refrac*this.sr);
+    if(o.flam!==undefined)this.flam=Math.round(o.flam*this.sr);
   }
   process(ch,base){
     const n=ch.length;
@@ -2054,8 +2089,12 @@ class OnsetDetector{
       if(a>this.pk)this.pk=a;
       this.since++;
       if(!this.armed&&this.ef<this.thr*0.5)this.armed=true;
-      if(this.armed&&!this.cap&&this.since>this.refrac&&a>this.thr&&this.ef>this.es*2.5){
-        this.armed=false;this.since=0;
+      /* With flams and drags in play, a clearly louder strike just after a hit is the main stroke after its grace notes. It cuts the grace note's capture short and starts its own. */
+      const again=this.flam>0&&this.since>this.flam*0.15&&this.since<=this.flam&&a>this.thr&&a>this.curPk*1.6&&this.ef>this.es*2.5;
+      if(again&&this.cap){const w=this.cap;this.cap=null;this.emit({type:'hit',t:this.capT,w:w,pk:this.capPk,raw:this.capRaw});}
+      if(this.since<=this.flam*0.15&&a>this.curPk)this.curPk=a;
+      if(again||(this.armed&&!this.cap&&this.since>this.refrac&&a>this.thr&&this.ef>this.es*2.5)){
+        this.armed=false;this.since=0;this.curPk=a;
         this.cap=new Float32Array(this.capLen);this.capN=0;this.capT=(base+i)/this.sr;this.capPk=0;this.capRaw=0;
       }
       if(this.cap){
@@ -2269,7 +2308,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.61.8';                           /* shown beside the title */
+const VERSION='0.62.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2680,7 +2719,8 @@ function placeMeter(){$('mThr').style.left=((S.sens+60)/60*100)+'%';$('mGhost').
 function pushDet(){
   if(!sendDet)return;
   const thr=chk&&chk.phase==='hit'?chk.thr:(chk&&chk.phase==='quiet'?1:Math.pow(10,(S.others==='g'?ghostFloor():S.sens)/20));
-  sendDet({thr:thr,refrac:settleSec()});
+  const rn=run;
+  sendDet({thr:thr,refrac:settleSec(),flam:(rn&&!rn.ended&&rn.mode==='play'&&rn.plan.slots.some(x=>x.gr))?0.07:0});   /* flams and drags are in play: a louder strike soon after a hit counts as the main stroke */
 }
 function onNodeMsg(e){
   const m=e.data;
@@ -2766,7 +2806,7 @@ function beginRun(mode,only){
     startExercise:only?Math.min.apply(null,only):(S.mode==='routine'?S.startExercise:1)
   };
   if(audioFresh){r.t0+=0.4;audioFresh=false;}
-  run=r;
+  run=r;pushDet();
   if(!lat){rvModel=null;view=r;r.gridSeg=0;document.body.dataset.state='run';if(S.mode==='routine')markExercises(r);applyLayout(layoutPlan(plan));rowsShown=ROWS;labelsOn=true;labelMode='routine';setRows(plan,0,false);paintRows(r,null);}
   else{
     /* Calibration shows one row with a cursor on the Play page, so there is something to watch as well as hear. */
@@ -2799,14 +2839,16 @@ function tick(){
   if(r.nextFin>=plan.slots.length)endRun();
 }
 function finalizeSlot(i){
-  const r=run,sl=r.plan.slots[i],sg=r.plan.segs[sl.seg],Q=r.seg[sl.seg],pos=sl.pos,exp=sg.notes[pos];
+  const r=run,sl=r.plan.slots[i],sg=r.plan.segs[sl.seg],Q=r.seg[sl.seg],pos=sl.pos,exp=hnd(sg.notes[pos]);
   const hits=r.pending.get(i)||[];r.pending.delete(i);
   /* A pass replayed after a pause shows its new result but is not counted twice. */
   const redo=r.fin.has(i);r.fin.add(i);
   if(!redo){r.slots++;Q.slots++;}
   r.dirty=true;
   if(!hits.length){if(!redo){r.miss++;Q.miss++;Q.sc.push('m');Q.sy.push(sl.dy||'n');Q.sw.push(0);Q.sm.push(null);Q.sb.push(null);r.streak=0;r.missRun++;r.seq.push({db:null});if(r.seq.length>STRIP_MAX)r.seq.shift();}r.res.set(i,{miss:true});return;}
-  const h=pickBest(hits),ex=hits.length-1;
+  const h=pickBest(hits);
+  /* Hits just before the main stroke of a flam or drag are its grace notes, not extras. */
+  const ex=hits.length-1-(sl.gr?hits.filter(x=>x!==h&&x.e<h.e&&h.e-x.e<=graceSpan(sl.gr)).length:0);
   const ms=h.e*1000,det=h.det;
   const sure=!!det&&(h.kb||det.conf>=0.2);
   const hand=sure?det.hand:exp;
@@ -2926,7 +2968,7 @@ function stopRun(){
 }
 function endRun(){
   const r=run;if(!r||r.ended)return;
-  r.ended=true;r.dirty=true;r.paused=false;
+  r.ended=true;r.dirty=true;r.paused=false;pushDet();
   if(r.mode!=='lat'&&r.dyc)gateDynamics(r);
   stopLoops();
   unlockScreen();
@@ -2974,10 +3016,14 @@ function handleHit(h){
   if(r.kb!==h.kb||r.paused)return;
   const plan=r.plan,tc=h.t-(r.kb?0:latencySec())-r.t0;
   if(r.ci&&tc<r.ci.ps-0.2)return;
-  const i=nearestSlot(plan.slots,tc),sl=plan.slots[i],e=tc-sl.t;
+  let i=nearestSlot(plan.slots,tc),sl=plan.slots[i],e=tc-sl.t;
+  /* A hit a little before a flam or drag belongs to it as a grace note, even when another stroke is nearer. */
+  const gj=graceSlot(plan.slots,tc,r.nextFin);
+  const viaGrace=gj>=0&&(gj===i||!(i>=r.nextFin&&Math.abs(e)<=Math.min(sl.w,S.tol/1000)));
+  if(viaGrace){i=gj;sl=plan.slots[i];e=tc-sl.t;}
   /* The detector listens below the trigger line when ghost notes are on. A quiet hit only counts on a ghost note. */
   if(!h.kb&&h.pk>0&&h.pk<Math.pow(10,S.sens/20)&&!(Math.abs(e)<=sl.w&&i>=r.nextFin&&sl.dy==='g'))return;
-  if(Math.abs(e)>sl.w||i<r.nextFin){
+  if(!viaGrace&&(Math.abs(e)>sl.w||i<r.nextFin)){
     const outside=tc<plan.slots[0].t-sl.w||tc>plan.slots[plan.slots.length-1].t+sl.w;
     if(outside||inLead(plan,tc))return;
     r.extras++;r.seg[sl.seg].extras++;r.dirty=true;return;
@@ -2986,7 +3032,7 @@ function handleHit(h){
   arr.push({e:e,det:h.det,kb:h.kb,pk:h.pk,raw:h.raw});
   r.pending.set(i,arr);
   /* Show the result straight away. finalizeSlot replaces it once the window has closed. */
-  const b=pickBest(arr),exp=plan.segs[sl.seg].notes[sl.pos],det=b.det;
+  const b=pickBest(arr),exp=hnd(plan.segs[sl.seg].notes[sl.pos]),det=b.det;
   const sure=!!det&&(b.kb||det.conf>=0.2);
   r.res.set(i,{ms:b.e*1000,wrong:(sure&&det.hand!==exp)?det.hand:null});
 }
@@ -3278,6 +3324,18 @@ function staffLine(sg,opt){
     }else{
       g.appendChild(mk('ellipse',{class:'nh',cx:cx,cy:Y,rx:6.6,ry:4.7,transform:'rotate(-20 '+cx+' '+Y+')'}));
       g.appendChild(mk('line',{class:'stem',x1:cx+SX,x2:cx+SX,y1:Y-1,y2:TOP}));
+      const gn=graceOf(h);
+      if(gn){
+        /* grace notes: small heads with their own stems just before the main note. A flam has one with a slash through its stem, a drag two joined by a beam. */
+        const hx=gn===1?[cx-11]:[cx-19,cx-11],GY=Y-1;
+        hx.forEach(x=>{
+          g.appendChild(mk('ellipse',{class:'gn',cx:x,cy:GY,rx:3.5,ry:2.6,transform:'rotate(-20 '+x+' '+GY+')'}));
+          g.appendChild(mk('line',{class:'gstem',x1:x+3,x2:x+3,y1:GY-1,y2:Y-17}));
+        });
+        const lx=hx[hx.length-1]+3;
+        if(gn===1){g.appendChild(mk('line',{class:'gstem',x1:lx-5,x2:lx+4,y1:Y-8,y2:Y-18}));}
+        else{g.appendChild(mk('line',{class:'gbeam',x1:hx[0]+3,x2:lx,y1:Y-17,y2:Y-17}));g.appendChild(mk('line',{class:'gbeam',x1:hx[0]+3,x2:lx,y1:Y-13.5,y2:Y-13.5}));}
+      }
       const dyi=sg.dy&&sg.dy[i];
       if(dyi==='A')g.appendChild(mk('path',{class:'acc',d:'M'+(cx-4.5)+','+(TOP-9)+' L'+(cx+4.5)+','+(TOP-5.5)+' L'+(cx-4.5)+','+(TOP-2)}));
       else if(dyi==='g'){
@@ -3286,7 +3344,7 @@ function staffLine(sg,opt){
       }
     }
     const soft=!rest&&sg.dy&&sg.dy[i]==='g';
-    const lt=mk('text',{class:soft?'lt soft':'lt',x:cx,y:84});lt.textContent=rest?'':h;g.appendChild(lt);
+    const lt=mk('text',{class:soft?'lt soft':'lt',x:cx,y:84});lt.textContent=rest?'':(graceOf(h)?graceHand(h).toLowerCase().repeat(graceOf(h))+hnd(h):h);g.appendChild(lt);
     const tg=mk('text',{class:'tg',x:cx+8,y:74});g.appendChild(tg);
     const ft=mk('text',{class:'ft',x:cx,y:97});g.appendChild(ft);
     g._sig='\u0000';g._now=false;g._ft=ft;g._tg=tg;g._cx=cx;g._w=xw(i);
@@ -3635,7 +3693,7 @@ function reviewModel(rec){
     data.forEach((u,si)=>u.forEach((d,j)=>{
       const i=bySeg[si][j];if(i===undefined)return;
       if(d.r==='m'){res.set(i,{miss:true});return;}
-      const exp=plan.segs[si].notes[plan.slots[i].pos];
+      const exp=hnd(plan.segs[si].notes[plan.slots[i].pos]);
       res.set(i,{ms:d.ms,wrong:d.w?(exp==='R'?'L':'R'):null});
     }));
     return {plan:plan,res:res,ended:true,tol:rec.tol||S.tol,mode:'play'};
@@ -3791,7 +3849,7 @@ function insightText(r){
     for(let i=0;i<sg.N;i++){
       if(Q.posCnt[i]>=3){const a=Q.posSum[i]/Q.posCnt[i];if(Math.abs(a)>Math.abs(wv)){wv=a;wi=i;}}
     }
-    if(wi>=0&&Math.abs(wv)>=6)parts.push((r.plan.segs.length>1?'In exercise '+sg.idx+', stroke ':'Stroke ')+sg.notes.slice(0,wi+1).filter(n=>n!=='_').length+' ('+sg.notes[wi]+') drifts most, '+Math.abs(wv).toFixed(0)+' ms '+(wv>0?'late':'early')+'.');
+    if(wi>=0&&Math.abs(wv)>=6)parts.push((r.plan.segs.length>1?'In exercise '+sg.idx+', stroke ':'Stroke ')+sg.notes.slice(0,wi+1).filter(n=>n!=='_').length+' ('+hnd(sg.notes[wi])+') drifts most, '+Math.abs(wv).toFixed(0)+' ms '+(wv>0?'late':'early')+'.');
   }
   const lvs=levelStats(r.lv);
   if(lvs&&lvs.diff!==null&&Math.abs(lvs.diff)>=3)parts.push('Your '+(lvs.diff<0?'left':'right')+' hand is '+Math.abs(lvs.diff).toFixed(0)+' dB quieter than your '+(lvs.diff<0?'right':'left')+'.');
@@ -5650,7 +5708,13 @@ function bPut(raw){
   if(bLine>=lines.length){while(lines.length<bLine)lines.push('');lines.push(raw);}else lines[bLine]=raw;
   bSetLines(lines);
 }
+/* Flam and drag are held keys: the next R or L tap becomes fR or dL and the key lets go. The text never holds half a flam. */
+let bGrace='';
+function bGraceKeys(){document.querySelectorAll('.bkey[data-k=flam],.bkey[data-k=drag]').forEach(k=>k.setAttribute('aria-pressed',String(k.dataset.k===bGrace)));}
 function bEdit(act){
+  if(act==='flam'||act==='drag'){bGrace=bGrace===act?'':act;bGraceKeys();return;}
+  if(bGrace&&(act==='R'||act==='L'))act=(bGrace==='flam'?'f':'d')+act;
+  bGrace='';bGraceKeys();
   const p=lineParts(bGet());
   bPut(p.pre+builderApply(p.body,act)+(p.opts?'  '+p.opts:'')+p.comment);
 }
