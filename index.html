@@ -113,13 +113,6 @@ body[data-run="1"] .notice{display:none}
 :root[data-layout=desktop] #svPref:not([hidden]),:root[data-layout=desktop] #svDev:not([hidden]),:root[data-layout=desktop] #svData:not([hidden]){display:block;columns:2 340px;column-gap:22px}
 :root[data-layout=desktop] #svPref>*,:root[data-layout=desktop] #svDev>*,:root[data-layout=desktop] #svData>*{break-inside:avoid;margin-bottom:22px}
 .libsec{display:grid;gap:14px}
-.swp{position:relative;overflow:hidden;border-radius:10px;min-width:0}
-.swp>.hrow,.swp>.lnkrow{position:relative;z-index:1;touch-action:pan-y}
-.swa{position:absolute;inset:0 0 0 auto;display:flex;visibility:hidden}
-.swp.on .swa{visibility:visible}
-.swa button{width:78px;border:0;font:700 13px var(--font-body);cursor:pointer}
-.swa .sdl{background:#4A5550;color:#fff}
-.swa .sdel{background:#C62828;color:#fff}
 .lhead{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px}
 .lhead .seg{margin:0}
 :root[data-layout=desktop] #libPage .gb{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;align-items:start}
@@ -573,8 +566,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 .glib>summary{padding:14px 0}
 .glib>.gb{padding:0;gap:0}
 .gb .hrow,#libPage>.hrow.flat{border:0;border-bottom:1px solid var(--line);border-radius:0;background:var(--bg)}
-.gb>.swp:last-child>.hrow,.gb>.hrow:last-child{border-bottom:0}
-.gb .swp{border-radius:0}
+.gb>.hrow:last-child{border-bottom:0}
 .glib .hrow>summary,#libPage>.hrow.flat .sm{padding-left:0}
 /* Every page is flat: a line between sections and between rows, no boxes. Dialogs and the staff keep theirs. */
 .page .panel{background:none;border:0;border-top:1px solid var(--line);border-radius:0;padding:16px 0 0}
@@ -585,15 +577,12 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 .page .hist>.hrow:last-child,.page .slist>.hrow:last-child{border-bottom:0}
 .page .dayp{background:none;border:0;border-radius:0;padding:0}
 .page .dayp .lrow:first-child{border-top:1px solid var(--line)}
-.glib .hrow>summary{padding-right:120px}
+.glib .hrow>summary{padding-right:152px}
 .glib .hrow>summary::after{display:none}
 .glib .hrow .ha{right:6px}
 .glib .hrow .ib{min-width:36px}
-.ib.more svg{transition:transform .18s}
-.swp.open .ib.more svg{transform:rotate(180deg)}
 .lnkrow{position:relative;display:grid;gap:4px;padding:10px 84px 10px 0;border-bottom:1px solid var(--line)}
 .lnkrow .ha{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex}
-.lnk:has(.swp){margin:0}
 .lnkrow .ib{min-width:36px}
 .lhead .seg button{min-height:34px;padding:0 12px;font-size:12px}
 .lhead .btns .btn.small{min-height:34px;padding:0 12px;font-size:13px}
@@ -601,12 +590,9 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 #advBar .advmain{margin-top:0}
 :root[data-layout=desktop] body[data-review="1"] #advBar{display:grid}
 :root[data-layout=desktop] body[data-review="1"] #startBtn,:root[data-layout=desktop] body[data-review="1"] #playSummary{display:none}
-.page .swp>.hrow,.page .swp>.lnkrow{background:var(--bg)}   /* opaque, so Download and Delete stay hidden behind the row while it slides */
 .exercises.lexs{border:0;border-radius:0;background:none}
 /* An open row is lifted with a lighter background that reaches a little past the text on both sides. */
-.page .swp{overflow:visible;clip-path:inset(0 -10px)}
-.page .hrow[open],.page .swp>.hrow[open]{background:var(--surface);box-shadow:-10px 0 0 var(--surface),10px 0 0 var(--surface)}
-.swa .sdel.arm{background:#8E1B1B;box-shadow:inset 0 0 0 2px #fff}
+.page .hrow[open]{background:var(--surface);box-shadow:-10px 0 0 var(--surface),10px 0 0 var(--surface)}
 .tc1{grid-template-columns:minmax(0,1fr)}
 .bigbpm{display:block;font:800 40px/1.1 var(--font-data);margin:2px 0 8px}
 .setbox{border:0;border-radius:0;background:none}
@@ -644,6 +630,15 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 .prow small{color:var(--muted);font:500 13px var(--font-body);white-space:nowrap}
 .prow.on{background:var(--bg);box-shadow:inset 3px 0 0 var(--fill)}
 #pickList{display:grid;gap:10px}
+.ib.down svg{transition:transform .18s}
+.hrow[open] .ib.down svg{transform:rotate(180deg)}
+.ib.gap{visibility:hidden;pointer-events:none}
+.rmenu{position:fixed;z-index:60;min-width:150px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:4px;box-shadow:0 8px 24px rgba(0,0,0,.35);display:grid}
+.rmenu button{border:0;background:none;color:var(--ink);font:600 15px var(--font-body);text-align:left;padding:12px 14px;border-radius:7px;cursor:pointer;min-height:44px}
+.rmenu button:hover,.rmenu button:focus-visible{background:var(--bg)}
+.rmenu button.danger{color:var(--late)}
+.rmenu button.arm{background:var(--late);color:#fff}
+@media (max-width:359px){.glib .hrow>summary{padding-right:128px}.glib .hrow .ib{min-width:30px}}
 </style>
 </head>
 <body data-input="mic" data-mode="single" data-tab="pattern" data-state="idle" data-run="0" data-review="0">
@@ -788,7 +783,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
     </section>
     <section class="panel" aria-label="Library links" id="lnkBox">
       <h3>Library links</h3>
-      <p class="hint">Libraries loaded from a web address. The pencil edits a link; the arrow slides it over to Remove.</p>
+      <p class="hint">Libraries loaded from a web address. The pencil edits a link; the ⋮ menu removes it.</p>
       <div id="lnkList"></div>
     </section>
     </div>
@@ -1012,7 +1007,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <h3>The four pages and the editor</h3>
       <ul>
         <li><b>Play:</b> tempo, click level, Start, Pause, Restart and Stop, the notation, the lead/drag gauge and your results.</li>
-        <li><b>Library:</b> your saved routines, each with Edit and Play. <b>New</b> starts a routine, <b>Import</b> adds one from a file or a link, and <b>Export</b> saves the whole library as one file that Import reads back (it can also be hosted as a library). A title such as "Rudiment: Single stroke roll" groups the routine under Rudiment. Routines with no group go under Other. Tap the arrow on a routine, or drag it left on a touch screen, for Download and Delete. Delete asks for a second tap, and Undo follows.</li>
+        <li><b>Library:</b> your saved routines, each with Edit and Play. <b>New</b> starts a routine, <b>Import</b> adds one from a file or a link, and <b>Export</b> saves the whole library as one file that Import reads back (it can also be hosted as a library). A title such as "Rudiment: Single stroke roll" groups the routine under Rudiment. Routines with no group go under Other. The ⋮ on a routine has Download and Delete. Delete asks for a second tap, and Undo follows. The chevron opens a routine to show its exercises.</li>
         <li><b>An unsaved routine</b> is what you are working on. It is kept as you type, but a saved routine changes only when you press Save. The app asks before you open another routine and lose unsaved work. The editor opens full screen from Edit, and Back returns you.</li>
         <li><b>Progress:</b> <b>History</b> lists your runs by exercise or routine, with Play. <b>Scores</b> shows each exercise (weakest first) and each routine: tempo, accuracy, trend, lead or drag, and evenness. <b>Achievements</b> shows your practice days for the last four weeks, a streak that forgives one rest day a week, and badges.</li>
         <li><b>Settings:</b> <b>Preferences</b> (on-time window, visual pulse, click volume, colours), <b>Device</b> (input, microphone level, stick calibration, latency) and <b>Data</b> (export, import, clear, storage, library links).</li>
@@ -2465,7 +2460,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.77.0';                           /* shown beside the title */
+const VERSION='0.78.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -4597,6 +4592,8 @@ const runKey=r=>r.mode==='routine'?'r:'+(r.rk||r.id):'p:'+r.exercises[0].k;
 const ICON={replay:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 4v5h5"/></svg>',
   mark:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v16l-5-4-5 4z"/></svg>',
   marked:'<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v16l-5-4-5 4z"/></svg>',
+  kebab:'<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>',
+  down:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>',
   more:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',
   play:'<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>',
   edit:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
@@ -5532,44 +5529,34 @@ function armBtn(label,fn){
 const textBtn=(label,fn)=>{const b=document.createElement('button');b.type='button';b.className='btn small';b.textContent=label;b.addEventListener('click',fn);return b;};
 /* The Library page: the pad if it holds something unsaved, then every saved routine. */
 const libGrpOpen=new Set();   /* the groups that are open on the Library page */
-let swOpen=null;
-document.addEventListener('pointerdown',ev=>{if(swOpen&&swOpen.isConnected&&!swOpen.contains(ev.target))swOpen._close();},true);
-/* A row that slides left to show buttons: from the > in the row, or by dragging it on a touch screen. */
-const swBtn=(t,c,f)=>{const b=document.createElement('button');b.type='button';b.className=c;b.textContent=t;b.addEventListener('click',f);return b;};
-function swipeRow(row,host,btns){
-  const W=78*btns.length;
-  const wrap=document.createElement('div');wrap.className='swp';
-  const act=document.createElement('div');act.className='swa';
-  act.append(...btns);wrap.append(act,row);
-  const more=iconBtn('more','Show actions',()=>{if(wrap.classList.contains('open'))wrap._close();else wrap._open();});
-  more.setAttribute('aria-expanded','false');
-  host.appendChild(more);
-  let sx=0,sy=0,base=0,mode=0,id=null,x=0,swallow=false;
-  const set=(v,anim)=>{row.style.transition=anim?'transform .18s':'none';row.style.transform=v?'translateX('+v+'px)':'';};
-  wrap._close=()=>{btns.forEach(b=>b._disarm&&b._disarm());more.setAttribute('aria-expanded','false');wrap.classList.remove('open');set(0,true);if(swOpen===wrap)swOpen=null;setTimeout(()=>{if(!wrap.classList.contains('open'))wrap.classList.remove('on');},200);};
-  const open=()=>{if(swOpen&&swOpen!==wrap&&swOpen.isConnected)swOpen._close();more.setAttribute('aria-expanded','true');wrap.classList.add('open','on');set(-W,true);swOpen=wrap;};
-  wrap._open=open;
-  row.addEventListener('pointerdown',ev=>{
-    if(ev.pointerType!=='touch')return;
-    sx=ev.clientX;sy=ev.clientY;base=wrap.classList.contains('open')?-W:0;mode=0;id=ev.pointerId;
-  });
-  row.addEventListener('pointermove',ev=>{
-    if(ev.pointerId!==id)return;
-    const dx=ev.clientX-sx,dy=ev.clientY-sy;
-    if(!mode&&(Math.abs(dx)>8||Math.abs(dy)>8)){mode=Math.abs(dx)>Math.abs(dy)?1:2;if(mode===1){try{row.setPointerCapture(id);}catch(_){}wrap.classList.add('on');}}
-    if(mode===1){x=Math.max(-W-24,Math.min(0,base+dx));set(x,false);}
-  });
-  const end=ev=>{
-    if(ev.pointerId!==id)return;id=null;
-    if(mode===1){swallow=true;if(x<-W/2)open();else wrap._close();}
-    else if(mode===0&&ev.type==='pointerup'&&wrap.classList.contains('open'))swallow=true,wrap._close();
-    setTimeout(()=>{swallow=false;},450);
-  };
-  row.addEventListener('pointerup',end);row.addEventListener('pointercancel',end);
-  row.addEventListener('click',ev=>{if(swallow){ev.preventDefault();ev.stopPropagation();swallow=false;}},true);
-  return wrap;
+/* The ⋮ on a row opens a small menu: its items are buttons, and a destructive one asks for a second tap. */
+let rowMenu=null,rowMenuBtn=null;
+function closeRowMenu(){
+  if(rowMenu){rowMenu.remove();rowMenu=null;}
+  if(rowMenuBtn){rowMenuBtn.setAttribute('aria-expanded','false');rowMenuBtn=null;}
 }
-/* A title with a colon names a group: "Rudiment: Single stroke roll" is Single stroke roll in the group Rudiment. A title without one goes in the group Other, listed last. */
+document.addEventListener('pointerdown',ev=>{if(rowMenu&&!rowMenu.contains(ev.target)&&!(rowMenuBtn&&rowMenuBtn.contains(ev.target)))closeRowMenu();},true);
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&rowMenu)closeRowMenu();});
+window.addEventListener('scroll',closeRowMenu,true);window.addEventListener('resize',closeRowMenu);
+function kebab(label,items){
+  const b=iconBtn('kebab',label,()=>{
+    if(rowMenuBtn===b){closeRowMenu();return;}
+    closeRowMenu();
+    const m=document.createElement('div');m.className='rmenu';m.setAttribute('role','menu');
+    items.forEach(it=>{
+      const x=document.createElement('button');x.type='button';x.setAttribute('role','menuitem');x.textContent=it.t;if(it.danger)x.className='danger';
+      if(it.arm)arm(x,()=>{closeRowMenu();it.fn();});else x.addEventListener('click',()=>{closeRowMenu();it.fn();});
+      m.appendChild(x);
+    });
+    document.body.appendChild(m);
+    const r=b.getBoundingClientRect(),w=m.offsetWidth,h=m.offsetHeight;
+    let top=r.bottom+4;if(top+h>innerHeight-8)top=r.top-h-4;
+    m.style.left=Math.max(8,Math.min(innerWidth-w-8,r.right-w))+'px';m.style.top=Math.max(8,top)+'px';
+    rowMenu=m;rowMenuBtn=b;b.setAttribute('aria-expanded','true');
+  });
+  b.setAttribute('aria-haspopup','menu');b.setAttribute('aria-expanded','false');
+  return b;
+}
 function libGroups(list,byName){
   const DEFAULT_GROUP='Other',groups=new Map();
   list.forEach(e=>{
@@ -5643,14 +5630,17 @@ function renderLibraryPage(){
     const ac=document.createElement('span');ac.className='ha';
     const ed=iconBtn('edit','Edit',()=>editEntry(e)),pl=iconBtn('play','Play',()=>playEntry(e));
     ed.disabled=pl.disabled=locked;
-    ac.append(ed,pl);
+    const km=kebab('More actions',[{t:'Download',fn:()=>downloadEntry(e)},{t:'Delete',fn:()=>deleteEntry(e),arm:true,danger:true}]);
+    /* The chevron shows when opening the row reveals something the row does not already say: more than one exercise, or an exercise behind a title. */
+    const more=exerciseCount(e.x)>1||!!recs.names[libKey(e)];
+    const ex=more?iconBtn('down','Show exercises',()=>{det.open=!det.open;}):document.createElement('span');
+    if(more){ex.setAttribute('aria-expanded','false');det.addEventListener('toggle',()=>ex.setAttribute('aria-expanded',String(det.open)));}else ex.className='ib gap';
+    ac.append(ed,pl,km,ex);
     sm.append(n,hs,ac);det.appendChild(sm);
     const body=document.createElement('div');body.className='hb';
     const exl=exerciseListEl(e.x);if(exl)body.appendChild(exl);
     det.appendChild(body);
-    const dl=swBtn('Download','sdl',()=>{downloadEntry(e);wrap._close();}),del=arm(swBtn('Delete','sdel',()=>{}),()=>deleteEntry(e));   /* two taps, so a double tap on the arrow cannot delete */
-    const wrap=swipeRow(det,det.querySelector('summary .ha'),[dl,del]);
-    return wrap;
+    return det;
   };
   libGroups(list,byName).forEach(([g,items])=>{
     const det=document.createElement('details');det.className='glib';
@@ -5714,9 +5704,9 @@ function renderLinks(){
     const nm=document.createElement('b'),ur=document.createElement('span'),ac=document.createElement('span');
     nm.textContent=listName(l);ur.className='lnkurl';ur.textContent=l.url;ac.className='ha';
     ac.appendChild(iconBtn('edit','Edit',()=>{lnkEdit=l;renderLinks();}));
-    const rm=arm(swBtn('Remove','sdel',()=>{}),()=>{S.lists=S.lists.filter(q=>q!==l);if(S.listSel===l.url){S.listSel='';lib={items:[],loaded:false,busy:false,cur:''};}libMode='';save();renderLibrary();});
+    ac.appendChild(kebab('More actions',[{t:'Remove',fn:()=>{S.lists=S.lists.filter(q=>q!==l);if(S.listSel===l.url){S.listSel='';lib={items:[],loaded:false,busy:false,cur:''};}libMode='';save();renderLibrary();},arm:true,danger:true}]));
     const inner=document.createElement('div');inner.className='lnkrow';inner.append(nm,ur,ac);
-    box.appendChild(swipeRow(inner,ac,[rm]));
+    box.appendChild(inner);
   });
   if(lnkEdit===NEW)box.appendChild(form(NEW));
   else{const ab=document.createElement('div');ab.className='btns';ab.appendChild(mk('Add a link',()=>{lnkEdit=NEW;renderLinks();}));box.appendChild(ab);}
