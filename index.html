@@ -799,7 +799,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
           </div>
           <div class="bmeta">
     <div class="bmsg"><p class="err" id="patErr" role="alert"></p><p class="err" id="routineErr" role="alert"></p><p class="hint" id="bStatus" aria-live="polite"></p><button class="linkbtn" id="exLink" type="button" data-help="help-format">Examples &rarr;</button></div>
-            <div class="bbtns"><button class="btn small iconbtn" id="bListen" type="button" aria-label="Listen to this exercise as clicks" title="Listen"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18 6.5a7.5 7.5 0 0 1 0 11"/></svg></button></div>
+            <div class="bbtns"><button class="btn small iconbtn" id="bListen" type="button" aria-label="Listen to this exercise" title="Listen"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18 6.5a7.5 7.5 0 0 1 0 11"/></svg></button></div>
           </div>
 
         <div class="bpane" id="buildPane">
@@ -997,7 +997,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       </div>
       <h4>Using the editor</h4>
       <p>You do not have to type any of this. <b>Builder</b> and <b>Text</b> are two views of one routine. In Builder, pick a note code, then tap R, L, rest and space to add strokes. Tap <b>flam</b> or <b>drag</b> first to put grace notes on the next stroke. Each exercise has a <b>&#8942;</b> menu to insert, clone, move or delete it. In Text you edit the whole routine, one exercise per line, with line numbers beside any errors. The editor remembers your last view on each device.</p>
-      <p>The &#9654; beside Save plays the routine as it stands. The speaker button plays the exercise as clicks over the staff (Close or Esc to leave). In a routine, <b>Title</b>, <b>Each exercise plays for</b>, <b>Time</b>, <b>Grouping</b> and <b>Default note</b> apply to every exercise, and <b>This exercise</b> overrides them for the one you are editing.</p>
+      <p>The &#9654; beside Save plays the routine as it stands. The speaker button plays the exercise as sticks over the staff, with the grace strokes of flams and drags (Close or Esc to leave). In a routine, <b>Title</b>, <b>Each exercise plays for</b>, <b>Time</b>, <b>Grouping</b> and <b>Default note</b> apply to every exercise, and <b>This exercise</b> overrides them for the one you are editing.</p>
       <h4>The routine format</h4>
       <p>A routine is plain text, one exercise per line. A line starting with <b>#</b> is a note to yourself, and a name before a colon (<b>Exercise 4:</b>) is ignored. This app has no book content. You supply the exercises.</p>
       <pre>title: My warm-up routine
@@ -2353,7 +2353,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.64.5';                           /* shown beside the title */
+const VERSION='0.65.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2802,6 +2802,19 @@ function click(time,level){
   const v=S.vol/100*0.5;
   if(v<0.002)return;
   blip(time,'triangle',level>=2?1500:(level===1?1250:1000),v,0.002,0.05,0.07);
+}
+/* A stick on a pad, made from a burst of noise and a short low thump: no sound files. Right and left differ a little in tone. */
+let noiseBuf=null;
+function stick(T,hand,vel){
+  const v=S.vol/100*0.9*vel;
+  if(v<0.002)return;
+  if(!noiseBuf){noiseBuf=ctx.createBuffer(1,Math.round(ctx.sampleRate*0.12),ctx.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;}
+  const src=ctx.createBufferSource(),f=ctx.createBiquadFilter(),g=ctx.createGain();
+  src.buffer=noiseBuf;f.type='bandpass';f.frequency.value=hand==='L'?2300:2700;f.Q.value=0.8;
+  g.gain.setValueAtTime(0.0001,T);g.gain.exponentialRampToValueAtTime(v,T+0.001);g.gain.exponentialRampToValueAtTime(0.0001,T+0.07);
+  liveTones.add(src);src.onended=()=>liveTones.delete(src);
+  src.connect(f);f.connect(g);g.connect(ctx.destination);src.start(T);src.stop(T+0.12);
+  blip(T,'sine',hand==='L'?170:200,v*0.6,0.001,0.06,0.08);
 }
 /* The point on the audio clock that is coming out of the speakers right now. The browser's output timestamp,
    advanced by the page clock, is smoother and closer to what you hear than the audio clock minus a latency guess. */
@@ -5819,8 +5832,7 @@ function bFillSelect(sel,values,label,cur){
   list.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=label(v);sel.appendChild(o);});
   sel.value=cur==null?'':cur;
 }
-/* Listen plays the exercise being edited as clicks: a click on every stroke, none on rests, a stronger click at the start
-   of each group, with no count-in, two passes at the tempo. Nothing is recorded or scored. */
+/* Listen plays the exercise being edited as sticks on a pad, with no count-in, two passes at the tempo. Nothing is recorded or scored. */
 let listen=null;
 function stopListen(){
   if(!listen)return;
@@ -5829,7 +5841,7 @@ function stopListen(){
   if(box){box.classList.remove('listening');box.querySelectorAll('.ph').forEach(e=>e.setAttribute('visibility','hidden'));}
   syncListen();
 }
-/* Listen opens a popup with the staff and plays the exercise as clicks. The same sliding bar as the Play page moves
+/* Listen opens a popup with the staff and plays the exercise as sticks. The same sliding bar as the Play page moves
    across the staff, and its row is kept in view. */
 let bCards=[];
 let openRowMenu=()=>{};
@@ -5887,7 +5899,14 @@ async function startListen(){
   const plan=buildPlan([ex],{gapBeats:S.gap,clickMode:'strokes'});
   /* no count-in: the first stroke sounds straight away */
   const lead=plan.cells[0].t,t0=ctx.currentTime+0.15-lead;
-  plan.clicks.forEach(c=>{if(c.t>=lead-1e-6)click(t0+c.t,c.a);});
+  /* Strokes sound as sticks: accents louder, ghost notes quiet, a flam or drag with its quiet grace strokes just before. */
+  plan.slots.forEach(sl=>{
+    if(sl.t<lead-1e-6)return;
+    const n=plan.segs[sl.seg].notes[sl.pos],h=hnd(n),T=t0+sl.t;
+    stick(T,h,sl.dy==='A'?1:(sl.dy==='g'?0.25:0.7));
+    if(sl.gr===1)stick(T-0.06,graceHand(n),0.3);
+    else if(sl.gr===2){stick(T-0.1,graceHand(n),0.3);stick(T-0.05,h,0.3);}
+  });
   listen={timer:setTimeout(stopListen,(0.15+plan.end-lead+0.3)*1000),raf:0,t0:t0,cells:plan.cells,k:-1,on:-2,el:null,text:bGet()};
   $('lsStaff').classList.add('listening');$('lsStaff').scrollTop=0;
   listen.raf=requestAnimationFrame(listenFrame);
