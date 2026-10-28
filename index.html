@@ -617,6 +617,15 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 :root[data-layout=desktop] #setBox>summary{display:none}
 :root[data-layout=desktop] #setBox .sbody{margin-top:0}
 :root:not([data-layout=desktop]) body[data-run="1"] #setBox,:root:not([data-layout=desktop]) body[data-review="1"] #setBox{display:none}
+/* On a phone the run controls are large and pinned to the bottom of the screen, where a thumb can reach them. */
+:root:not([data-layout=desktop]) body[data-run="1"] .transport{position:fixed;left:0;right:0;bottom:0;z-index:20;grid-template-columns:1fr;gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--bg);border-top:1px solid var(--line)}
+:root:not([data-layout=desktop]) body[data-run="1"] .transport #startBtn{width:100%;min-height:72px}
+:root:not([data-layout=desktop]) body[data-run="1"] #runBtns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+:root:not([data-layout=desktop]) body[data-run="1"] #runBtns .btn{min-height:56px;font-size:17px}
+:root:not([data-layout=desktop]) body[data-run="1"] #pagePlay{padding-bottom:190px}
+:root:not([data-layout=desktop]) body[data-review="1"] #advBtns1{position:fixed;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--bg);border-top:1px solid var(--line);margin:0}
+:root:not([data-layout=desktop]) body[data-review="1"] #advBtns1 .btn{min-height:64px;font-size:18px}
+:root:not([data-layout=desktop]) body[data-review="1"] #pagePlay{padding-bottom:120px}
 </style>
 </head>
 <body data-input="mic" data-mode="single" data-tab="pattern" data-state="idle" data-run="0" data-review="0">
@@ -1003,7 +1012,8 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         <li><b>The gauge</b> shows your average lead or drag over the last 32 strokes. Left is leading, right is dragging.</li>
         <li><b>The level bars</b> appear when a run ends. Each bar is one stroke's loudness against your own typical stroke: the middle is typical, higher is louder, and blue bars are left hand. Scroll sideways for the whole run. The number is the spread in dB, so smaller is more even. With an accent or ghost rule only the normal strokes count, since accents and ghosts are checked separately. A line below says if one hand is quieter. Clipped hits are left out, and keyboard input has no levels.</li>
         <li><b>Narrow screens:</b> a busy pass wraps onto two lines at a barline.</li>
-        <li><b>Pause</b> stops the click, and Resume counts you in from the start of that pass. Tapping the notation also pauses and resumes. <b>Restart</b> goes back to your start exercise.</li>
+        <li><b>Keys:</b> <b>Space</b> starts, pauses and resumes, <b>Enter</b> plays Again after a run, and <b>Escape</b> stops.</li>
+        <li><b>Pause</b> stops the click, and Resume counts you in from the start of that pass. <b>Restart</b> goes back to your start exercise.</li>
         <li><b>Choosing where to start:</b> with a routine, tap an exercise in the rows (or press &uarr; &darr;). After a run, scroll the staff to look back over every exercise.</li>
       </ul>
       <div class="ex">
@@ -2413,7 +2423,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.72.2';                           /* shown beside the title */
+const VERSION='0.73.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -6449,11 +6459,6 @@ function wire(){
     }
     startPlay();
   });
-  /* Tapping the staff while playing pauses, and tapping it while paused resumes. */
-  document.querySelector('.rowswrap').addEventListener('click',()=>{
-    if(!run||run.ended||run.mode!=='play')return;
-    if(run.paused)resumeRun();else pauseRun();
-  });
   $('editPlay').addEventListener('click',editFromPlayPage);
   $('advWeak').addEventListener('click',()=>{if(lastRun)startPlay(lastRun.weakIdx);});
   TABS.forEach(n=>{
@@ -6467,6 +6472,25 @@ function wire(){
       showTab(to);tabEl(to).focus();e.preventDefault();
     });
   });
+  /* Keys for when your hands are busy: Space starts, pauses and resumes; Enter plays Again; Escape stops. They work on the Play page when no dialog is open. */
+  let keyDone=false;
+  window.addEventListener('keydown',e=>{
+    if(e.repeat||e.ctrlKey||e.metaKey||e.altKey)return;
+    const k=e.key;
+    if(k!==' '&&k!=='Enter'&&k!=='Escape')return;
+    const t=e.target,tag=t&&t.tagName;
+    if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA'||(t&&t.isContentEditable))return;
+    if(k==='Enter'&&(tag==='BUTTON'||tag==='A'||tag==='SUMMARY'))return;   /* Enter already presses a focused button */
+    if($('pagePlay').hidden||document.querySelector('.modal:not([hidden]),.pgov:not([hidden])'))return;
+    const on=!!(run&&!run.ended);
+    if(k===' '){
+      if(!$('startBtn').disabled){e.preventDefault();keyDone=true;$('startBtn').click();}
+    }else if(k==='Enter'){
+      const ag=$('advAgain');
+      if(!on&&document.body.dataset.review==='1'&&ag&&!ag.disabled&&ag.offsetParent!==null){e.preventDefault();ag.click();}
+    }else if(on){e.preventDefault();if(!$('runBtns').hidden)$('stopBtn').click();else $('startBtn').click();}
+  });
+  window.addEventListener('keyup',e=>{if(e.key===' '&&keyDone){keyDone=false;e.preventDefault();}});   /* a focused button would otherwise press again when Space is released */
   window.addEventListener('keydown',e=>{
     if(S.input!=='kb'||!run||run.ended||e.repeat)return;
     const t=e.target&&e.target.tagName;
