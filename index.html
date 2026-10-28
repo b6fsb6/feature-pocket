@@ -113,12 +113,16 @@ body[data-run="1"] .notice{display:none}
 :root[data-layout=desktop] #svPref:not([hidden]),:root[data-layout=desktop] #svDev:not([hidden]),:root[data-layout=desktop] #svData:not([hidden]){display:block;columns:2 340px;column-gap:22px}
 :root[data-layout=desktop] #svPref>*,:root[data-layout=desktop] #svDev>*,:root[data-layout=desktop] #svData>*{break-inside:avoid;margin-bottom:22px}
 .libsec{display:grid;gap:14px}
+.swp{position:relative;overflow:hidden;border-radius:10px;min-width:0}
+.swp>.hrow{position:relative;z-index:1;touch-action:pan-y}
+.swa{position:absolute;inset:0 0 0 auto;display:flex;visibility:hidden}
+.swp.on .swa{visibility:visible}
+.swa button{width:78px;border:0;font:700 13px var(--font-body);cursor:pointer}
+.swa .sdl{background:#4A5550;color:#fff}
+.swa .sdel{background:#C62828;color:#fff}
 .lhead{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px}
 .lhead .seg{margin:0}
 :root[data-layout=desktop] #libPage .gb{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;align-items:start}
-/* Playing and reviewing use one centred column; two columns are for setting up */
-:root[data-layout=desktop] body:not([data-state=idle]) #pagePlay{grid-template-columns:minmax(0,860px);justify-content:center}
-:root[data-layout=desktop] body:not([data-state=idle]) #pagePlay>.pctl,:root[data-layout=desktop] body:not([data-state=idle]) #pagePlay>.pview{grid-column:1;position:static}
 
 .hand{width:26px;height:26px;display:grid;place-items:center;border-radius:50%;font:800 20px/1 var(--font-display)}
 .hand.L{border:2px solid var(--ink);color:var(--ink)}
@@ -267,7 +271,11 @@ textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .switch button[aria-pressed=true],.switch button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--fill)}
 .switch button:disabled{opacity:.5;cursor:not-allowed}
 .switch button:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
-body[data-run="1"] .cfg,body[data-run="1"] .sub{display:none}
+body[data-run="1"] .sub,body[data-run="1"] #playSummary{display:none}
+:root:not([data-layout=desktop]) body[data-run="1"] .cfg{display:none}
+/* Desktop keeps the settings in view while playing, but dimmed and out of reach. */
+:root[data-layout=desktop] body[data-run="1"] .panel.cfg{opacity:.45;pointer-events:none;user-select:none}
+:root[data-layout=desktop] body[data-run="1"] .cfg:not(.panel){display:none}
 /* Playing: hide the page controls too, so only the strokes and Stop remain. */
 body[data-run="1"][data-rm="play"] header,body[data-run="1"][data-rm="play"] .tabs{display:none}
 .switch.tabs{--n:4;gap:3px;padding:3px;border:0;border-radius:11px;background:var(--line)}
@@ -286,7 +294,7 @@ body[data-tab=pattern] header,body[data-tab=pattern] .tabs{display:none}   /* th
 .etitle .hint{margin:0;font-size:12px}
 .rtname{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 .rtname b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}.rtname .linkbtn{flex:none}
-body[data-review="1"] header,body[data-review="1"] .tabs,body[data-review="1"] .cfg,body[data-review="1"] .transport,body[data-review="1"] .notice{display:none}
+:root:not([data-layout=desktop]) body[data-review="1"] header,:root:not([data-layout=desktop]) body[data-review="1"] .tabs,:root:not([data-layout=desktop]) body[data-review="1"] .cfg,:root:not([data-layout=desktop]) body[data-review="1"] .transport,:root:not([data-layout=desktop]) body[data-review="1"] .notice{display:none}
 .advmain{margin-top:10px}
 .advmain .btn{min-height:48px;font-weight:700}
 .advmain .btn.primary{min-width:0;min-height:48px;font-size:18px;padding:0 22px}
@@ -559,6 +567,42 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 .help .ex h4{margin-top:10px}
 .help .panel>h3{margin:0}
 .help .panel{gap:4px}
+/* Library lists are flat: a line above each group, hairlines between routines, no boxes inside boxes. */
+#libPage>.hrow.flat,.glib{border:0;border-radius:0;background:none}
+.glib{border-top:1px solid var(--line)}
+.glib>summary{padding:14px 0}
+.glib>.gb{padding:0;gap:0}
+.gb .hrow,#libPage>.hrow.flat{border:0;border-bottom:1px solid var(--line);border-radius:0;background:var(--bg)}
+.gb>.swp:last-child>.hrow,.gb>.hrow:last-child{border-bottom:0}
+.gb .swp{border-radius:0}
+.glib .hrow>summary,#libPage>.hrow.flat .sm{padding-left:0}
+/* Every page is flat: a line between sections and between rows, no boxes. Dialogs and the staff keep theirs. */
+.page .panel{background:none;border:0;border-top:1px solid var(--line);border-radius:0;padding:16px 0 0}
+.page :is(.page,.pv,.pcol)>.panel:first-child,.page>.panel:first-child,.pv>.panel:first-child,.pcol>.panel:first-child{border-top:0;padding-top:0}
+.page .hrow{border:0;border-bottom:1px solid var(--line);border-radius:0;background:none}
+.page .hrow summary,.page .hrow .sm{padding-left:0}
+.page .hist{gap:0}
+.page .hist>.hrow:last-child,.page .slist>.hrow:last-child{border-bottom:0}
+.page .dayp{background:none;border:0;border-radius:0;padding:0}
+.page .dayp .lrow:first-child{border-top:1px solid var(--line)}
+.glib .hrow>summary{padding-right:120px}
+.glib .hrow>summary::after{display:none}
+.glib .hrow .ha{right:6px}
+.glib .hrow .ib{min-width:36px}
+.ib.more svg{transition:transform .18s}
+.swp.open .ib.more svg{transform:rotate(180deg)}
+.lhead .seg button{min-height:34px;padding:0 12px;font-size:12px}
+.lhead .btns .btn.small{min-height:34px;padding:0 12px;font-size:13px}
+#advBar{display:none;grid-column:1/-1;gap:8px}
+#advBar .advmain{margin-top:0}
+:root[data-layout=desktop] body[data-review="1"] #advBar{display:grid}
+:root[data-layout=desktop] body[data-review="1"] #startBtn,:root[data-layout=desktop] body[data-review="1"] #playSummary{display:none}
+.page .swp>.hrow{background:var(--bg)}   /* opaque, so Download and Delete stay hidden behind the row while it slides */
+.exercises.lexs{border:0;border-radius:0;background:none}
+/* An open row is lifted with a lighter background that reaches a little past the text on both sides. */
+.page .swp{overflow:visible;clip-path:inset(0 -10px)}
+.page .hrow[open],.page .swp>.hrow[open]{background:var(--surface);box-shadow:-10px 0 0 var(--surface),10px 0 0 var(--surface)}
+.swa .sdel.arm{background:#8E1B1B;box-shadow:inset 0 0 0 2px #fff}
 </style>
 </head>
 <body data-input="mic" data-mode="single" data-tab="pattern" data-state="idle" data-run="0" data-review="0">
@@ -927,7 +971,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <h3>The four pages and the editor</h3>
       <ul>
         <li><b>Play:</b> tempo, click level, Start, Pause, Restart and Stop, the notation, the lead/drag gauge and your results.</li>
-        <li><b>Library:</b> your saved routines, each with Edit and Play. <b>New</b> starts a routine, <b>Import</b> adds one from a file or a link, and <b>Export</b> saves the whole library as one file that Import reads back (it can also be hosted as a library). A title such as "Rudiment: Single stroke roll" groups the routine under Rudiment. Routines with no group go under Other. Remove takes two taps, and Undo follows.</li>
+        <li><b>Library:</b> your saved routines, each with Edit and Play. <b>New</b> starts a routine, <b>Import</b> adds one from a file or a link, and <b>Export</b> saves the whole library as one file that Import reads back (it can also be hosted as a library). A title such as "Rudiment: Single stroke roll" groups the routine under Rudiment. Routines with no group go under Other. Tap the arrow on a routine, or drag it left on a touch screen, for Download and Delete. Delete asks for a second tap, and Undo follows.</li>
         <li><b>The scratch pad</b> is what you are working on. It is kept as you type, but a saved routine changes only when you press Save. The app asks before you open another routine and lose unsaved work. The editor opens full screen from Edit, and Back returns you.</li>
         <li><b>Stats:</b> <b>History</b> lists your runs by exercise or routine, with Play. <b>Scores</b> shows each exercise (weakest first) and each routine: tempo, accuracy, trend, lead or drag, and evenness. <b>Achievements</b> shows your practice days for the last four weeks, a streak that forgives one rest day a week, and badges.</li>
         <li><b>Settings:</b> <b>Preferences</b> (on-time window, visual pulse, click volume, colours), <b>Device</b> (input, microphone level, stick calibration, latency) and <b>Data</b> (export, import, clear, storage, library links).</li>
@@ -1232,6 +1276,7 @@ RLRR LRLL RLRR LRLL</pre>
         <button class="btn small" id="restartBtn" type="button">Restart</button>
         <button class="btn small" id="stopBtn" type="button">Stop</button>
       </div>
+      <div id="advBar"></div>
     </div>
     </div>
 
@@ -1262,12 +1307,12 @@ RLRR LRLL RLRR LRLL</pre>
       <h3>This run</h3>
       <p class="insight" id="advHead"></p>
       <p class="hint" id="advBody"></p>
-      <div class="btns advmain">
+      <div class="btns advmain" id="advBtns1">
         <button class="btn primary" id="advAgain" type="button">Again</button>
         <button class="btn" id="advUse" type="button" hidden></button>
         <button class="btn" id="advDone" type="button" hidden>Done</button>
       </div>
-      <div class="btns" style="margin-top:8px">
+      <div class="btns" id="advBtns2" style="margin-top:8px">
         <button class="btn small" id="advWeak" type="button" hidden></button>
         <button class="btn small" id="advDiscard" type="button">Discard this run</button>
       </div>
@@ -2353,7 +2398,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.65.0';                           /* shown beside the title */
+const VERSION='0.70.5';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -4469,6 +4514,7 @@ const runKey=r=>r.mode==='routine'?'r:'+(r.rk||r.id):'p:'+r.exercises[0].k;
 const ICON={replay:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 4v5h5"/></svg>',
   mark:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v16l-5-4-5 4z"/></svg>',
   marked:'<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v16l-5-4-5 4z"/></svg>',
+  more:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',
   play:'<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>',
   edit:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
   del:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>'};
@@ -5385,6 +5431,7 @@ function libUndo(e,wasOpen){
 function arm(b,fn,label){
   const html=b.innerHTML;let t=0;
   const back=()=>{t=0;b.innerHTML=html;b.classList.remove('arm');};
+  b._disarm=()=>{clearTimeout(t);back();};
   b.addEventListener('click',e=>{
     e.preventDefault();e.stopPropagation();
     if(!t){b.textContent=(label||b.textContent)+'?';b.classList.add('arm');t=setTimeout(back,4000);return;}
@@ -5399,6 +5446,8 @@ function armBtn(label,fn){
 const textBtn=(label,fn)=>{const b=document.createElement('button');b.type='button';b.className='btn small';b.textContent=label;b.addEventListener('click',fn);return b;};
 /* The Library page: the pad if it holds something unsaved, then every saved routine. */
 const libGrpOpen=new Set();   /* the groups that are open on the Library page */
+let swOpen=null;
+document.addEventListener('pointerdown',ev=>{if(swOpen&&swOpen.isConnected&&!swOpen.contains(ev.target))swOpen._close();},true);
 function renderLibraryPage(){
   const box=$('libPage');if(!box)return;
   box.textContent='';
@@ -5416,6 +5465,48 @@ function renderLibraryPage(){
     ac.appendChild(iconBtn('play','Play',()=>showTab('play')));
     sm.append(n,hs,ac);row.appendChild(sm);box.appendChild(row);
   }
+  const downloadEntry=e=>{
+    const name=entryName(e).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'routine';
+    saveFile(name+'.txt','text/plain',entryText(e)+'\n');
+  };
+  const deleteEntry=e=>{const was=e.id===S.libId;removeLibEntry(e);renderLibraryPage();libUndo(e,was);};
+  /* The > on a row, or a drag to the left on a touch screen, slides it over to show Download and Delete. */
+  const SWIPE_W=156;
+  const swipeRow=(row,e)=>{
+    const wrap=document.createElement('div');wrap.className='swp';
+    const act=document.createElement('div');act.className='swa';
+    const mk=(t,c,f)=>{const b=document.createElement('button');b.type='button';b.className=c;b.textContent=t;b.addEventListener('click',f);return b;};
+    const del=arm(mk('Delete','sdel',()=>{}),()=>deleteEntry(e));   /* two taps, so a double tap on the arrow cannot delete */
+    act.append(mk('Download','sdl',()=>{downloadEntry(e);wrap._close();}),del);
+    wrap.append(act,row);
+    const more=iconBtn('more','Download or delete',()=>{if(wrap.classList.contains('open'))wrap._close();else wrap._open();});
+    more.setAttribute('aria-expanded','false');
+    row.querySelector('summary .ha').appendChild(more);
+    let sx=0,sy=0,base=0,mode=0,id=null,x=0,swallow=false;
+    const set=(v,anim)=>{row.style.transition=anim?'transform .18s':'none';row.style.transform=v?'translateX('+v+'px)':'';};
+    wrap._close=()=>{del._disarm();more.setAttribute('aria-expanded','false');wrap.classList.remove('open');set(0,true);if(swOpen===wrap)swOpen=null;setTimeout(()=>{if(!wrap.classList.contains('open'))wrap.classList.remove('on');},200);};
+    const open=()=>{if(swOpen&&swOpen!==wrap&&swOpen.isConnected)swOpen._close();more.setAttribute('aria-expanded','true');wrap.classList.add('open','on');set(-SWIPE_W,true);swOpen=wrap;};
+    wrap._open=open;
+    row.addEventListener('pointerdown',ev=>{
+      if(ev.pointerType!=='touch')return;
+      sx=ev.clientX;sy=ev.clientY;base=wrap.classList.contains('open')?-SWIPE_W:0;mode=0;id=ev.pointerId;
+    });
+    row.addEventListener('pointermove',ev=>{
+      if(ev.pointerId!==id)return;
+      const dx=ev.clientX-sx,dy=ev.clientY-sy;
+      if(!mode&&(Math.abs(dx)>8||Math.abs(dy)>8)){mode=Math.abs(dx)>Math.abs(dy)?1:2;if(mode===1){try{row.setPointerCapture(id);}catch(_){}wrap.classList.add('on');}}
+      if(mode===1){x=Math.max(-SWIPE_W-24,Math.min(0,base+dx));set(x,false);}
+    });
+    const end=ev=>{
+      if(ev.pointerId!==id)return;id=null;
+      if(mode===1){swallow=true;if(x<-SWIPE_W/2)open();else wrap._close();}
+      else if(mode===0&&ev.type==='pointerup'&&wrap.classList.contains('open'))swallow=true,wrap._close();
+      setTimeout(()=>{swallow=false;},450);
+    };
+    row.addEventListener('pointerup',end);row.addEventListener('pointercancel',end);
+    row.addEventListener('click',ev=>{if(swallow){ev.preventDefault();ev.stopPropagation();swallow=false;}},true);
+    return wrap;
+  };
   const mkEntry=(e,label)=>{
     const k=libKey(e),mine=recs.runs.filter(r=>(r.mode==='routine'?r.rk:r.exercises[0].k)===k);
     const det=document.createElement('details');det.className='hrow hgrp';
@@ -5430,18 +5521,9 @@ function renderLibraryPage(){
     ac.append(ed,pl);
     sm.append(n,hs,ac);det.appendChild(sm);
     const body=document.createElement('div');body.className='hb';
-    const exl=isRoutineKey(k)?exerciseListEl(e.x):null;if(exl)body.appendChild(exl);
-    const acts=document.createElement('div');acts.className='btns';
-    if(isRoutineKey(k))acts.appendChild(textBtn('Rename',()=>{det.open=true;renameBtn(n,k).click();}));
-    acts.appendChild(textBtn('Download',()=>{
-      const name=entryName(e).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'routine';
-      saveFile(name+'.txt','text/plain',entryText(e)+'\n');
-    }));
-    const rb=armBtn('Remove',()=>{
-      const was=e.id===S.libId;removeLibEntry(e);renderLibraryPage();libUndo(e,was);
-    });
-    acts.appendChild(rb);
-    body.appendChild(acts);det.appendChild(body);return det;
+    const exl=exerciseListEl(e.x);if(exl)body.appendChild(exl);
+    det.appendChild(body);
+    return swipeRow(det,e);
   };
   /* A title with a colon names a group: "Rudiment: Single stroke roll" is Single stroke roll in the group Rudiment. */
   const DEFAULT_GROUP='Other',groups=new Map();
@@ -5665,6 +5747,7 @@ function setRunning(on){
   document.body.dataset.run=on?'1':'0';
   document.body.dataset.rm=on&&run?run.mode:'';
   LOCKED.forEach(id=>{$(id).disabled=on;});
+  document.querySelectorAll('.pctl .panel.cfg').forEach(e=>{e.inert=!!on;});
   renderLibrary();
   ['setup','library','progress'].forEach(n=>{tabEl(n).disabled=on;});
   $('helpBtn').disabled=on;
@@ -6144,7 +6227,14 @@ function syncLayout(){
   if(document.documentElement.dataset.layout===want)return;
   const first=!document.documentElement.dataset.layout;
   document.documentElement.dataset.layout=want;
+  placeAdv();
   if(!first)window.dispatchEvent(new Event('resize'));
+}
+/* On desktop the result buttons (Again, Next tempo, Done, Discard) sit where Start was; on a phone they follow the result text. */
+function placeAdv(){
+  const a=$('advBtns1'),b=$('advBtns2');if(!a||!b)return;
+  if(document.documentElement.dataset.layout==='desktop')$('advBar').append(a,b);
+  else $('advBody').after(a,b);
 }
 function applyTheme(){
   const d=S.theme==='dark',b=$('themeBtn');
