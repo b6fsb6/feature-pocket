@@ -114,7 +114,7 @@ body[data-run="1"] .notice{display:none}
 :root[data-layout=desktop] #svPref>*,:root[data-layout=desktop] #svDev>*,:root[data-layout=desktop] #svData>*{break-inside:avoid;margin-bottom:22px}
 .libsec{display:grid;gap:14px}
 .swp{position:relative;overflow:hidden;border-radius:10px;min-width:0}
-.swp>.hrow{position:relative;z-index:1;touch-action:pan-y}
+.swp>.hrow,.swp>.lnkrow{position:relative;z-index:1;touch-action:pan-y}
 .swa{position:absolute;inset:0 0 0 auto;display:flex;visibility:hidden}
 .swp.on .swa{visibility:visible}
 .swa button{width:78px;border:0;font:700 13px var(--font-body);cursor:pointer}
@@ -591,13 +591,17 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 .glib .hrow .ib{min-width:36px}
 .ib.more svg{transition:transform .18s}
 .swp.open .ib.more svg{transform:rotate(180deg)}
+.lnkrow{position:relative;display:grid;gap:4px;padding:10px 84px 10px 0;border-bottom:1px solid var(--line)}
+.lnkrow .ha{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex}
+.lnk:has(.swp){margin:0}
+.lnkrow .ib{min-width:36px}
 .lhead .seg button{min-height:34px;padding:0 12px;font-size:12px}
 .lhead .btns .btn.small{min-height:34px;padding:0 12px;font-size:13px}
 #advBar{display:none;grid-column:1/-1;gap:8px}
 #advBar .advmain{margin-top:0}
 :root[data-layout=desktop] body[data-review="1"] #advBar{display:grid}
 :root[data-layout=desktop] body[data-review="1"] #startBtn,:root[data-layout=desktop] body[data-review="1"] #playSummary{display:none}
-.page .swp>.hrow{background:var(--bg)}   /* opaque, so Download and Delete stay hidden behind the row while it slides */
+.page .swp>.hrow,.page .swp>.lnkrow{background:var(--bg)}   /* opaque, so Download and Delete stay hidden behind the row while it slides */
 .exercises.lexs{border:0;border-radius:0;background:none}
 /* An open row is lifted with a lighter background that reaches a little past the text on both sides. */
 .page .swp{overflow:visible;clip-path:inset(0 -10px)}
@@ -747,7 +751,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
     </section>
     <section class="panel" aria-label="Library links" id="lnkBox" hidden>
       <h3>Library links</h3>
-      <p class="hint">Libraries you loaded from a web address. Edit changes a name or address. Update saves it and Cancel leaves it as it was.</p>
+      <p class="hint">Libraries you loaded from a web address. The pencil changes a name or address: Update saves it and Cancel leaves it as it was. Tap the arrow, or drag a link left, for Remove (it asks for a second tap).</p>
       <div id="lnkList"></div>
     </section>
     </div>
@@ -2398,7 +2402,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.70.5';                           /* shown beside the title */
+const VERSION='0.70.8';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -4526,11 +4530,12 @@ const replayBtn=r=>{const b=iconBtn('play','Play',()=>replayRun(r));if(!r.rp){b.
 /* Renames a routine in place. One name is kept for the routine, so every run and score row shows it. */
 /* The bookmark on a History row: saved routines are filled. Tapping saves it (from its latest run's text) or removes it from the library. */
 function markBtn(key,text){
-  const e=libFor(key),b=iconBtn(e?'marked':'mark',e?'Remove from your library':'Save to your library',()=>{
+  const e=libFor(key),go=()=>{
     if(e)removeLibEntry(e);
     else if(text&&recs.lib.length<MAX_LIB)recs.lib.push({id:libId(),x:text,t:Date.now()});
     saveRecs();renderProgress();
-  });
+  },b=iconBtn(e?'marked':'mark',e?'Remove from your library':'Save to your library',e?()=>{}:go);
+  if(e)arm(b,go,'Remove');   /* removing asks for a second tap; saving does not */
   if(!e&&!text){b.disabled=true;b.title='This run was saved without its text.';}
   return b;
 }
@@ -5418,11 +5423,13 @@ function removeLibEntry(e){
   if(S.libId===e.id){S.libId='';save();}
   saveRecs();
 }
-/* Remove acts at once and offers Undo in the message line, so there is no second tap to confirm. */
-function libUndo(e,wasOpen){
-  const m=$('libMsg');m.textContent='Removed “'+entryName(e)+'”. Its runs stay in History. ';
+/* The Delete button has already asked for a second tap; Undo follows in the message line. */
+/* Removing an entry with no runs also forgets its name, so the name is kept here and put back by Undo. */
+function libUndo(e,wasOpen,name,label){
+  const m=$('libMsg');m.textContent='Removed “'+label+'”. Its runs stay in History. ';
   m.appendChild(textBtn('Undo',()=>{
     if(!libFor(libKey(e))&&recs.lib.length<MAX_LIB)recs.lib.push(e);
+    if(name&&!recs.names[libKey(e)])recs.names[libKey(e)]=name;
     if(wasOpen&&!S.libId){S.libId=e.id;save();}
     saveRecs();m.textContent='Restored “'+entryName(e)+'”.';renderLibraryPage();
   }));
@@ -5448,6 +5455,41 @@ const textBtn=(label,fn)=>{const b=document.createElement('button');b.type='butt
 const libGrpOpen=new Set();   /* the groups that are open on the Library page */
 let swOpen=null;
 document.addEventListener('pointerdown',ev=>{if(swOpen&&swOpen.isConnected&&!swOpen.contains(ev.target))swOpen._close();},true);
+/* A row that slides left to show buttons: from the > in the row, or by dragging it on a touch screen. */
+const swBtn=(t,c,f)=>{const b=document.createElement('button');b.type='button';b.className=c;b.textContent=t;b.addEventListener('click',f);return b;};
+function swipeRow(row,host,btns){
+  const W=78*btns.length;
+  const wrap=document.createElement('div');wrap.className='swp';
+  const act=document.createElement('div');act.className='swa';
+  act.append(...btns);wrap.append(act,row);
+  const more=iconBtn('more','Show actions',()=>{if(wrap.classList.contains('open'))wrap._close();else wrap._open();});
+  more.setAttribute('aria-expanded','false');
+  host.appendChild(more);
+  let sx=0,sy=0,base=0,mode=0,id=null,x=0,swallow=false;
+  const set=(v,anim)=>{row.style.transition=anim?'transform .18s':'none';row.style.transform=v?'translateX('+v+'px)':'';};
+  wrap._close=()=>{btns.forEach(b=>b._disarm&&b._disarm());more.setAttribute('aria-expanded','false');wrap.classList.remove('open');set(0,true);if(swOpen===wrap)swOpen=null;setTimeout(()=>{if(!wrap.classList.contains('open'))wrap.classList.remove('on');},200);};
+  const open=()=>{if(swOpen&&swOpen!==wrap&&swOpen.isConnected)swOpen._close();more.setAttribute('aria-expanded','true');wrap.classList.add('open','on');set(-W,true);swOpen=wrap;};
+  wrap._open=open;
+  row.addEventListener('pointerdown',ev=>{
+    if(ev.pointerType!=='touch')return;
+    sx=ev.clientX;sy=ev.clientY;base=wrap.classList.contains('open')?-W:0;mode=0;id=ev.pointerId;
+  });
+  row.addEventListener('pointermove',ev=>{
+    if(ev.pointerId!==id)return;
+    const dx=ev.clientX-sx,dy=ev.clientY-sy;
+    if(!mode&&(Math.abs(dx)>8||Math.abs(dy)>8)){mode=Math.abs(dx)>Math.abs(dy)?1:2;if(mode===1){try{row.setPointerCapture(id);}catch(_){}wrap.classList.add('on');}}
+    if(mode===1){x=Math.max(-W-24,Math.min(0,base+dx));set(x,false);}
+  });
+  const end=ev=>{
+    if(ev.pointerId!==id)return;id=null;
+    if(mode===1){swallow=true;if(x<-W/2)open();else wrap._close();}
+    else if(mode===0&&ev.type==='pointerup'&&wrap.classList.contains('open'))swallow=true,wrap._close();
+    setTimeout(()=>{swallow=false;},450);
+  };
+  row.addEventListener('pointerup',end);row.addEventListener('pointercancel',end);
+  row.addEventListener('click',ev=>{if(swallow){ev.preventDefault();ev.stopPropagation();swallow=false;}},true);
+  return wrap;
+}
 function renderLibraryPage(){
   const box=$('libPage');if(!box)return;
   box.textContent='';
@@ -5469,44 +5511,7 @@ function renderLibraryPage(){
     const name=entryName(e).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'routine';
     saveFile(name+'.txt','text/plain',entryText(e)+'\n');
   };
-  const deleteEntry=e=>{const was=e.id===S.libId;removeLibEntry(e);renderLibraryPage();libUndo(e,was);};
-  /* The > on a row, or a drag to the left on a touch screen, slides it over to show Download and Delete. */
-  const SWIPE_W=156;
-  const swipeRow=(row,e)=>{
-    const wrap=document.createElement('div');wrap.className='swp';
-    const act=document.createElement('div');act.className='swa';
-    const mk=(t,c,f)=>{const b=document.createElement('button');b.type='button';b.className=c;b.textContent=t;b.addEventListener('click',f);return b;};
-    const del=arm(mk('Delete','sdel',()=>{}),()=>deleteEntry(e));   /* two taps, so a double tap on the arrow cannot delete */
-    act.append(mk('Download','sdl',()=>{downloadEntry(e);wrap._close();}),del);
-    wrap.append(act,row);
-    const more=iconBtn('more','Download or delete',()=>{if(wrap.classList.contains('open'))wrap._close();else wrap._open();});
-    more.setAttribute('aria-expanded','false');
-    row.querySelector('summary .ha').appendChild(more);
-    let sx=0,sy=0,base=0,mode=0,id=null,x=0,swallow=false;
-    const set=(v,anim)=>{row.style.transition=anim?'transform .18s':'none';row.style.transform=v?'translateX('+v+'px)':'';};
-    wrap._close=()=>{del._disarm();more.setAttribute('aria-expanded','false');wrap.classList.remove('open');set(0,true);if(swOpen===wrap)swOpen=null;setTimeout(()=>{if(!wrap.classList.contains('open'))wrap.classList.remove('on');},200);};
-    const open=()=>{if(swOpen&&swOpen!==wrap&&swOpen.isConnected)swOpen._close();more.setAttribute('aria-expanded','true');wrap.classList.add('open','on');set(-SWIPE_W,true);swOpen=wrap;};
-    wrap._open=open;
-    row.addEventListener('pointerdown',ev=>{
-      if(ev.pointerType!=='touch')return;
-      sx=ev.clientX;sy=ev.clientY;base=wrap.classList.contains('open')?-SWIPE_W:0;mode=0;id=ev.pointerId;
-    });
-    row.addEventListener('pointermove',ev=>{
-      if(ev.pointerId!==id)return;
-      const dx=ev.clientX-sx,dy=ev.clientY-sy;
-      if(!mode&&(Math.abs(dx)>8||Math.abs(dy)>8)){mode=Math.abs(dx)>Math.abs(dy)?1:2;if(mode===1){try{row.setPointerCapture(id);}catch(_){}wrap.classList.add('on');}}
-      if(mode===1){x=Math.max(-SWIPE_W-24,Math.min(0,base+dx));set(x,false);}
-    });
-    const end=ev=>{
-      if(ev.pointerId!==id)return;id=null;
-      if(mode===1){swallow=true;if(x<-SWIPE_W/2)open();else wrap._close();}
-      else if(mode===0&&ev.type==='pointerup'&&wrap.classList.contains('open'))swallow=true,wrap._close();
-      setTimeout(()=>{swallow=false;},450);
-    };
-    row.addEventListener('pointerup',end);row.addEventListener('pointercancel',end);
-    row.addEventListener('click',ev=>{if(swallow){ev.preventDefault();ev.stopPropagation();swallow=false;}},true);
-    return wrap;
-  };
+  const deleteEntry=e=>{const was=e.id===S.libId,name=recs.names[libKey(e)],label=entryName(e);removeLibEntry(e);renderLibraryPage();libUndo(e,was,name,label);};
   const mkEntry=(e,label)=>{
     const k=libKey(e),mine=recs.runs.filter(r=>(r.mode==='routine'?r.rk:r.exercises[0].k)===k);
     const det=document.createElement('details');det.className='hrow hgrp';
@@ -5523,7 +5528,9 @@ function renderLibraryPage(){
     const body=document.createElement('div');body.className='hb';
     const exl=exerciseListEl(e.x);if(exl)body.appendChild(exl);
     det.appendChild(body);
-    return swipeRow(det,e);
+    const dl=swBtn('Download','sdl',()=>{downloadEntry(e);wrap._close();}),del=arm(swBtn('Delete','sdel',()=>{}),()=>deleteEntry(e));   /* two taps, so a double tap on the arrow cannot delete */
+    const wrap=swipeRow(det,det.querySelector('summary .ha'),[dl,del]);
+    return wrap;
   };
   /* A title with a colon names a group: "Rudiment: Single stroke roll" is Single stroke roll in the group Rudiment. */
   const DEFAULT_GROUP='Other',groups=new Map();
@@ -5569,10 +5576,13 @@ function renderLinks(){
   S.lists.forEach(l=>{
     const row=document.createElement('div');row.className='lnk';
     if(l!==lnkEdit){
-      const nm=document.createElement('b'),ur=document.createElement('span'),ac=document.createElement('div');
-      nm.textContent=listName(l);ur.className='lnkurl';ur.textContent=l.url;ac.className='btns';
-      ac.append(mk('Edit',()=>{lnkEdit=l;renderLinks();}),armBtn('Remove',()=>{S.lists=S.lists.filter(q=>q!==l);if(S.listSel===l.url){S.listSel='';lib={items:[],loaded:false,busy:false,cur:''};}libMode='';save();renderLibrary();}));
-      row.append(nm,ur,ac);
+      const nm=document.createElement('b'),ur=document.createElement('span'),ac=document.createElement('span');
+      nm.textContent=listName(l);ur.className='lnkurl';ur.textContent=l.url;ac.className='ha';
+      ac.appendChild(iconBtn('edit','Edit',()=>{lnkEdit=l;renderLinks();}));
+      const rm=arm(swBtn('Remove','sdel',()=>{}),()=>{S.lists=S.lists.filter(q=>q!==l);if(S.listSel===l.url){S.listSel='';lib={items:[],loaded:false,busy:false,cur:''};}libMode='';save();renderLibrary();});
+      const inner=document.createElement('div');inner.className='lnkrow';inner.append(nm,ur,ac);
+      box.appendChild(swipeRow(inner,ac,[rm]));
+      return;
     }else{
       const nm=document.createElement('input'),ur=document.createElement('input'),ac=document.createElement('div'),er=document.createElement('p');
       [nm,ur].forEach(i=>{i.type='text';i.autocomplete='off';i.spellcheck=false;i.setAttribute('data-lpignore','true');i.setAttribute('data-1p-ignore','');});
