@@ -607,6 +607,16 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 .page .swp{overflow:visible;clip-path:inset(0 -10px)}
 .page .hrow[open],.page .swp>.hrow[open]{background:var(--surface);box-shadow:-10px 0 0 var(--surface),10px 0 0 var(--surface)}
 .swa .sdel.arm{background:#8E1B1B;box-shadow:inset 0 0 0 2px #fff}
+.tc1{grid-template-columns:minmax(0,1fr)}
+.bigbpm{display:block;font:800 40px/1.1 var(--font-data);margin:2px 0 8px}
+.setbox{border:0;border-radius:0;background:none}
+.sbody{display:grid;gap:22px}
+#setBox>summary{font:700 15px var(--font-body);text-transform:none;letter-spacing:0;padding:12px 0;border-top:1px solid var(--line)}
+#setBox>summary{display:flex;align-items:center;justify-content:space-between;gap:10px}   /* the chevron stays beside the text, not under it */
+#setBox>summary::after{float:none;flex:none;margin:0 4px 4px 0}
+:root[data-layout=desktop] #setBox>summary{display:none}
+:root[data-layout=desktop] #setBox .sbody{margin-top:0}
+:root:not([data-layout=desktop]) body[data-run="1"] #setBox,:root:not([data-layout=desktop]) body[data-review="1"] #setBox{display:none}
 </style>
 </head>
 <body data-input="mic" data-mode="single" data-tab="pattern" data-state="idle" data-run="0" data-review="0">
@@ -1215,6 +1225,20 @@ RLRR LRLL RLRR LRLL</pre>
       <div class="exercises routine-only" id="exerciseList" role="listbox" aria-label="Exercises in this routine. Choose the exercise to start at."></div>
     </section>
 
+    <section class="panel cfg" id="tempoPanel" aria-label="Tempo">
+      <div class="field">
+        <label for="bpm">Tempo</label>
+        <output id="bpmOut" class="bigbpm"></output>
+        <div class="tempo">
+          <button class="btn" id="bpmDown" type="button" aria-label="Slower">&#8722;</button>
+          <input type="range" id="bpm" min="40" max="220" step="1">
+          <button class="btn" id="bpmUp" type="button" aria-label="Faster">+</button>
+        </div>
+      </div>
+    </section>
+    <details id="setBox" class="setbox">
+      <summary id="setSum"></summary>
+      <div class="sbody">
     <section class="panel cfg" aria-label="How long it plays">
       <div class="row">
         <div class="field"><label for="eachVal"><span class="routine-only">Each exercise plays for</span><span class="single-only">Plays for</span></label>
@@ -1228,7 +1252,7 @@ RLRR LRLL RLRR LRLL</pre>
       <p class="hint" id="eachNote" hidden></p>
     </section>
 
-    <section class="panel cfg tc" aria-label="Click and tempo">
+    <section class="panel cfg tc tc1" aria-label="Click">
       <div class="field"><label for="click">Click</label>
         <select id="click">
           <option value="strokes">Easy: every stroke</option>
@@ -1237,16 +1261,7 @@ RLRR LRLL RLRR LRLL</pre>
           <option value="bar">Extreme: 1 of each bar</option>
           <option value="off">Count-in only: not scored</option>
         </select></div>
-      <div class="field">
-        <label for="bpm">Tempo <output id="bpmOut"></output></label>
-        <div class="tempo">
-          <button class="btn" id="bpmDown" type="button" aria-label="Slower">&#8722;</button>
-          <input type="range" id="bpm" min="40" max="220" step="1">
-          <button class="btn" id="bpmUp" type="button" aria-label="Faster">+</button>
-        </div>
-      </div>
     </section>
-
     <section class="panel cfg tc" aria-label="Accents and ghost notes">
       <div class="field"><label for="accent">Accent</label>
         <select id="accent">
@@ -1267,6 +1282,8 @@ RLRR LRLL RLRR LRLL</pre>
         <select id="others"><option value="n">Normal</option><option value="g">Ghost (soft)</option></select></div>
     </section>
 
+      </div>
+    </details>
     <div class="transport">
       <button class="btn primary" id="startBtn" type="button">Start</button>
       <p class="hint cfg" id="playSummary"></p>
@@ -2396,7 +2413,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.71.2';                           /* shown beside the title */
+const VERSION='0.72.2';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -5848,6 +5865,14 @@ function syncInfo(){
   else{const tt=playTime(exercises);sum.textContent=(routineParsed.title||recs.names[routineKeyOf(allExercises().map(b=>patKey(b.notes,b.groupStart,b.subs,b.defSub,b.sig)))]||'Routine')+' · '+exercises.length+(exercises.length===1?' exercise':' exercises')+(S.startExercise>1?' from exercise '+S.startExercise:'')+' · about '+fmtTime(tt)+' · '+S.bpm+' BPM'+pulseNote(exercises)+routineGuide();}
   {const b=exercises[0];$('playPat').textContent=exercises.length&&S.mode==='single'?showPattern(b.notes,b.groupStart,b.subs,b.defSub,b.sig,b.src):'';}
   $('bpmOut').textContent=S.bpm+' BPM';
+  {   /* what the closed Settings drawer holds, so a setting that matters is never hidden */
+    const ck=$('click'),ac=$('accent');
+    const dur=S.eachVal+(S.eachUnit==='pass'?(S.eachVal===1?' pass':' passes'):' min')+(S.mode==='routine'?' each':'');
+    const parts=[dur,ck.options[ck.selectedIndex].text.split(':')[0]+(S.click==='off'?'':' click')];
+    if(S.accent)parts.push('Accent: '+ac.options[ac.selectedIndex].text.toLowerCase());
+    if(S.others==='g')parts.push('Ghost notes');
+    $('setSum').textContent=$('setBox').open?'Settings':parts.join(' · ');   /* open: just the name; closed: what is inside */
+  }
 }
 /* BPM counts the pulse. Say so when that is the eighth note. */
 function pulseNote(exercises){
@@ -6285,6 +6310,7 @@ function syncLayout(){
   if(document.documentElement.dataset.layout===want)return;
   const first=!document.documentElement.dataset.layout;
   document.documentElement.dataset.layout=want;
+  if(want==='desktop')$('setBox').open=true;   /* nothing is tucked away where there is room */
   placeAdv();
   if(!first)window.dispatchEvent(new Event('resize'));
 }
@@ -6329,6 +6355,7 @@ function wire(){
   $('libAll').addEventListener('click',importAll);
   $('exportLib').addEventListener('click',exportLibrary);
   ['micMsg','chkMsg','latMsg'].forEach(id=>setupWatch.observe($(id),{childList:true,characterData:true,subtree:true}));
+  $('setBox').addEventListener('toggle',syncInfo);
   $('libSel').addEventListener('change',()=>{const v=$('libSel').value;if(v==='+'){libMode='add';$('libErr').textContent='';lib={items:[],loaded:false,busy:false,cur:''};renderLibrary();$('libraryUrl').focus();}else pickList(v);});
   $('libraryUrl').addEventListener('input',()=>{suggestName();renderLibrary();});
   $('libraryUrl').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();loadLibrary();}});
