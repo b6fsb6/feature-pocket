@@ -438,7 +438,7 @@ body[data-mode="routine"] .single-only{display:none}
 .urlrow{display:grid;grid-template-columns:1fr auto;gap:8px}
 #libUrl{word-break:break-all}
 .lnk{display:grid;gap:8px;margin:0 0 14px}
-.lnk input{min-width:0}.lnk .lnkurl{word-break:break-all;color:var(--muted,inherit);font-size:.9em}.lnk .btns{margin:0}
+.lnk input{min-width:0}.lnkrow>*{min-width:0}.lnkurl{word-break:break-all;color:var(--muted,inherit);font-size:.9em}.lnk .btns{margin:0}
 .exercises{max-height:288px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
 .erow{cursor:pointer;display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:8px;padding:7px 10px;border-bottom:1px solid var(--line);font:13px var(--font-data);align-items:baseline}
 .erow:last-child{border-bottom:0}
@@ -749,9 +749,9 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <div class="stoleg" id="stoLeg"></div>
       <p class="hint" id="stoNote"></p>
     </section>
-    <section class="panel" aria-label="Library links" id="lnkBox" hidden>
+    <section class="panel" aria-label="Library links" id="lnkBox">
       <h3>Library links</h3>
-      <p class="hint">Libraries you loaded from a web address. The pencil changes a name or address: Update saves it and Cancel leaves it as it was. Tap the arrow, or drag a link left, for Remove (it asks for a second tap).</p>
+      <p class="hint">Libraries loaded from a web address. Add a link here, or in the Library import. The pencil changes a name or address: Update saves it and Cancel leaves it as it was. Tap the arrow, or drag a link left, for Remove (it asks for a second tap).</p>
       <div id="lnkList"></div>
     </section>
     </div>
@@ -2402,7 +2402,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.70.8';                           /* shown beside the title */
+const VERSION='0.70.9';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -5568,41 +5568,48 @@ function suggestName(){
 }
 const addMode=()=>libMode==='add'||!S.lists.length;
 /* Settings > Data: every saved library link. Read-only until Edit; one row is edited at a time. A changed address forgets the copy kept from the old one. */
-let lnkEdit=null;
+let lnkEdit=null;   /* the link being edited, or NEW for the blank row that adds one */
+const NEW={url:'',name:''};
 function renderLinks(){
-  const box=$('lnkList');$('lnkBox').hidden=!S.lists.length;box.textContent='';
-  if(lnkEdit&&!S.lists.includes(lnkEdit))lnkEdit=null;
-  const mk=(t,f,c)=>{const b=document.createElement('button');b.type='button';b.className='btn small';b.textContent=t;b.addEventListener('click',f);return b;};
-  S.lists.forEach(l=>{
+  const box=$('lnkList');box.textContent='';
+  if(lnkEdit&&lnkEdit!==NEW&&!S.lists.includes(lnkEdit))lnkEdit=null;
+  const mk=(t,f)=>{const b=document.createElement('button');b.type='button';b.className='btn small';b.textContent=t;b.addEventListener('click',f);return b;};
+  const form=l=>{
     const row=document.createElement('div');row.className='lnk';
-    if(l!==lnkEdit){
-      const nm=document.createElement('b'),ur=document.createElement('span'),ac=document.createElement('span');
-      nm.textContent=listName(l);ur.className='lnkurl';ur.textContent=l.url;ac.className='ha';
-      ac.appendChild(iconBtn('edit','Edit',()=>{lnkEdit=l;renderLinks();}));
-      const rm=arm(swBtn('Remove','sdel',()=>{}),()=>{S.lists=S.lists.filter(q=>q!==l);if(S.listSel===l.url){S.listSel='';lib={items:[],loaded:false,busy:false,cur:''};}libMode='';save();renderLibrary();});
-      const inner=document.createElement('div');inner.className='lnkrow';inner.append(nm,ur,ac);
-      box.appendChild(swipeRow(inner,ac,[rm]));
-      return;
-    }else{
-      const nm=document.createElement('input'),ur=document.createElement('input'),ac=document.createElement('div'),er=document.createElement('p');
-      [nm,ur].forEach(i=>{i.type='text';i.autocomplete='off';i.spellcheck=false;i.setAttribute('data-lpignore','true');i.setAttribute('data-1p-ignore','');});
-      nm.value=l.name||'';nm.placeholder=listName(l);nm.maxLength=60;nm.setAttribute('aria-label','Library name');
-      ur.value=l.url;ur.inputMode='url';ur.maxLength=500;ur.setAttribute('aria-label','Library address');
-      er.className='err';er.setAttribute('role','alert');ac.className='btns';
-      ac.append(mk('Update',()=>{
-        const u=httpUrl(ur.value.trim());
-        if(!u){er.textContent=URL_HINT;return;}
-        if(u.href!==l.url&&S.lists.some(q=>q.url===u.href)){er.textContent='That address is already in the list.';return;}
+    const nm=document.createElement('input'),ur=document.createElement('input'),ac=document.createElement('div'),er=document.createElement('p');
+    [nm,ur].forEach(i=>{i.type='text';i.autocomplete='off';i.spellcheck=false;i.setAttribute('data-lpignore','true');i.setAttribute('data-1p-ignore','');});
+    nm.value=l.name||'';nm.placeholder=l===NEW?'Name (optional)':listName(l);nm.maxLength=60;nm.setAttribute('aria-label','Library name');
+    ur.value=l.url;ur.inputMode='url';ur.maxLength=500;ur.setAttribute('aria-label','Library address');if(l===NEW)ur.placeholder='https://…';
+    er.className='err';er.setAttribute('role','alert');ac.className='btns';
+    ac.append(mk(l===NEW?'Add':'Update',()=>{
+      const u=httpUrl(ur.value.trim());
+      if(!u){er.textContent=URL_HINT;return;}
+      if((l===NEW||u.href!==l.url)&&S.lists.some(q=>q.url===u.href)){er.textContent='That address is already in the list.';return;}
+      if(l===NEW){
+        if(S.lists.length>=20){er.textContent='You can keep 20 libraries.';return;}
+        S.lists.push({url:u.href,name:nm.value.trim().slice(0,60),t:0});
+      }else{
         l.name=nm.value.trim().slice(0,60);
         if(S.listSel===l.url)S.listSel=u.href;
         if(u.href!==l.url){l.url=u.href;delete l.items;l.t=0;lib={items:[],loaded:false,busy:false,cur:''};}
-        lnkEdit=null;save();renderLibrary();
-      }),mk('Cancel',()=>{lnkEdit=null;renderLinks();}));
-      row.append(nm,ur,ac,er);
-      setTimeout(()=>nm.focus(),0);
-    }
-    box.appendChild(row);
+      }
+      lnkEdit=null;save();renderLibrary();
+    }),mk('Cancel',()=>{lnkEdit=null;renderLinks();}));
+    row.append(nm,ur,ac,er);
+    setTimeout(()=>(l===NEW?ur:nm).focus(),0);
+    return row;
+  };
+  S.lists.forEach(l=>{
+    if(l===lnkEdit){box.appendChild(form(l));return;}
+    const nm=document.createElement('b'),ur=document.createElement('span'),ac=document.createElement('span');
+    nm.textContent=listName(l);ur.className='lnkurl';ur.textContent=l.url;ac.className='ha';
+    ac.appendChild(iconBtn('edit','Edit',()=>{lnkEdit=l;renderLinks();}));
+    const rm=arm(swBtn('Remove','sdel',()=>{}),()=>{S.lists=S.lists.filter(q=>q!==l);if(S.listSel===l.url){S.listSel='';lib={items:[],loaded:false,busy:false,cur:''};}libMode='';save();renderLibrary();});
+    const inner=document.createElement('div');inner.className='lnkrow';inner.append(nm,ur,ac);
+    box.appendChild(swipeRow(inner,ac,[rm]));
   });
+  if(lnkEdit===NEW)box.appendChild(form(NEW));
+  else{const ab=document.createElement('div');ab.className='btns';ab.appendChild(mk('Add a link',()=>{lnkEdit=NEW;renderLinks();}));box.appendChild(ab);}
 }
 function renderLibrary(){
   renderLinks();
