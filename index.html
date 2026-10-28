@@ -112,8 +112,9 @@ body[data-run="1"] .notice{display:none}
 :root[data-layout=desktop] #badges{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;align-content:start;align-items:start}
 :root[data-layout=desktop] #svPref:not([hidden]),:root[data-layout=desktop] #svDev:not([hidden]),:root[data-layout=desktop] #svData:not([hidden]){display:block;columns:2 340px;column-gap:22px}
 :root[data-layout=desktop] #svPref>*,:root[data-layout=desktop] #svDev>*,:root[data-layout=desktop] #svData>*{break-inside:avoid;margin-bottom:22px}
+.libsec{display:grid;gap:14px}
 .lhead{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px}
-.lhead h3{margin:0}
+.lhead .seg{margin:0}
 :root[data-layout=desktop] #libPage .gb{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;align-items:start}
 /* Playing and reviewing use one centred column; two columns are for setting up */
 :root[data-layout=desktop] body:not([data-state=idle]) #pagePlay{grid-template-columns:minmax(0,860px);justify-content:center}
@@ -710,10 +711,9 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 
   <!-- ===== Library: your saved routines, and where routines come from ===== -->
   <div class="page" id="pageLibrary" role="tabpanel" aria-labelledby="tabLibrary" hidden>
-    <section class="panel" aria-label="Your routines">
-      <div class="lhead"><h3>Your routines</h3><div class="btns"><button class="btn small" id="clearRoutine" type="button">New</button><button class="btn small" id="openBtn" type="button">Import</button><button class="btn small" id="exportLib" type="button">Export</button></div></div>
+    <section class="libsec" aria-label="Your routines">
+      <div class="lhead"><div class="seg hfilter" role="group" aria-label="Sort by"><button class="on" id="lsRecent" type="button" aria-pressed="true">Recent</button><button id="lsName" type="button" aria-pressed="false">Name</button></div><div class="btns"><button class="btn small" id="clearRoutine" type="button">New</button><button class="btn small" id="openBtn" type="button">Import</button><button class="btn small" id="exportLib" type="button">Export</button></div></div>
       <p class="hint" id="libMsg" aria-live="polite"></p>
-      <div class="seg hfilter" role="group" aria-label="Sort by"><button class="on" id="lsRecent" type="button" aria-pressed="true">Recent</button><button id="lsName" type="button" aria-pressed="false">Name</button></div>
       <div class="hist" id="libPage"></div>
       <p class="hint" id="libEmpty" hidden>Nothing saved yet. New starts a routine. Import brings one in from a file or a link.</p>
     </section>
@@ -927,7 +927,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <h3>The four pages and the editor</h3>
       <ul>
         <li><b>Play:</b> tempo, click level, Start, Pause, Restart and Stop, the notation, the lead/drag gauge and your results.</li>
-        <li><b>Library:</b> your saved routines, each with Edit and Play. <b>New</b> starts a routine, <b>Import</b> adds one from a file or a link, and <b>Export</b> saves the whole library as one file that Import reads back (it can also be hosted as a library). A title such as "Rudiment: Single stroke roll" groups the routine under Rudiment. Remove takes two taps, and Undo follows.</li>
+        <li><b>Library:</b> your saved routines, each with Edit and Play. <b>New</b> starts a routine, <b>Import</b> adds one from a file or a link, and <b>Export</b> saves the whole library as one file that Import reads back (it can also be hosted as a library). A title such as "Rudiment: Single stroke roll" groups the routine under Rudiment. Routines with no group go under Other. Remove takes two taps, and Undo follows.</li>
         <li><b>The scratch pad</b> is what you are working on. It is kept as you type, but a saved routine changes only when you press Save. The app asks before you open another routine and lose unsaved work. The editor opens full screen from Edit, and Back returns you.</li>
         <li><b>Stats:</b> <b>History</b> lists your runs by exercise or routine, with Play. <b>Scores</b> shows each exercise (weakest first) and each routine: tempo, accuracy, trend, lead or drag, and evenness. <b>Achievements</b> shows your practice days for the last four weeks, a streak that forgives one rest day a week, and badges.</li>
         <li><b>Settings:</b> <b>Preferences</b> (on-time window, visual pulse, click volume, colours), <b>Device</b> (input, microphone level, stick calibration, latency) and <b>Data</b> (export, import, clear, storage, library links).</li>
@@ -2353,7 +2353,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.64.2';                           /* shown beside the title */
+const VERSION='0.64.5';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -5431,13 +5431,16 @@ function renderLibraryPage(){
     body.appendChild(acts);det.appendChild(body);return det;
   };
   /* A title with a colon names a group: "Rudiment: Single stroke roll" is Single stroke roll in the group Rudiment. */
-  const groups=new Map(),plain=[];
+  const DEFAULT_GROUP='Other',groups=new Map();
   list.forEach(e=>{
-    const m=/^\s*([^:]{1,40}?)\s*:\s*(\S.*)$/.exec(entryName(e));
-    if(m){if(!groups.has(m[1]))groups.set(m[1],[]);groups.get(m[1]).push([e,m[2]]);}else plain.push(e);
+    const m=/^\s*([^:]{1,40}?)\s*:\s*(\S.*)$/.exec(entryName(e)),g=m?m[1]:DEFAULT_GROUP;
+    if(!groups.has(g))groups.set(g,[]);groups.get(g).push([e,m?m[2]:entryName(e)]);
   });
-  plain.forEach(e=>box.appendChild(mkEntry(e,entryName(e))));
-  (byName?[...groups.keys()].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'})):[...groups.keys()]).forEach(g=>{
+  /* A title without a colon goes in the default group, listed last. */
+  const gnames=[...groups.keys()].filter(g=>g!==DEFAULT_GROUP);
+  if(byName)gnames.sort((a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'}));
+  if(groups.has(DEFAULT_GROUP))gnames.push(DEFAULT_GROUP);
+  gnames.forEach(g=>{
     const items=groups.get(g),det=document.createElement('details');det.className='glib';
     det.open=libGrpOpen.has(g)||items.some(x=>x[0].id===S.libId);
     det.addEventListener('toggle',()=>{if(det.open)libGrpOpen.add(g);else libGrpOpen.delete(g);});
