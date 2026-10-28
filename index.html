@@ -640,6 +640,10 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 .hint .linkbtn{font-size:inherit}
 @media (max-width:359px){.switch.tabs button{font-size:13px;letter-spacing:.02em}}   /* four tab names fit the narrowest phones */
 .dur{display:grid;grid-template-columns:minmax(70px,1fr) minmax(110px,1.4fr);gap:8px}
+.prow{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;min-height:48px;padding:8px 12px;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);font:600 15px var(--font-body);text-align:left;cursor:pointer}
+.prow small{color:var(--muted);font:500 13px var(--font-body);white-space:nowrap}
+.prow.on{background:var(--bg);box-shadow:inset 3px 0 0 var(--fill)}
+#pickList{display:grid;gap:10px}
 </style>
 </head>
 <body data-input="mic" data-mode="single" data-tab="pattern" data-state="idle" data-run="0" data-review="0">
@@ -1448,6 +1452,13 @@ RLRR LRLL RLRR LRLL</pre>
       <p class="hint" id="lsInfo" style="flex:1"></p>
       <button class="btn small iconbtn" id="lsPlay" type="button" aria-label="Play again" title="Play again"></button>
     </div>
+  </div>
+</div>
+
+<div class="modal" id="pickModal" role="dialog" aria-modal="true" aria-label="Choose a routine" hidden>
+  <div class="mbox scroll">
+    <div class="mhead"><h3>Choose a routine</h3><button class="btn small" id="pickClose" type="button">Close</button></div>
+    <div id="pickList"></div>
   </div>
 </div>
 
@@ -2454,7 +2465,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.76.0';                           /* shown beside the title */
+const VERSION='0.77.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -5558,6 +5569,47 @@ function swipeRow(row,host,btns){
   row.addEventListener('click',ev=>{if(swallow){ev.preventDefault();ev.stopPropagation();swallow=false;}},true);
   return wrap;
 }
+/* A title with a colon names a group: "Rudiment: Single stroke roll" is Single stroke roll in the group Rudiment. A title without one goes in the group Other, listed last. */
+function libGroups(list,byName){
+  const DEFAULT_GROUP='Other',groups=new Map();
+  list.forEach(e=>{
+    const m=/^\s*([^:]{1,40}?)\s*:\s*(\S.*)$/.exec(entryName(e)),g=m?m[1]:DEFAULT_GROUP;
+    if(!groups.has(g))groups.set(g,[]);groups.get(g).push([e,m?m[2]:entryName(e)]);
+  });
+  const gnames=[...groups.keys()].filter(g=>g!==DEFAULT_GROUP);
+  if(byName)gnames.sort((a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'}));
+  if(groups.has(DEFAULT_GROUP))gnames.push(DEFAULT_GROUP);
+  return gnames.map(g=>[g,groups.get(g)]);
+}
+/* Play > Change: pick a routine from the library without leaving the Play page. */
+function openPick(){
+  if(run&&!run.ended)return;
+  const box=$('pickList');box.textContent='';
+  const byName=libSort==='name';
+  const list=recs.lib.slice().sort(byName?(a,b)=>entryName(a).localeCompare(entryName(b),undefined,{numeric:true,sensitivity:'base'}):(a,b)=>b.t-a.t);
+  if(!list.length){
+    const p=document.createElement('p');p.className='hint';p.textContent='No saved routines yet. Add some in Library.';box.appendChild(p);
+  }
+  libGroups(list,byName).forEach(([g,items])=>{
+    const det=document.createElement('details');det.className='glib';
+    det.open=items.some(x=>x[0].id===S.libId);
+    const sm=document.createElement('summary');sm.textContent=g+' ('+items.length+')';
+    const body=document.createElement('div');body.className='gb';
+    items.forEach(([e,label])=>{
+      const b=document.createElement('button');b.type='button';b.className='prow'+(e.id===S.libId?' on':'');
+      const n=exerciseCount(e.x);
+      b.innerHTML='<span></span><small></small>';b.firstChild.textContent=label;b.lastChild.textContent=n+(n===1?' exercise':' exercises');
+      b.addEventListener('click',()=>{
+        if(e.id===S.libId){closePick();return;}
+        closePick();guard(()=>loadEntry(e));
+      });
+      body.appendChild(b);
+    });
+    det.append(sm,body);box.appendChild(det);
+  });
+  $('pickModal').hidden=false;$('pickClose').focus();
+}
+const closePick=()=>{$('pickModal').hidden=true;$('playChange').focus();};
 function renderLibraryPage(){
   const box=$('libPage');if(!box)return;
   box.textContent='';
@@ -5600,18 +5652,8 @@ function renderLibraryPage(){
     const wrap=swipeRow(det,det.querySelector('summary .ha'),[dl,del]);
     return wrap;
   };
-  /* A title with a colon names a group: "Rudiment: Single stroke roll" is Single stroke roll in the group Rudiment. */
-  const DEFAULT_GROUP='Other',groups=new Map();
-  list.forEach(e=>{
-    const m=/^\s*([^:]{1,40}?)\s*:\s*(\S.*)$/.exec(entryName(e)),g=m?m[1]:DEFAULT_GROUP;
-    if(!groups.has(g))groups.set(g,[]);groups.get(g).push([e,m?m[2]:entryName(e)]);
-  });
-  /* A title without a colon goes in the default group, listed last. */
-  const gnames=[...groups.keys()].filter(g=>g!==DEFAULT_GROUP);
-  if(byName)gnames.sort((a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'}));
-  if(groups.has(DEFAULT_GROUP))gnames.push(DEFAULT_GROUP);
-  gnames.forEach(g=>{
-    const items=groups.get(g),det=document.createElement('details');det.className='glib';
+  libGroups(list,byName).forEach(([g,items])=>{
+    const det=document.createElement('details');det.className='glib';
     det.open=libGrpOpen.has(g)||items.some(x=>x[0].id===S.libId);
     det.addEventListener('toggle',()=>{if(det.open)libGrpOpen.add(g);else libGrpOpen.delete(g);});
     const sm=document.createElement('summary');sm.textContent=g+' ('+items.length+')';
@@ -6420,7 +6462,9 @@ function wire(){
   $('lsRecent').addEventListener('click',()=>{libSort='recent';renderLibraryPage();});
   $('lsName').addEventListener('click',()=>{libSort='name';renderLibraryPage();});
   $('edBack').addEventListener('click',()=>{showTab(editFrom==='play'?'play':'library');if(editFrom==='import')openOpen();window.scrollTo(0,0);});
-  $('playChange').addEventListener('click',()=>showTab('library'));
+  $('playChange').addEventListener('click',openPick);
+  $('pickClose').addEventListener('click',closePick);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('pickModal').hidden)closePick();});
   $('cfSave').addEventListener('click',()=>{if(saveToLibrary())closeConfirm(true);else $('cfText').textContent=$('saveMsg').textContent;});
   $('cfDiscard').addEventListener('click',()=>closeConfirm(true));
   $('cfCancel').addEventListener('click',()=>closeConfirm(false));
