@@ -24,7 +24,9 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm test
 
-  # Only tested code goes live, and only from main. The site is just the app and its hosted libraries.
+  # Only tested code goes live, and only from main. The site is the app and its hosted libraries.
+  # If a branch called preview exists, its copy of the app is published too, at /preview/, so a change
+  # can be tried on a phone before it reaches main.
   deploy:
     needs: test
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
@@ -42,9 +44,27 @@ jobs:
           mkdir site
           cp index.html site/
           cp -r routines site/
+          if git fetch --depth 1 origin preview; then
+            mkdir site/preview
+            git archive FETCH_HEAD index.html routines | tar -x -C site/preview
+            sed -i 's#<title>#<title>Preview: #' site/preview/index.html
+          fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # A push to preview runs the tests, then asks for a deploy from main. Pages only accepts deploys from main,
+  # and the deploy above publishes main and preview together, so neither overwrites the other.
+  preview:
+    needs: test
+    if: github.ref == 'refs/heads/preview' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - run: gh workflow run deploy.yml --ref main -R ${{ github.repository }}
+        env:
+          GH_TOKEN: ${{ github.token }}
