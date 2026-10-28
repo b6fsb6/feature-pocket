@@ -638,6 +638,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 .key .k.late{color:var(--late);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
 .key .k.miss{color:var(--muted);opacity:.4}
 .hint .linkbtn{font-size:inherit}
+@media (max-width:359px){.switch.tabs button{font-size:13px;letter-spacing:.02em}}   /* four tab names fit the narrowest phones */
 </style>
 </head>
 <body data-input="mic" data-mode="single" data-tab="pattern" data-state="idle" data-run="0" data-review="0">
@@ -654,7 +655,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
   <nav class="switch tabs" role="tablist" aria-label="Pages">
     <button type="button" role="tab" id="tabPlay" aria-controls="pagePlay" aria-selected="true">Play</button>
     <button type="button" role="tab" id="tabLibrary" aria-controls="pageLibrary" aria-selected="false">Library</button>
-    <button type="button" role="tab" id="tabProgress" aria-controls="pageProgress" aria-selected="false">Stats</button>
+    <button type="button" role="tab" id="tabProgress" aria-controls="pageProgress" aria-selected="false">Progress</button>
     <button type="button" role="tab" id="tabSetup" aria-controls="pageSetup" aria-selected="false">Settings</button>
   </nav>
   <p class="notice" id="updNote" hidden><span id="updText"></span> <button class="linkbtn" id="updGo" type="button">Update</button> <button class="linkbtn" id="updLater" type="button">Later</button></p>
@@ -921,7 +922,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
   <!-- ===== Progress: scores kept per exercise and tempo ===== -->
   <div class="page" id="pageProgress" role="tabpanel" aria-labelledby="tabProgress" hidden>
     <p class="notice" id="bakNote" hidden><span id="bakText"></span> <button class="linkbtn" id="bakGo" type="button">Export now</button></p>
-    <div class="switch three" style="--n:3" role="group" aria-label="Stats view">
+    <div class="switch three" style="--n:3" role="group" aria-label="Progress view">
       <button type="button" id="pvBtnHist" aria-pressed="true">History</button>
       <button type="button" id="pvBtnStats" aria-pressed="false">Scores</button>
       <button type="button" id="pvBtnAch" aria-pressed="false">Achievements</button>
@@ -973,7 +974,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <section aria-label="History">
         <div class="htools">
           <div class="seg hfilter" role="group" aria-label="View"><button class="on" id="hvDay" type="button" aria-pressed="true">By day</button><button id="hvEx" type="button" aria-pressed="false">By exercise</button></div>
-          <div class="seg hfilter" role="group" aria-label="Show"><button class="on" id="hfAll" type="button" aria-pressed="true">All</button><button id="hfSaved" type="button" aria-pressed="false">Saved</button></div>
+          <div class="seg hfilter" role="group" aria-label="Show"><button class="on" id="hfAll" type="button" aria-pressed="true">All</button><button id="hfSaved" type="button" aria-pressed="false">In library</button></div>
         </div>
         <p class="hint" id="histHint"></p>
         <div class="hist" id="histList"></div>
@@ -1007,8 +1008,8 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <ul>
         <li><b>Play:</b> tempo, click level, Start, Pause, Restart and Stop, the notation, the lead/drag gauge and your results.</li>
         <li><b>Library:</b> your saved routines, each with Edit and Play. <b>New</b> starts a routine, <b>Import</b> adds one from a file or a link, and <b>Export</b> saves the whole library as one file that Import reads back (it can also be hosted as a library). A title such as "Rudiment: Single stroke roll" groups the routine under Rudiment. Routines with no group go under Other. Tap the arrow on a routine, or drag it left on a touch screen, for Download and Delete. Delete asks for a second tap, and Undo follows.</li>
-        <li><b>The scratch pad</b> is what you are working on. It is kept as you type, but a saved routine changes only when you press Save. The app asks before you open another routine and lose unsaved work. The editor opens full screen from Edit, and Back returns you.</li>
-        <li><b>Stats:</b> <b>History</b> lists your runs by exercise or routine, with Play. <b>Scores</b> shows each exercise (weakest first) and each routine: tempo, accuracy, trend, lead or drag, and evenness. <b>Achievements</b> shows your practice days for the last four weeks, a streak that forgives one rest day a week, and badges.</li>
+        <li><b>An unsaved routine</b> is what you are working on. It is kept as you type, but a saved routine changes only when you press Save. The app asks before you open another routine and lose unsaved work. The editor opens full screen from Edit, and Back returns you.</li>
+        <li><b>Progress:</b> <b>History</b> lists your runs by exercise or routine, with Play. <b>Scores</b> shows each exercise (weakest first) and each routine: tempo, accuracy, trend, lead or drag, and evenness. <b>Achievements</b> shows your practice days for the last four weeks, a streak that forgives one rest day a week, and badges.</li>
         <li><b>Settings:</b> <b>Preferences</b> (on-time window, visual pulse, click volume, colours), <b>Device</b> (input, microphone level, stick calibration, latency) and <b>Data</b> (export, import, clear, storage, library links).</li>
       </ul>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
@@ -1165,7 +1166,7 @@ LRLR LRLR LRLR LRLR  x8</pre>
       <p><b>Colours</b> (Settings &rsaquo; Preferences) switches to a colour-blind safe set: blue for leading, orange for dragging, grey for on time. Early notes also lean, late notes are underlined, and results at or above target carry a tick, so colour is never the only signal.</p>
       <h4>Saving and importing</h4>
       <p><b>Save</b> keeps the routine in <b>your library</b>. If you change only the title, Save renames it. If you change the exercises, Save keeps the original and adds a new routine, so past runs still replay as played. The <b>&#8942;</b> beside Save has <b>Save as new</b> (a copy without changes) and <b>Download file</b> (a .txt to send).</p>
-      <p>On the Library page, <b>Import</b> adds a routine from a .txt, .json or .csv file, or opens one from a link in the editor to review and Save. Text with errors opens in the editor to fix. <b>New</b> starts an empty exercise. In History, the bookmark on a routine saves it or removes it from your library, and <b>Saved</b> lists your library, including routines you have not played. A title such as "Rudiment: Single stroke roll" groups it under Rudiment on the Library page.</p>
+      <p>On the Library page, <b>Import</b> adds a routine from a .txt, .json or .csv file, or opens one from a link in the editor to review and Save. Text with errors opens in the editor to fix. <b>New</b> starts an empty exercise. In History, the bookmark on a routine saves it or removes it from your library, and <b>In library</b> lists your library, including routines you have not played. A title such as "Rudiment: Single stroke roll" groups it under Rudiment on the Library page.</p>
       <p>JSON also works: a list such as <b>["RLRR LRLL", {"sticking":"RLRL RLRL","passes":16}]</b>, or an object with <b>title</b>, <b>each</b> and <b>exercises</b>.</p>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
@@ -1197,11 +1198,11 @@ RLRR LRLL RLRR LRLL</pre>
         <li><b>Exercise table:</b> after a routine run, each exercise gets its accuracy, average error and spread, plus your earlier best at that tempo.</li>
         <li><b>The target is 90%.</b> An exercise is "cleared" at a tempo when it reaches 90% there. After a run the app suggests +4 BPM if every exercise cleared. Otherwise it names the weak ones and suggests staying put. Any tempo is always allowed.</li>
         <li><b>Discard this run</b> removes it from your records, for example after a bad microphone read.</li>
-        <li><b>Stats page:</b> every exercise, weakest first, with accuracy at your last tempo, trend and lead/drag bias, grouped by click level. Play loads that exercise. A routine is cleared at a tempo when one run covered every exercise and all reached 90%.</li>
+        <li><b>Progress page:</b> every exercise, weakest first, with accuracy at your last tempo, trend and lead/drag bias, grouped by click level. Play loads that exercise. A routine is cleared at a tempo when one run covered every exercise and all reached 90%.</li>
         <li><b>Practise weak exercises:</b> after a routine run, this plays only the exercises below target. Restart repeats the same ones. A partial run never counts as clearing the routine.</li>
         <li><b>Tempo guidance:</b> each exercise in the start list shows the tempo it has cleared, or "new". The summary shows where the whole routine has been cleared.</li>
         <li><b>Staff of a run:</b> each run keeps the result of every stroke. A run's page has a <b>Staff</b> group showing the notation with each stroke coloured and read out, and the Play page rebuilds its review from the same record.</li>
-        <li><b>History:</b> on the Stats page, switch to History for your last 300 runs, by exercise or routine, newest first. Tap a group for its runs and a run for its exercises. <b>Play</b> loads the same pattern or routine, tempo, click level and settings, ready to start. <b>Delete</b> removes the run. An untitled routine is called "Untitled 1", "Untitled 2" and so on. The pencil renames it everywhere, and a title typed in the editor replaces it. Runs beyond 300 are folded into your totals, streaks, achievements and cleared tempos, which are kept for good, but they can no longer be replayed.</li>
+        <li><b>History:</b> on the Progress page, switch to History for your last 300 runs, by exercise or routine, newest first. Tap a group for its runs and a run for its exercises. <b>Play</b> loads the same routine, tempo, click level and settings, ready to start. <b>Delete</b> removes the run. An untitled routine is called "Untitled 1", "Untitled 2" and so on. The pencil renames it everywhere, and a title typed in the editor replaces it. Runs beyond 300 are folded into your totals, streaks, achievements and cleared tempos, which are kept for good, but they can no longer be replayed.</li>
       </ul>
       <p class="totop"><button class="linkbtn" type="button">Back to top</button></p>
     </section>
@@ -2444,7 +2445,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.74.1';                           /* shown beside the title */
+const VERSION='0.75.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -5432,7 +5433,7 @@ function scratchState(){
 }
 function curName(){
   const e=currentEntry();
-  return (getHeader(S.routineText,'title')||'').trim()||(e?entryName(e):'Scratch pad');   /* a title being typed shows at once, before Save */
+  return (getHeader(S.routineText,'title')||'').trim()||(e?entryName(e):'Unsaved routine');   /* a title being typed shows at once, before Save */
 }
 /* Puts library text in the scratch pad, linked to its entry. */
 function openText(txt,key){
@@ -5559,7 +5560,7 @@ function renderLibraryPage(){
     const row=document.createElement('div');row.className='hrow flat lib';
     const sm=document.createElement('div');sm.className='sm';
     const n=document.createElement('span');n.className='hn';n.textContent=curName();
-    const hs=document.createElement('span');hs.className='hs';hs.textContent='Scratch pad · not saved';
+    const hs=document.createElement('span');hs.className='hs';hs.textContent='Not in your library';
     const ac=document.createElement('span');ac.className='ha';
     ac.appendChild(iconBtn('edit','Edit',()=>openEditor('library')));
     ac.appendChild(iconBtn('play','Play',()=>showTab('play')));
@@ -5906,7 +5907,7 @@ function syncInfo(){
     $('eachUnit').disabled=!!routineParsed.each||(run&&!run.ended);
   }
   const sum=$('playSummary');
-  if(!exercises.length)sum.textContent=S.mode==='single'?'Type a sticking in the editor, then press Start.':'Add some exercises in the editor, then press Start.';
+  if(!exercises.length)sum.textContent=S.mode==='single'?'Type an exercise in the editor, then press Start.':'Add some exercises in the editor, then press Start.';
   else if(S.mode==='single'){const b=exercises[0];sum.textContent=S.bpm+' BPM'+pulseNote(exercises)+playsFor();}
   else{const tt=playTime(exercises);sum.textContent=(routineParsed.title||recs.names[routineKeyOf(allExercises().map(b=>patKey(b.notes,b.groupStart,b.subs,b.defSub,b.sig)))]||'Routine')+' · '+exercises.length+(exercises.length===1?' exercise':' exercises')+(S.startExercise>1?' from exercise '+S.startExercise:'')+' · about '+fmtTime(tt)+' · '+S.bpm+' BPM'+pulseNote(exercises)+routineGuide();}
   {const b=exercises[0];$('playPat').textContent=exercises.length&&S.mode==='single'?showPattern(b.notes,b.groupStart,b.subs,b.defSub,b.sig,b.src):'';}
