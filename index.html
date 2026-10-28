@@ -551,6 +551,10 @@ td.early{color:var(--early)} td.late{color:var(--late)} td.ok{color:var(--ok)} t
 button.pill{cursor:pointer;color:var(--ink);font-weight:700;min-height:32px;padding:6px 12px}
 button.pill:disabled{opacity:.5;cursor:not-allowed}
 button.pill.on{color:var(--ok)}
+#micPill{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:6px 12px;font-weight:700}
+#micPill.off{color:var(--accent);border-color:var(--accent)}
+#micPill[hidden]{display:none}
+#micDot{width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.35;transition:opacity .08s}
 button.pill.warn{color:var(--accent);border-color:var(--accent)}
 .help p,.help li{font-size:14.5px;line-height:1.55;margin:6px 0}
 .help ul,.help ol{padding-left:20px;margin:6px 0}
@@ -646,7 +650,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
   <header>
     <div class="head">
       <h1>Pocket</h1>
-      <span class="headbtns"><button class="pill" id="helpBtn" type="button" data-help="help-how">Help</button><button class="pill" id="themeBtn" type="button"></button><button class="pill" id="micPill" type="button" aria-pressed="false" title="Turn the microphone on or off">Mic off</button></span>
+      <span class="headbtns"><button class="pill" id="helpBtn" type="button" data-help="help-how">Help</button><button class="pill" id="themeBtn" type="button"></button><span class="pill off" id="micPill" role="status"><i id="micDot"></i><span id="micTxt">Mic off</span></span></span>
     </div>
     <p class="sub"><span>Go from trailing to nailing the beat</span><small class="ver" id="ver"></small></p>
   </header>
@@ -2460,7 +2464,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.78.1';                           /* shown beside the title */
+const VERSION='0.79.1';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2717,6 +2721,7 @@ function showMicError(err){
   if(n==='insecure')m='The microphone needs a secure page (https:// or localhost). Host this file or run a local server, or switch Input to Keyboard in Settings, under Device.';
   else if(n==='NotAllowedError'||n==='SecurityError')m='Microphone blocked. Allow it for this page in your browser settings, then press Start again.';
   else if(n==='NotFoundError')m='No microphone found.';
+  else if(n==='muted')m='The microphone is muted. Unmute it from the browser\u2019s page menu, then press Start again.';
   else m='Could not start audio: '+(err&&err.message?err.message:n);
   setStatus(m);
   showSetup('dev');$('micMsg').textContent=m;
@@ -2727,6 +2732,8 @@ async function ensureAudio(needMic){
     if(!ctx)ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'});
     if(ctx.state!=='running'){await ctx.resume();audioFresh=true;}
     try{const z=ctx.createBufferSource();z.buffer=ctx.createBuffer(1,1,ctx.sampleRate);z.connect(ctx.destination);z.start(0);}catch(e){}   /* wakes the output */
+    /* iPhone lets people mute the microphone from Safari's page menu. The stream stays open but silent, so start again from scratch. */
+    if(needMic&&node&&!micLive())micOff(true);
     if(needMic&&!node){audioFresh=true;
       if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw {name:'insecure'};
       stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1}});
@@ -2761,22 +2768,27 @@ async function ensureAudio(needMic){
         const tl=((stream.getAudioTracks()[0].getSettings&&stream.getAudioTracks()[0].getSettings())||{}).latency;
         setLatency(Math.max(20,Math.round(((ctx.outputLatency||ctx.baseLatency||0.01)+(tl||0.02))*1000)));
       }
+      stream.getAudioTracks().forEach(t=>{t.onmute=t.onunmute=t.onended=()=>setMicUI(micLive());});
       $('micMsg').textContent='';
-      setMicUI(true);
+      setMicUI(micLive());
+      if(!micLive()){await new Promise(r=>setTimeout(r,300));setMicUI(micLive());}
+      if(!micLive())throw {name:'muted'};
     }
     return true;
   }catch(err){showMicError(err);return false;}
 }
+function micLive(){const t=stream&&stream.getAudioTracks()[0];return !!(node&&t&&t.readyState==='live'&&!t.muted);}
 function setMicUI(on){
   const p=$('micPill');
-  p.textContent=on?'Mic on':'Mic off';p.classList.toggle('on',on);p.setAttribute('aria-pressed',String(on));
+  $('micTxt').textContent=on?'Mic on':'Mic off';p.classList.toggle('on',on);p.classList.toggle('off',!on);
+  if(!on)$('micDot').style.opacity='';
   $('testMic').textContent=on?'Turn microphone off':'Turn microphone on';
   if(!on){$('mFill').style.width='0%';$('heard').textContent='';}
   syncInfo();
 }
 /* Turning the microphone off releases it, so the browser's recording indicator goes out too. */
-function micOff(){
-  if(run&&!run.ended)return;
+function micOff(force){
+  if(!force&&run&&!run.ended)return;
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
   if(micSrc){try{micSrc.disconnect();}catch(e){}micSrc=null;}
   if(node){
@@ -2790,12 +2802,13 @@ function micOff(){
 }
 async function toggleMic(){
   if(run&&!run.ended)return;
-  if(node){micOff();setStatus('Microphone turned off.');}
+  if(node&&micLive()){micOff();setStatus('Microphone turned off.');}
   else if(await ensureAudio(true))setStatus('Microphone is on. Hit the pad and watch the level bar.');
 }
 function syncMicBtn(){
   const busy=!!(run&&!run.ended);
-  $('micPill').disabled=$('testMic').disabled=busy||S.input==='kb'||!!chk||!!calTest;
+  $('micPill').hidden=S.input==='kb';
+  $('testMic').disabled=busy||S.input==='kb'||!!chk||!!calTest;
   $('micCheck').disabled=busy||!!calMode||S.input==='kb'||!!calTest||!!loop;
   $('micCheck').textContent=chk?'Cancel check':'Mic check';
   syncInfo();
@@ -2891,7 +2904,8 @@ function onNodeMsg(e){
 }
 function setMeter(v){
   const db=20*Math.log10(v+1e-6);
-  $('mFill').style.width=clamp((db+60)/60*100,0,100)+'%';
+  const lv=clamp((db+60)/60,0,1);
+  $('mFill').style.width=lv*100+'%';$('micDot').style.opacity=String(.35+.65*lv);
 }
 /* One short tone with a quick attack and decay. */
 const liveTones=new Set();
@@ -5906,7 +5920,7 @@ function syncSetup(){
   }
   setupWas=true;clearTimeout(setupTimer);setupTimer=0;box.hidden=false;
   const steps=[
-    {done:!!node,ok:'Microphone on',label:'Allow the microphone.',go:toggleMic,btn:'Turn microphone on',msg:()=>$('micMsg').textContent},
+    {done:micLive(),ok:'Microphone on',label:'Allow the microphone.',go:toggleMic,btn:'Turn microphone on',msg:()=>$('micMsg').textContent},
     {done:S.noise!==null,ok:'Mic check done',label:'Mic check: stay quiet for two seconds, then hit the pad ten times.',go:toggleCheck,btn:chk?'Cancel check':'Mic check',msg:()=>$('chkMsg').textContent},
     {done:S.latCal,ok:'Latency calibrated',label:'Calibrate latency. It plays clicks for about 20 seconds, so keep quiet.',go:startLoop,btn:loop?'Cancel':'Auto calibrate',msg:()=>$('latMsg').textContent}
   ];
@@ -6520,7 +6534,6 @@ function wire(){
   $('vol').addEventListener('input',e=>{S.vol=+e.target.value;$('volOut').textContent=S.vol+'%';save();});
   $('latency').addEventListener('change',e=>{const v=e.target.value;S.latency=v===''?null:clamp(Math.round(+v)||0,0,400);if(v!=='')S.latCal=true;save();syncInfo();});
   $('themeBtn').addEventListener('click',()=>{S.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';applyTheme();save();});
-  $('micPill').addEventListener('click',toggleMic);
   $('testMic').addEventListener('click',toggleMic);
   $('calL').addEventListener('click',()=>startCal('L'));
   $('calR').addEventListener('click',()=>startCal('R'));
