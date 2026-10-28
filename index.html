@@ -633,6 +633,11 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 .resbig small{font:700 16px var(--font-body);margin-left:6px;color:var(--muted)}
 .resside{display:grid;gap:2px}.resside b{font-size:18px}.resside span{color:var(--muted);font-size:15px}
 #advice{gap:10px}
+.key .k{font:800 15px var(--font-data)}
+.key .k.ok{color:var(--ok)}.key .k.early{color:var(--early);font-style:italic}
+.key .k.late{color:var(--late);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
+.key .k.miss{color:var(--muted);opacity:.4}
+.hint .linkbtn{font-size:inherit}
 </style>
 </head>
 <body data-input="mic" data-mode="single" data-tab="pattern" data-state="idle" data-run="0" data-review="0">
@@ -712,18 +717,18 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <div class="field">
         <label for="sens">Trigger line <output id="sensOut"></output></label>
         <input type="range" id="sens" min="-55" max="-8" step="1">
-        <p class="hint">Hit the pad. The bar should cross the line on every stroke and fall back under it between strokes. Raise the line if room noise triggers hits, lower it if soft strokes are missed. The dashed line is the ghost floor, always 14 dB below the trigger line and never closer than 6 dB to the room noise from your last Mic check. Ghost notes only count when Other strokes is Ghost on the Play page, and only on a stroke that should be a ghost note, so quiet room noise elsewhere is ignored.</p>
+        <p class="hint">Hit the pad: the bar should cross the line on every stroke and fall back between them. <button class="linkbtn" type="button" data-help="help-setup">Help</button></p>
       </div>
       <div class="field">
         <label for="settle">Settle time <output id="settleOut"></output></label>
         <input type="range" id="settle" min="20" max="120" step="5">
-        <p class="hint">How long the app ignores the pad after a hit. Raise it if one stroke counts twice. Fast playing lowers it automatically so real strokes are not skipped.</p>
+        <p class="hint">How long the app ignores the pad after a hit. Raise it if one stroke counts twice.</p>
       </div>
       <div class="btns"><button class="btn small" id="testMic" type="button">Turn microphone on</button><button class="btn small" id="micCheck" type="button">Mic check</button><span class="heard" id="heard" aria-live="off"></span></div>
       <p class="err" id="micMsg" role="alert"></p>
       <p class="chkmsg" id="chkMsg" aria-live="polite"></p>
       <ul class="chkout" id="chkOut"></ul>
-      <p class="hint">Mic check listens to the room, then to ten strokes, and sets the trigger line and settle time for you. Echo cancellation and noise suppression are switched off for this page so stick attacks stay sharp.</p>
+      <p class="hint">Mic check listens to the room, then to ten strokes, and sets the trigger line and settle time for you.</p>
     </section>
 
     <section class="panel mic-only" aria-label="Stick calibration">
@@ -738,8 +743,8 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
       <p class="hint" id="calInfo"></p>
       <div class="ctbox" id="calTestBox" hidden><div class="ctp" id="calTestPrompt" aria-live="polite"></div><p class="hint" id="calTestMsg"></p></div>
       <ul class="chkout" id="calTestOut"></ul>
-      <p class="hint">Test left vs right asks for 20 single hits, one hand at a time in a shuffled order, and shows how often the app named the right stick. Calibrate both sticks first.</p>
-      <p class="hint">Each stick sounds a little different. Calibrate by hitting the same spot of the pad with one stick only, at your normal playing strength. The app learns the tone of each stick and then flags strokes where the wrong hand seems to have played.</p>
+      <p class="hint">After calibrating both sticks, 20 single hits show how often the app named the right one.</p>
+      <p class="hint">Hit the same spot with one stick only, at normal strength, so the app learns each stick&rsquo;s tone.</p>
     </section>
 
     <section class="panel mic-only" aria-label="Latency">
@@ -748,8 +753,8 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
         <div class="field"><label for="latency">Compensation (ms)</label><input type="number" id="latency" min="0" max="400" step="1" inputmode="numeric" placeholder="auto"></div>
         <div class="field"><span class="lbl">Estimate it</span><div class="btns"><button class="btn" id="calLoop" type="button">Auto calibrate</button><button class="btn small" id="calLatency" type="button">Calibrate by playing</button></div></div>
       </div>
-      <p class="hint"><b>Auto calibrate (recommended):</b> plays 12 clicks through the speakers and times when the mic hears them. You don't play. Use speakers, not headphones, and keep the room quiet. It measures the device delay only.</p>
-      <p class="hint"><b>Calibrate by playing:</b> counts you in, then loops clicks. Hit the pad right on each one and watch the number settle, then stop and it finishes by itself. It needs 80 hits and assumes you were on the beat on average. Use it to fine-tune, or when you only have headphones.</p>
+      <p class="hint"><b>Auto calibrate (recommended):</b> times 12 clicks through the speakers, so keep the room quiet and don't play.</p>
+      <p class="hint"><b>Calibrate by playing:</b> hit the pad on each click until the number settles. Use it to fine-tune, or with headphones.</p>
       <p class="hint" id="latMsg">Sound reaches the page late, and the click reaches your ears late. This number removes that delay. The result of a calibration appears here.</p>
     </section>
   
@@ -758,7 +763,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
     <div class="pv" id="svData" hidden>
     <section class="panel" aria-label="Data">
       <h3>Your data</h3>
-      <p class="hint">Scores are saved in this browser only. The last 300 runs are kept in full and can be replayed from History. Older runs are folded into your totals, streaks, achievements and cleared tempos, which are kept for good. Your saved routines are kept separately and stay when you clear runs and scores. Export a copy now and then, or to move to another device. The export has your runs and your saved routines.</p>
+      <p class="hint">Scores are saved in this browser only, so export a copy now and then. <button class="linkbtn" type="button" data-help="help-scores">Help</button></p>
       <div class="btns">
         <button class="btn small" id="recExport" type="button">Export</button>
         <button class="btn small" id="recImport" type="button">Import</button>
@@ -777,7 +782,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
     </section>
     <section class="panel" aria-label="Library links" id="lnkBox">
       <h3>Library links</h3>
-      <p class="hint">Libraries loaded from a web address. Add a link here, or in the Library import. The pencil changes a name or address: Update saves it and Cancel leaves it as it was. Tap the arrow, or drag a link left, for Remove (it asks for a second tap).</p>
+      <p class="hint">Libraries loaded from a web address. The pencil edits a link; the arrow slides it over to Remove.</p>
       <div id="lnkList"></div>
     </section>
     </div>
@@ -1204,8 +1209,9 @@ RLRR LRLL RLRR LRLL</pre>
     <section class="panel" id="help-setup">
       <h3>Settings details</h3>
       <ul>
-        <li><b>Mic check:</b> under Device, press it, stay quiet for two seconds, then hit the pad ten times. It sets the trigger line and settle time, and says if the signal is too quiet, clipping, uneven or double triggering.</li>
+        <li><b>Mic check:</b> under Device, press it, stay quiet for two seconds, then hit the pad ten times. Echo cancellation and noise suppression are switched off for this page so stick attacks stay sharp. It sets the trigger line and settle time, and says if the signal is too quiet, clipping, uneven or double triggering.</li>
         <li><b>Trigger line:</b> raise it if room noise counts as hits, lower it if soft strokes are missed.</li>
+        <li><b>Settle time:</b> how long the app ignores the pad after a hit. Raise it if one stroke counts twice. Fast playing lowers it automatically so real strokes are not skipped.</li>
         <li><b>Stick calibration:</b> hit the same spot with one stick only, at normal strength, until the count finishes. Do both sticks.</li>
         <li><b>Test left vs right:</b> after calibrating, hit once with whichever hand is shown, 20 times in a shuffled order. It reports how often the app named the right stick, how each hand did, and how many hits a run would tag with the wrong hand. Below 90% is worth recalibrating.</li>
         <li><b>Latency:</b> sound reaches the page late, and the click reaches your ears late. Press <b>Auto calibrate</b> once on each device. It plays clicks through the speakers and times when the mic hears them, so you do not play. <b>Calibrate by playing</b> is the second choice: hit on each click, 80 hits or more, until the number settles. It assumes you were on the click on average. You can also type a number.</li>
@@ -1326,7 +1332,7 @@ RLRR LRLL RLRR LRLL</pre>
       <div class="rows" id="rows" tabindex="0"><div class="rows-track" id="rowsTrack"></div></div>
       <p class="hint" id="rowEnd" hidden></p>
       </div>
-      <p class="cap">The moving line marks the stroke to play now. Letter colour: green on time, blue slanted early, pink underlined late, faded no hit heard. An arrow such as →R under a letter means the other stick was heard. Numbers appear after you stop.</p>
+      <p class="cap key"><span class="k ok">R</span> on time · <span class="k early">R</span> early · <span class="k late">R</span> late · <span class="k miss">R</span> missed · <span class="k">&rarr;R</span> other stick</p>
       <div class="pads kb-only">
         <button class="pad" type="button" data-hand="L" aria-label="Left stick pad">L</button>
         <button class="pad" type="button" data-hand="R" aria-label="Right stick pad">R</button>
@@ -1391,7 +1397,7 @@ RLRR LRLL RLRR LRLL</pre>
         <h3>Timing trace</h3>
         <div class="hscw"><div class="hscroll" id="trBox"><div class="hscin" id="trIn"><canvas id="trace" role="img" aria-label="Timing error of every heard stroke in the run, in milliseconds, newest at the right"></canvas></div></div><button class="btn small jump" id="trJump" type="button" hidden>Newest &#9656;</button></div>
         <p class="cap" id="trTap" aria-live="polite">Tap a dot to read that stroke.</p>
-        <p class="cap">Up is late (dragging), down is early (leading). Ring is left stick, solid dot is right stick. The green band is your on-time window. Scroll sideways for earlier strokes.</p>
+        <p class="cap">Up is late, down is early. Ring is the left stick, solid dot the right.</p>
       </section>
 
       <section class="panel" aria-label="Run numbers">
@@ -2438,7 +2444,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.74.0';                           /* shown beside the title */
+const VERSION='0.74.1';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
