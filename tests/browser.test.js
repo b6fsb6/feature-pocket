@@ -41,11 +41,12 @@ test('the page starts with no errors and the right title', async () => {
   const p = await open({});
   assert.equal(await p.title(), 'Pocket - your pad practice coach');
   assert.deepEqual(p.errors, []);
-  assert.match(await p.textContent('.app'), /Getting started/);
+  assert.match(await p.textContent('.app'), /Set up/);
+  assert.equal(await p.isDisabled('#startBtn'), true);   /* Start waits for mic, Mic check and latency */
 });
 
 test('Help opens and the Try it buttons load their exercise', async () => {
-  const p = await open({ welcomed: true });
+  const p = await open({ seeded: true });
   await p.click('#helpBtn').catch(async () => { await p.evaluate(() => [...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Help').click()); });
   await p.waitForTimeout(300);
   const tries = await p.evaluate(() => document.querySelectorAll('[data-try]').length);
@@ -55,7 +56,7 @@ test('Help opens and the Try it buttons load their exercise', async () => {
 
 /* Plays a routine by calling the hit handler with times relative to the run. */
 async function playScenario(text, bpm, spec) {
-  const p = await open({ input: 'kb', bpm, routineText: text, welcomed: true });
+  const p = await open({ input: 'kb', bpm, routineText: text, seeded: true });
   await p.evaluate(() => [...document.querySelectorAll('button')].find(b => /^Start/.test(b.textContent.trim()) && b.offsetParent).click());
   await p.waitForFunction(() => window.__T.run() && window.__T.run().plan, null, { timeout: 8000 });
   await p.evaluate(spec => {
@@ -91,7 +92,7 @@ test('a stray hit before a plain stroke is still an extra', async () => {
 });
 
 test('saved titles survive a reload, including long single exercises', async () => {
-  const p = await open({ welcomed: true });
+  const p = await open({ seeded: true });
   await p.click('#tabLibrary');
   await p.evaluate(() => [...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Import').click());
   await p.setInputFiles('#routineFile', path.join(ROOT, 'routines/rudiments.txt'));
@@ -105,7 +106,7 @@ test('saved titles survive a reload, including long single exercises', async () 
 });
 
 test('builder: flam holds until a stroke, greys the other keys, and writes fR', async () => {
-  const p = await open({ welcomed: true, routineText: '8 RL' });
+  const p = await open({ seeded: true, routineText: '8 RL' });
   await p.click('#editPlay');
   await p.waitForTimeout(300);
   const off = () => p.evaluate(() => [...document.querySelectorAll('.bkey')].filter(k => k.disabled).map(k => k.dataset.k));
@@ -124,7 +125,7 @@ test('builder: flam holds until a stroke, greys the other keys, and writes fR', 
 });
 
 test('editor: Discard puts a saved routine back', async () => {
-  const p = await open({ welcomed: true, routineText: 'title: Mine\n8 RLRL RLRL' });
+  const p = await open({ seeded: true, routineText: 'title: Mine\n8 RLRL RLRL' });
   await p.click('#editPlay');
   await p.click('#saveBtn');
   await p.click('.bkey[data-k="flam"]');
@@ -138,7 +139,7 @@ test('editor: Discard puts a saved routine back', async () => {
 });
 
 test('destructive buttons ask twice', async () => {
-  const p = await open({ welcomed: true });
+  const p = await open({ seeded: true });
   await p.click('#tabSettings').catch(() => {});
   const label = await p.evaluate(() => {
     const b = document.getElementById('recClear');

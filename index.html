@@ -214,11 +214,11 @@ body[data-input="mic"] .kb-only{display:none}
 .g-needle{position:absolute;top:8px;width:4px;height:28px;margin-left:-2px;border-radius:2px;background:var(--fill)}
 .g-ticks{display:grid;grid-template-columns:repeat(5,1fr);font:11px var(--font-data);color:var(--muted)}
 .g-ticks span:nth-child(1){text-align:left}.g-ticks span:nth-child(5){text-align:right}.g-ticks span:nth-child(n+2):nth-child(-n+4){text-align:center}
-.wsteps{margin:0;padding-left:20px;display:grid;gap:10px}
-.wsteps li{padding-left:2px}
-.wsteps li>span:first-child{display:block;margin-bottom:6px}
-body[data-run="1"] #welcome{display:none}
-#welcome{gap:10px}#welcome h3,#welcome p{margin:0}#welcome p{font-size:14.5px;line-height:1.5}
+.wsteps{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.wsteps li{display:grid;gap:6px;justify-items:start}
+.wsteps li.ok{display:block;color:var(--muted)}.wsteps li.ok::before{content:"\2713\00a0";font-weight:700}
+body[data-run="1"] #setup{display:none}
+#setup{gap:10px}#setup h3,#setup p{margin:0}#setup p{font-size:14.5px;line-height:1.5}
 .hscw{position:relative;min-width:0}
 .hscroll{overflow-x:auto;overscroll-behavior-x:contain;height:170px}
 .hscroll.lv{height:56px}
@@ -1203,16 +1203,10 @@ RLRR LRLL RLRR LRLL</pre>
   </div>
 
   <div class="page" id="pagePlay" role="tabpanel" aria-labelledby="tabPlay" hidden>
-    <p class="notice" id="calNote" hidden>Latency is not calibrated, so lead and drag readings will be off. <button class="linkbtn" id="calGo" type="button">Calibrate</button></p>
-    <section class="panel" id="welcome" aria-label="Getting started" hidden>
-      <h3>Getting started</h3>
-      <p>Pocket plays a click and listens to your pad through the microphone. It measures how early (<b>leading</b>) or late (<b>dragging</b>) each hit is, in milliseconds. Nothing is uploaded. Everything stays in this browser.</p>
-      <ol class="wsteps">
-        <li><span>Set up the microphone so your strokes are heard.</span><button class="btn small" id="wMic" type="button">Open Settings</button></li>
-        <li><span>Get something to play. A starter pattern is loaded, or add routines.</span><span class="btns"><button class="btn small" id="wStarter" type="button">Starter routines</button><button class="btn small" id="wRudiments" type="button">Rudiments</button><button class="btn small" id="wImport" type="button">Import your own</button></span></li>
-        <li><span>Press Start and play along with the click.</span></li>
-      </ol>
-      <div class="btns"><button class="btn small" id="wDone" type="button">Got it</button></div>
+    <section class="panel" id="setup" aria-label="Set up" hidden>
+      <h3>Set up <span class="hint" id="setN"></span></h3>
+      <p>Pocket listens to your pad through the microphone and measures how early (<b>leading</b>) or late (<b>dragging</b>) each hit is. Nothing is uploaded. Everything stays in this browser. Bring routines in from <b>Library &rsaquo; Import</b>.</p>
+      <ol class="wsteps" id="setSteps"></ol>
     </section>
     <div class="pcol pctl">
     <section class="panel cfg" aria-label="Exercises">
@@ -2402,7 +2396,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.70.9';                           /* shown beside the title */
+const VERSION='0.71.2';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2424,9 +2418,9 @@ try{
     if(o.cal&&Array.isArray(o.cal.L)&&Array.isArray(o.cal.R))cal=o.cal;
   }
 }catch(e){}
-S.welcomed=S.welcomed===true;                     /* the getting-started card is dismissed */
 S.theme=S.theme==='light'||S.theme==='dark'?S.theme:(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
 S.mode=S.mode==='routine'?'routine':'single';
+S.seeded=S.seeded===true;                         /* the routines that ship with the app have been added to the Library */
 S.latCal=S.latCal===true;                          /* set once a calibration has run or a number was typed */
 S.editTab=S.editTab==='type'?'type':'build';       /* Build or Type, remembered on each device. Build is first. */
 S.bpm=clamp(Math.round(+S.bpm)||60,40,220);
@@ -2463,8 +2457,7 @@ if(!isFinite(+S.expRuns))S.expRuns=0;
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({settings:S,cal:cal}));}catch(e){}};
 function setLatency(v){S.latency=v;$('latency').value=v;save();}
 /* A calibration has been done, so the reminder at the top goes away. */
-function markCal(){S.latCal=true;save();syncNote();}
-function syncNote(){const n=$('calNote');if(n)n.hidden=S.latCal||S.input==='kb';}
+function markCal(){S.latCal=true;save();syncInfo();}
 /* Scores live under their own key so clearing them never touches your settings or calibration. */
 const RKEY='stick-timing-trainer.records.v2',OLDKEY='stick-timing-trainer.records.v1',MAX_RUNS=300,MAX_SNAP=20000;
 /* A short hash of a text. Each distinct pattern or routine is stored once and runs point to it. */
@@ -2715,6 +2708,7 @@ function setMicUI(on){
   p.textContent=on?'Mic on':'Mic off';p.classList.toggle('on',on);p.setAttribute('aria-pressed',String(on));
   $('testMic').textContent=on?'Turn microphone off':'Turn microphone on';
   if(!on){$('mFill').style.width='0%';$('heard').textContent='';}
+  syncInfo();
 }
 /* Turning the microphone off releases it, so the browser's recording indicator goes out too. */
 function micOff(){
@@ -2740,6 +2734,7 @@ function syncMicBtn(){
   $('micPill').disabled=$('testMic').disabled=busy||S.input==='kb'||!!chk||!!calTest;
   $('micCheck').disabled=busy||!!calMode||S.input==='kb'||!!calTest||!!loop;
   $('micCheck').textContent=chk?'Cancel check':'Mic check';
+  syncInfo();
 }
 /* ---------- mic check ---------- */
 let chk=null;
@@ -2793,6 +2788,7 @@ function chkFinish(){
   const ul=$('chkOut');ul.textContent='';
   res.lines.forEach((t,i)=>{const li=document.createElement('li');li.textContent=t;li.className=i===0?res.level:(res.level==='good'?'good':'warn');ul.appendChild(li);});
   $('chkMsg').textContent=res.level==='bad'?'Mic check could not finish.':'Mic check done.';
+  save();syncInfo();
 }
 /* Settle time: the detector ignores further hits for this long after one. Fast playing caps it so a real
    stroke is never swallowed. */
@@ -3060,7 +3056,7 @@ async function startPlay(only){
   if(loop)endLoop('Auto calibrate cancelled.');
   if(calTest)endHandTest('');
   if(calMode){calMode=null;updateCalUI();}
-  if(!(only||currentExercises()).length)return;
+  if(!(only||currentExercises()).length||setupNeeded())return;
   showTab('play');
   setStatus('Starting…');
   if(!(await ensureAudio(S.input==='mic')))return;
@@ -5025,7 +5021,7 @@ async function importRecs(file){
 function clearRecs(){
   /* Everything you made: runs and scores, saved routines and their names, linked libraries and the scratch pad. Device settings and calibration stay. The page reloads so every screen starts clean. */
   recs.runs.length=0;recs.sum=newSum();recs.names={};recs.nu=1;recs.lib=[];
-  S.lists=hostedLists();S.listSel='';S.libId='';S.routineText=STARTER;S.startExercise=1;S.lastExport=0;S.expRuns=0;S.welcomed=false;   /* back to a first start: the getting-started card and the hosted libraries */
+  S.lists=hostedLists();S.listSel='';S.libId='';S.routineText=STARTER;S.startExercise=1;S.lastExport=0;S.expRuns=0;S.seeded=false;   /* back to a first start: the hosted libraries, added to the Library again */
   save();saveRecs();location.reload();
 }
 
@@ -5722,6 +5718,19 @@ function addItems(items){
   o.err=o.full?'Your library is full ('+MAX_LIB+' routines). Added '+o.added+'.':'';
   return o;
 }
+/* The routines that ship with the app (Rudiments, then Starter) go into the Library once, on the first start. A failed load is tried again next time. */
+async function seedLibraries(){
+  if(S.seeded)return;
+  if(recs.lib.length||recs.runs.length){S.seeded=true;save();return;}   /* an existing user keeps what they have */
+  try{
+    for(const id of ['wRudiments','wStarter']){
+      const href=hostedHref(HOSTED[id][0]);
+      if(!href)return;
+      addItems(parseLibrary(await fetchText(href,MAX_TEXT)).items);
+    }
+  }catch(e){return;}
+  S.seeded=true;save();renderLibraryPage();syncInfo();
+}
 function importAll(){
   if(lib.busy||(run&&!run.ended))return;
   const o=addItems(lib.items);
@@ -5775,19 +5784,52 @@ function setRunning(on){
 function playsFor(){return ' · plays for '+(S.eachUnit==='pass'?S.eachVal+(S.eachVal===1?' pass':' passes'):S.eachVal+(S.eachVal===1?' minute':' minutes'));}
 /* How long a run of these exercises takes: each exercise, the gaps between them and the opening count-in. */
 function playTime(list){let t=0;list.forEach(b=>{t+=b.secs;});return t+(list.length>1?list.length-1:0)*S.gap*(60/S.bpm)+4*(60/S.bpm);}
-/* The getting-started card shows only while there is nothing saved and nothing played. */
-const syncWelcome=()=>{$('welcome').hidden=S.welcomed||recs.lib.length>0||recs.runs.length>0;};
+/* Set up: the microphone on, a Mic check (it records the room noise), and latency calibrated. Start waits for all three. A keyboard needs none of them. */
+const setupNeeded=()=>S.input==='mic'&&!(S.noise!==null&&S.latCal);
+let setupWas=false,setupTimer=0;
+function syncSetup(){
+  const box=$('setup'),need=setupNeeded();
+  if(!need){
+    if(setupWas){   /* the last step just finished: say so for a few seconds */
+      setupWas=false;box.hidden=false;
+      $('setN').textContent='';$('setSteps').textContent='';
+      ['Microphone on','Mic check done','Latency calibrated'].forEach(t=>{const li=document.createElement('li');li.className='ok';li.textContent=t;$('setSteps').appendChild(li);});
+      const m=document.createElement('li');m.textContent='You\u2019re all set. Press Start.';m.style.fontWeight='700';$('setSteps').appendChild(m);
+      clearTimeout(setupTimer);setupTimer=setTimeout(()=>{box.hidden=true;setupTimer=0;},6000);
+    }else if(!setupTimer)box.hidden=true;
+    return;
+  }
+  setupWas=true;clearTimeout(setupTimer);setupTimer=0;box.hidden=false;
+  const steps=[
+    {done:!!node,ok:'Microphone on',label:'Allow the microphone.',go:toggleMic,btn:'Turn microphone on',msg:()=>$('micMsg').textContent},
+    {done:S.noise!==null,ok:'Mic check done',label:'Mic check: stay quiet for two seconds, then hit the pad ten times.',go:toggleCheck,btn:chk?'Cancel check':'Mic check',msg:()=>$('chkMsg').textContent},
+    {done:S.latCal,ok:'Latency calibrated',label:'Calibrate latency. It plays clicks for about 20 seconds, so keep quiet.',go:startLoop,btn:loop?'Cancel':'Auto calibrate',msg:()=>$('latMsg').textContent}
+  ];
+  const list=$('setSteps');list.textContent='';
+  let cur=-1;
+  steps.every((st,i)=>{
+    const li=document.createElement('li');
+    if(st.done){li.className='ok';li.textContent=st.ok;list.appendChild(li);return true;}
+    cur=i;
+    const t=document.createElement('span');t.textContent=st.label;
+    const b=document.createElement('button');b.type='button';b.className='btn small';b.textContent=st.btn;b.addEventListener('click',st.go);
+    const m=document.createElement('p');m.className='hint';m.setAttribute('aria-live','polite');m.textContent=st.msg();
+    li.append(t,b,m);list.appendChild(li);return false;
+  });
+  $('setN').textContent=cur<0?'':'· step '+(cur+1)+' of 3';
+}
+const setupWatch=new MutationObserver(()=>syncSetup());
 function syncInfo(){
-  syncWelcome();syncPlayName();syncEditorBar();
+  syncSetup();syncPlayName();syncEditorBar();
   const exercises=currentExercises();
   if(S.mode==='single'){
     const e0=routineParsed.exercises[0],res=parseExerciseLine(e0&&e0.line!=null?bLines()[e0.line]:bGet()),ok=!!(res&&res.exercise);
     $('patErr').textContent=ok?'':(res&&res.err?'Check the sticking: '+res.err+'.':'');     /* a plain "too short" shows in the status line instead */
-    $('startBtn').disabled=!ok&&!(run&&!run.ended);
+    $('startBtn').disabled=(!ok||setupNeeded())&&!(run&&!run.ended);
   }else{
     const all=allExercises(),n=all.length;
     const ok=exercises.length>0;
-    $('startBtn').disabled=!ok&&!(run&&!run.ended);
+    $('startBtn').disabled=(!ok||setupNeeded())&&!(run&&!run.ended);
     const errs=routineParsed.errors;
     $('routineErr').textContent=n===0&&!S.routineText.trim()?'':(errs.length?errs.slice(0,3).join(' ')+(errs.length>3?' (+'+(errs.length-3)+' more)':''):(n===0?'No exercises found. Type one exercise per line using L and R.':''));
     const total=playTime(all);
@@ -6231,7 +6273,6 @@ function wireBuilder(){
   ['click','keyup','focus'].forEach(ev=>ta.addEventListener(ev,bFromCaret));
 }
 function setInputMode(){
-  syncNote();
   document.body.dataset.input=S.input;
   $('inputMode').value=S.input;
   syncMicBtn();
@@ -6287,6 +6328,7 @@ function wire(){
   $('libGo').addEventListener('click',loadLibrary);
   $('libAll').addEventListener('click',importAll);
   $('exportLib').addEventListener('click',exportLibrary);
+  ['micMsg','chkMsg','latMsg'].forEach(id=>setupWatch.observe($(id),{childList:true,characterData:true,subtree:true}));
   $('libSel').addEventListener('change',()=>{const v=$('libSel').value;if(v==='+'){libMode='add';$('libErr').textContent='';lib={items:[],loaded:false,busy:false,cur:''};renderLibrary();$('libraryUrl').focus();}else pickList(v);});
   $('libraryUrl').addEventListener('input',()=>{suggestName();renderLibrary();});
   $('libraryUrl').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();loadLibrary();}});
@@ -6294,16 +6336,6 @@ function wire(){
   $('clearRoutine').addEventListener('click',()=>guard(()=>{bLine=0;setRoutineText('');openEditor('library');}));
   $('lsRecent').addEventListener('click',()=>{libSort='recent';renderLibraryPage();});
   $('lsName').addEventListener('click',()=>{libSort='name';renderLibraryPage();});
-  $('wMic').addEventListener('click',()=>{showTab('setup');setSview('dev');});
-  $('wImport').addEventListener('click',()=>openOpen());
-  Object.keys(HOSTED).forEach(id=>$(id).addEventListener('click',()=>{
-    const path=HOSTED[id][0],name=HOSTED[id][1],href=hostedHref(path);
-    if(!href){openOpen();$('libErr').textContent='These libraries need the app to be opened from its web address.';return;}
-    S.lists=S.lists.filter(l=>l.url===href||l.name!==name);   /* a copy saved from another address is replaced */
-    if(!S.lists.some(l=>l.url===href)){if(S.lists.length>=20)S.lists.pop();S.lists.unshift({url:href,name:name,t:0});}
-    openOpen();pickList(href);loadLibrary();
-  }));
-  $('wDone').addEventListener('click',()=>{S.welcomed=true;save();syncWelcome();});
   $('edBack').addEventListener('click',()=>{showTab(editFrom==='play'?'play':'library');if(editFrom==='import')openOpen();window.scrollTo(0,0);});
   $('playChange').addEventListener('click',()=>showTab('library'));
   $('cfSave').addEventListener('click',()=>{if(saveToLibrary())closeConfirm(true);else $('cfText').textContent=$('saveMsg').textContent;});
@@ -6369,7 +6401,7 @@ function wire(){
   $('calTest').addEventListener('click',startHandTest);
   $('sens').addEventListener('input',e=>{S.sens=+e.target.value;$('sensOut').textContent=S.sens+' dB';placeMeter();pushDet();save();});
   $('vol').addEventListener('input',e=>{S.vol=+e.target.value;$('volOut').textContent=S.vol+'%';save();});
-  $('latency').addEventListener('change',e=>{const v=e.target.value;S.latency=v===''?null:clamp(Math.round(+v)||0,0,400);if(v!=='')S.latCal=true;save();syncNote();});
+  $('latency').addEventListener('change',e=>{const v=e.target.value;S.latency=v===''?null:clamp(Math.round(+v)||0,0,400);if(v!=='')S.latCal=true;save();syncInfo();});
   $('themeBtn').addEventListener('click',()=>{S.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';applyTheme();save();});
   $('micPill').addEventListener('click',toggleMic);
   $('testMic').addEventListener('click',toggleMic);
@@ -6382,7 +6414,6 @@ function wire(){
     if(await ensureAudio(true))beginRun('lat');
   });
   $('calLoop').addEventListener('click',startLoop);
-  $('calGo').addEventListener('click',()=>{showSetup('dev');$('calLoop').scrollIntoView({block:'center'});$('calLoop').focus();});
   $('startBtn').addEventListener('click',()=>{
     if(run&&!run.ended){
       if(run.mode!=='play'){stopRun();return;}
@@ -6494,6 +6525,7 @@ function init(){
   wire();applyTheme();syncLayout();
   showTab('play');
   onRoutineChanged();
+  seedLibraries();
 }
 init();
 })();
