@@ -639,6 +639,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 .key .k.miss{color:var(--muted);opacity:.4}
 .hint .linkbtn{font-size:inherit}
 @media (max-width:359px){.switch.tabs button{font-size:13px;letter-spacing:.02em}}   /* four tab names fit the narrowest phones */
+.dur{display:grid;grid-template-columns:minmax(70px,1fr) minmax(110px,1.4fr);gap:8px}
 </style>
 </head>
 <body data-input="mic" data-mode="single" data-tab="pattern" data-state="idle" data-run="0" data-review="0">
@@ -1266,9 +1267,7 @@ RLRR LRLL RLRR LRLL</pre>
     <section class="panel cfg" aria-label="How long it plays">
       <div class="row">
         <div class="field"><label for="eachVal"><span class="routine-only">Each exercise plays for</span><span class="single-only">Plays for</span></label>
-          <input type="number" id="eachVal" min="1" max="200" step="1" inputmode="decimal"></div>
-        <div class="field"><label for="eachUnit">Measured in</label>
-          <select id="eachUnit"><option value="min">Minutes</option><option value="pass">Passes</option></select></div>
+          <div class="dur"><input type="number" id="eachVal" min="1" max="200" step="1" inputmode="decimal"><select id="eachUnit" aria-label="Measured in"><option value="min">minutes</option><option value="pass">passes</option></select></div></div>
         <div class="field routine-only"><label for="gap">Between exercises</label>
           <select id="gap"><option value="4">4-beat count-in</option><option value="0">Straight on</option></select></div>
       </div>
@@ -1279,28 +1278,38 @@ RLRR LRLL RLRR LRLL</pre>
     <section class="panel cfg tc tc1" aria-label="Click">
       <div class="field"><label for="click">Click</label>
         <select id="click">
-          <option value="strokes">Easy: every stroke</option>
-          <option value="beat">Medium: the beat</option>
-          <option value="half">Hard: strong beats</option>
-          <option value="bar">Extreme: 1 of each bar</option>
-          <option value="off">Count-in only: not scored</option>
+          <optgroup label="Scored">
+            <option value="strokes">Easy: every stroke</option>
+            <option value="beat">Medium: the beat</option>
+            <option value="half">Hard: strong beats</option>
+            <option value="bar">Extreme: 1 of each bar</option>
+          </optgroup>
+          <optgroup label="Practice">
+            <option value="off">Count-in only: not scored</option>
+          </optgroup>
         </select></div>
     </section>
     <section class="panel cfg tc" aria-label="Accents and ghost notes">
       <div class="field"><label for="accent">Accent</label>
         <select id="accent">
           <option value="">Off</option>
-          <option value="g">Each group</option>
-          <option value="b">Each beat</option>
-          <option value="m">Each bar</option>
-          <option value="2">Every 2nd stroke</option>
-          <option value="R">Right hand</option>
-          <option value="L">Left hand</option>
-          <option value="3">Every 3rd stroke</option>
-          <option value="4">Every 4th stroke</option>
-          <option value="5">Every 5th stroke</option>
-          <option value="6">Every 6th stroke</option>
-          <option value="7">Every 7th stroke</option>
+          <optgroup label="Structure">
+            <option value="g">Each group</option>
+            <option value="b">Each beat</option>
+            <option value="m">Each bar</option>
+          </optgroup>
+          <optgroup label="Hand">
+            <option value="R">Right hand</option>
+            <option value="L">Left hand</option>
+          </optgroup>
+          <optgroup label="Every Nth stroke">
+            <option value="2">Every 2nd stroke</option>
+            <option value="3">Every 3rd stroke</option>
+            <option value="4">Every 4th stroke</option>
+            <option value="5">Every 5th stroke</option>
+            <option value="6">Every 6th stroke</option>
+            <option value="7">Every 7th stroke</option>
+          </optgroup>
         </select></div>
       <div class="field"><label for="others">Other strokes</label>
         <select id="others"><option value="n">Normal</option><option value="g">Ghost (soft)</option></select></div>
@@ -2445,7 +2454,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.75.0';                           /* shown beside the title */
+const VERSION='0.76.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
