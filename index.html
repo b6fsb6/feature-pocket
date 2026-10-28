@@ -611,10 +611,10 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 .bigbpm{display:block;font:800 40px/1.1 var(--font-data);margin:2px 0 8px}
 .setbox{border:0;border-radius:0;background:none}
 .sbody{display:grid;gap:22px}
-#setBox>summary{font:700 15px var(--font-body);text-transform:none;letter-spacing:0;padding:12px 0;border-top:1px solid var(--line)}
-#setBox>summary{display:flex;align-items:center;justify-content:space-between;gap:10px}   /* the chevron stays beside the text, not under it */
-#setBox>summary::after{float:none;flex:none;margin:0 4px 4px 0}
-:root[data-layout=desktop] #setBox>summary{display:none}
+#setBox>summary,#detBox>summary{font:700 15px var(--font-body);text-transform:none;letter-spacing:0;padding:12px 0;border-top:1px solid var(--line)}
+#setBox>summary,#detBox>summary{display:flex;align-items:center;justify-content:space-between;gap:10px}   /* the chevron stays beside the text, not under it */
+#setBox>summary::after,#detBox>summary::after{float:none;flex:none;margin:0 4px 4px 0}
+:root[data-layout=desktop] #setBox>summary,:root[data-layout=desktop] #detBox>summary,body:not([data-review="1"]) #detBox>summary{display:none}
 :root[data-layout=desktop] #setBox .sbody{margin-top:0}
 :root:not([data-layout=desktop]) body[data-run="1"] #setBox,:root:not([data-layout=desktop]) body[data-review="1"] #setBox{display:none}
 /* On a phone the run controls are large and pinned to the bottom of the screen, where a thumb can reach them. */
@@ -626,6 +626,13 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 :root:not([data-layout=desktop]) body[data-review="1"] #advBtns1{position:fixed;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--bg);border-top:1px solid var(--line);margin:0}
 :root:not([data-layout=desktop]) body[data-review="1"] #advBtns1 .btn{min-height:64px;font-size:18px}
 :root:not([data-layout=desktop]) body[data-review="1"] #pagePlay{padding-bottom:120px}
+.res{display:flex;align-items:center;gap:16px}
+.res[hidden]{display:none}
+.resbig{font:800 64px/1 var(--font-data);color:var(--ink)}
+.res[data-ok="1"] .resbig{color:var(--ok)}
+.resbig small{font:700 16px var(--font-body);margin-left:6px;color:var(--muted)}
+.resside{display:grid;gap:2px}.resside b{font-size:18px}.resside span{color:var(--muted);font-size:15px}
+#advice{gap:10px}
 </style>
 </head>
 <body data-input="mic" data-mode="single" data-tab="pattern" data-state="idle" data-run="0" data-review="0">
@@ -1329,7 +1336,10 @@ RLRR LRLL RLRR LRLL</pre>
     <div id="stPlay"></div>
 
     <section id="advice" hidden aria-label="Score and tempo">
-      <h3>This run</h3>
+      <div class="res" id="advRes">
+        <div class="resbig"><span id="advPct"></span><small>on time</small></div>
+        <div class="resside"><b id="advStat"></b><span id="advSub"></span></div>
+      </div>
       <p class="insight" id="advHead"></p>
       <p class="hint" id="advBody"></p>
       <div class="btns advmain" id="advBtns1">
@@ -1343,6 +1353,9 @@ RLRR LRLL RLRR LRLL</pre>
       </div>
     </section>
 
+    <details id="detBox" class="setbox" open>
+      <summary>Details</summary>
+      <div class="sbody">
     <section class="panel" aria-label="Lead or drag">
       <h3>Lead or drag, last 32 strokes</h3>
       <div class="readout">
@@ -1405,6 +1418,8 @@ RLRR LRLL RLRR LRLL</pre>
         <div class="btns"><button class="btn small" id="csvBtn" type="button">Download CSV</button></div>
       </section>
     </div>
+      </div>
+    </details>
     </div>
   </div>
 </main>
@@ -2423,7 +2438,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.73.0';                           /* shown beside the title */
+const VERSION='0.74.0';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -3966,10 +3981,13 @@ function updateGauge(r){
   const lo=clamp(m-s,-40,40),hi=clamp(m+s,-40,40);
   $('gBand').style.left=(50+lo/80*100)+'%';$('gBand').style.width=((hi-lo)/80*100)+'%';
 }
-function insightText(r){
-  if(!r||!r.errs.length)return '';
-  if(r.errs.length<8)return 'Keep going. Notes on your timing appear after a few passes.';
+/* What to work on, most important first. */
+function insightParts(r){
+  if(!r||!r.errs.length)return [];
+  if(r.errs.length<8)return ['Keep going. Notes on your timing appear after a few passes.'];
   const parts=[];
+  if(r.slots&&r.miss/r.slots>0.1)parts.push(r.miss+' strokes were not heard. Check the trigger line in Settings, under Device.');
+  if(r.checked>=8&&r.bad/r.checked>0.15)parts.push('The wrong stick seems to have played on '+r.bad+' of '+r.checked+' strokes.');
   if(r.hand.L.length>=4&&r.hand.R.length>=4){
     const d=mean(r.hand.R)-mean(r.hand.L);
     if(Math.abs(d)>=4)parts.push('Your '+(d>0?'right':'left')+' hand lands '+Math.abs(d).toFixed(0)+' ms later than your '+(d>0?'left':'right')+'.');
@@ -3984,11 +4002,10 @@ function insightText(r){
   }
   const lvs=levelStats(r.lv);
   if(lvs&&lvs.diff!==null&&Math.abs(lvs.diff)>=3)parts.push('Your '+(lvs.diff<0?'left':'right')+' hand is '+Math.abs(lvs.diff).toFixed(0)+' dB quieter than your '+(lvs.diff<0?'right':'left')+'.');
-  if(r.slots&&r.miss/r.slots>0.1)parts.push(r.miss+' strokes were not heard. Check the trigger line in Settings, under Device.');
-  if(r.checked>=8&&r.bad/r.checked>0.15)parts.push('The wrong stick seems to have played on '+r.bad+' of '+r.checked+' strokes.');
   if(!parts.length)parts.push('Timing is even across both hands and all strokes.');
-  return parts.join(' ');
+  return parts;
 }
+const insightText=r=>insightParts(r).join(' ');
 function updateStats(r){
   const sp=r?sd(r.errs.slice(-32)):NaN;
   $('sWithin').textContent=r&&r.slots?Math.round(r.within/r.slots*100)+'%':'—';
@@ -4186,29 +4203,41 @@ function renderAdvice(){
   const use=$('advUse'),disc=$('advDiscard');
   const tgt=Math.round(TARGET*100)+'%';
   if(L.discarded){
-    $('advHead').textContent='Run discarded.';
+    $('advRes').hidden=true;$('advHead').textContent='Run discarded.';
     $('advBody').textContent='It is not in your records.';
     use.hidden=true;disc.hidden=true;$('advWeak').hidden=true;return;
   }
   disc.hidden=false;
   const n=adv.played,one=n===1;
-  let head,body;
-  if(one){
-    const x=L.rows[0],p=Math.round(x.pct*100);
-    head=adv.cleared?p+'% on time at '+S.bpm+' BPM. That clears the '+tgt+' target.':p+'% on time at '+S.bpm+' BPM. The target is '+tgt+'.';
-    body=adv.cleared?'Ready for '+adv.next+' BPM if you like. Any tempo is fine.':'Staying at '+S.bpm+' BPM is a good idea until this settles. Any tempo is fine.';
-  }else if(adv.cleared){
-    head='All '+n+' exercises cleared the '+tgt+' target at '+S.bpm+' BPM.';
-    body='Ready for '+adv.next+' BPM if you like. Any tempo is fine.';
-  }else{
-    head=adv.weak.length+' of '+n+' exercises are below '+tgt+' at '+S.bpm+' BPM.';
-    body='Work on '+adv.weak.slice().sort((a,b)=>a.pct-b.pct).slice(0,6).map(b=>'exercise '+b.idx+' ('+Math.round(b.pct*100)+'%)').join(', ')+(adv.weak.length>6?' and more':'')+'. Staying at '+S.bpm+' BPM is a good idea until they settle. Any tempo is fine.';
+  let body;
+  const played=L.rows.filter(x=>x.passes>=1&&x.due>0),due=played.reduce((t,x)=>t+x.due,0);
+  $('advRes').hidden=!due;
+  if(due){
+    /* One big result: the share of strokes on time, what it means for the target, and how it compares with your best at this tempo. */
+    const pct=Math.round(100*played.reduce((t,x)=>t+x.pct*x.due,0)/due),pb=x=>L.prevBest&&L.prevBest.has(x.key)?L.prevBest.get(x.key):null;
+    $('advPct').textContent=pct+'%';
+    $('advRes').dataset.ok=adv.cleared?'1':'0';
+    if(one){
+      const x=played[0],b=pb(x);
+      $('advStat').textContent=adv.cleared?'Cleared the '+tgt+' target':'Target is '+tgt;
+      $('advSub').textContent=b===null?'First run at this tempo':(x.pct>b+1e-9?'New best, was '+Math.round(b*100)+'%':'Best at this tempo: '+Math.round(b*100)+'%');
+    }else{
+      const nb=played.filter(x=>{const b=pb(x);return b!==null&&x.pct>b+1e-9;}).length;
+      $('advStat').textContent=played.filter(x=>x.pct>=TARGET).length+' of '+n+' cleared';
+      $('advSub').textContent=nb?nb+(nb===1?' new best':' new bests'):(played.every(x=>pb(x)===null)?'First run at this tempo':'No new bests');
+    }
   }
+  /* One sentence on what to work on. */
+  const fix=(view&&view.errs?insightParts(view)[0]:'')||'';
+  if(!n)body='Stopped before one full pass, so nothing was scored.';
+  else if(adv.cleared)body=(one?'Ready for ':'All '+n+' exercises cleared. Ready for ')+adv.next+' BPM if you like. Any tempo is fine.';
+  else if(one)body='Staying at '+S.bpm+' BPM is a good idea until this settles. Any tempo is fine.';
+  else body='Work on '+adv.weak.slice().sort((a,b)=>a.pct-b.pct).slice(0,6).map(b=>'exercise '+b.idx+' ('+Math.round(b.pct*100)+'%)').join(', ')+(adv.weak.length>6?' and more':'')+'. Staying at '+S.bpm+' BPM is a good idea until they settle. Any tempo is fine.';
   if(L.newTempo&&L.newTempo.length)body='★ New best tempo: '+(L.newTempo.length<=2?L.newTempo.map(x=>showKey(x.key)+' cleared at '+x.bpm+' BPM').join(', '):L.newTempo.length+' exercises cleared at a new tempo')+'. '+body;
   if(L.won&&L.won.length)body='★ Achievement: '+L.won.join(', ')+'. '+body;
   if(L.skipped)body+=' '+L.skipped+(L.skipped===1?' exercise was':' exercises were')+' stopped before one full pass and not scored.';
   if(!L.saved)body+=' Your browser would not save the records.';
-  $('advHead').textContent=head;$('advBody').textContent=body;
+  $('advHead').textContent=fix;$('advBody').textContent=body;
   use.hidden=!adv.cleared||adv.next===S.bpm;
   L.weakIdx=adv.weak.map(b=>b.idx);
   $('advWeak').hidden=S.mode!=='routine'||!L.weakIdx.length;
@@ -5791,6 +5820,7 @@ function syncRunUI(){
 function setReview(on){
   document.body.dataset.review=on?'1':'0';
   $('advDone').hidden=!on;
+  $('detBox').open=!on||document.documentElement.dataset.layout==='desktop';   /* the details wait behind a tap after a run on a phone */
   if(on){window.scrollTo(0,0);const h=$('advHead');h.tabIndex=-1;h.focus({preventScroll:true});}
 }
 function setRunning(on){
@@ -6320,7 +6350,7 @@ function syncLayout(){
   if(document.documentElement.dataset.layout===want)return;
   const first=!document.documentElement.dataset.layout;
   document.documentElement.dataset.layout=want;
-  if(want==='desktop')$('setBox').open=true;   /* nothing is tucked away where there is room */
+  if(want==='desktop'){$('setBox').open=true;$('detBox').open=true;}   /* nothing is tucked away where there is room */
   placeAdv();
   if(!first)window.dispatchEvent(new Event('resize'));
 }
