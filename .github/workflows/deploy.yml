@@ -12,7 +12,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Tests run for main and pull requests. Preview pushes and the deploys they trigger skip them: preview is for a quick look on a phone.
   test:
+    if: github.event_name != 'workflow_dispatch' && github.ref != 'refs/heads/preview'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -29,7 +31,7 @@ jobs:
   # can be tried on a phone before it reaches main.
   deploy:
     needs: test
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && (needs.test.result == 'success' || needs.test.result == 'skipped') }}
     runs-on: ubuntu-latest
     permissions:
       pages: write
@@ -56,10 +58,9 @@ jobs:
       - id: deployment
         uses: actions/deploy-pages@v4
 
-  # A push to preview runs the tests, then asks for a deploy from main. Pages only accepts deploys from main,
+  # A push to preview asks for a deploy from main, with no tests. Pages only accepts deploys from main,
   # and the deploy above publishes main and preview together, so neither overwrites the other.
   preview:
-    needs: test
     if: github.ref == 'refs/heads/preview' && github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
