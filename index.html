@@ -484,6 +484,9 @@ body[data-edit=type] .buildonly{display:none}
 .bkey.wide2{grid-column:span 2}
 .bkey[aria-pressed=true]{border-color:var(--accent);color:var(--accent)}
 .bkey:disabled{opacity:.35;cursor:not-allowed}
+.linkbtn.arm{color:var(--late)}
+.estate{display:flex;align-items:baseline;gap:10px;white-space:nowrap}
+#edDiscard{min-height:0;padding:0;font-size:13px}
 .bkey.R{color:var(--accent)}
 .bkey.L{color:var(--early)}
 .bkey,.bcode{background:color-mix(in srgb,var(--ink) 6%,var(--surface));border-color:color-mix(in srgb,var(--ink) 18%,var(--surface))}   /* keys a touch lighter than the panel */
@@ -695,7 +698,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
     <div class="editor cfg" id="builder" aria-label="Editor">
       <div class="etop">
         <button class="btn small" id="edBack" type="button">&larr; Back</button>
-        <div class="etitle"><b id="edName"></b><span class="hint" id="edState"></span></div>
+        <div class="etitle"><b id="edName"></b><span class="hint estate"><span id="edState"></span><button class="linkbtn" id="edDiscard" type="button" hidden>Discard</button></span></div>
         <button class="btn small" id="saveBtn" type="button">Save</button>
         <button class="dots" id="saveMore" type="button" aria-label="More ways to save" aria-haspopup="menu">&#8942;</button>
       </div>
@@ -2309,7 +2312,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='0.62.1';                           /* shown beside the title */
+const VERSION='0.62.3';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -5296,8 +5299,9 @@ function syncPlayName(){
 function syncEditorBar(){
   const st0=scratchState(),st=st0==='empty'&&S.routineText.trim()?'scratch':st0;   /* the starter pattern can be saved */
   $('edName').textContent=curName();
-  $('edState').textContent=st==='dirty'?'Unsaved changes':st==='scratch'?'Not saved':st==='clean'?'Saved':'';
+  $('edState').textContent=st==='dirty'?'Unsaved':st==='scratch'?'Not saved':st==='clean'?'Saved':'';
   $('saveBtn').disabled=st==='empty'||st==='clean';
+  $('edDiscard').hidden=st!=='dirty';   /* only a saved routine with changes has something to go back to */
 }
 const playEntry=e=>{
   if(run&&!run.ended)return;
@@ -5966,6 +5970,7 @@ function wireBuilder(){
   let menuY=0;
   window.addEventListener('scroll',()=>{if(menuOn&&Math.abs(scrollY-menuY)>30)closeMenu();});
   $('rowMenu').addEventListener('click',e=>{if(e.target.closest('.btn'))closeMenu();});
+  arm($('edDiscard'),()=>{const e=currentEntry();if(e)loadEntry(e);});   /* back to the saved routine */
   $('saveMore').addEventListener('click',()=>openMenu($('saveMenu'),$('saveMore')));
   $('saveMenu').addEventListener('click',e=>{if(e.target.closest('.btn'))closeMenu();});
   openRowMenu=idx=>{const b=$('editList').querySelector('.erow[data-idx="'+idx+'"] .dots');if(b)openMenu($('rowMenu'),b);};
