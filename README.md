@@ -3,4 +3,12 @@ Drum Practice Pad Timing Trainer
 
 ## Tests
 
-`npm install`, `npx playwright install chromium`, then `npm test`. The core and library checks need only Node and run in a second; the browser tests take about a minute. GitHub Actions runs all of them on every push (`.github/workflows/deploy.yml`). On `main`, if they pass, the same workflow publishes `index.html` and `routines/` to GitHub Pages; if they fail, nothing is published and the live site stays as it was. Pages is set to the "GitHub Actions" source. To try a change on a phone first, push it to a branch called `preview` (`git push origin <commit>:preview --force`). No tests run for preview, so it goes up in about a minute. The workflow redeploys main with the preview branch's `index.html` and `routines/` added under `/preview/`, for example `https://b6fsb6.github.io/pocket/preview/`. The main page is not touched. Preview and main share one origin, so they share the same saved settings and records in the browser. When the change is good, merge it to `main`; the next deploy publishes it. Delete or reset the preview branch afterwards, or `/preview/` keeps showing the old copy. The tests read `index.html` and `routines/*.txt` as they are, and use no book content.
+`npm install`, `npx playwright install chromium`, then `npm test`. The core and library checks need only Node and run in a second; the browser tests take about a minute. The tests read `index.html` and `routines/*.txt` as they are, and use no book content.
+
+## Where changes go
+
+Work happens in the fork, `feature-pocket`. A push to its `main` runs the tests and, if they pass, publishes `index.html` and `routines/` to the fork's own GitHub Pages site. That site is the preview: try a change there on a phone. The fork has its own address, so its saved settings and records are separate from the live app's.
+
+When a change is good, open a pull request from the fork's `main` to this repository's `main`. The same workflow runs the tests on the pull request. After review, merge it (squash); the merge publishes the live site. Then reset the fork's `main` to this repository's `main`.
+
+Both repositories use the "GitHub Actions" Pages source. If the tests fail, nothing is published.
