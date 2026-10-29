@@ -1,7 +1,7 @@
 const test = require('node:test'), assert = require('node:assert/strict');
 const { loadCore, plain } = require('./helpers');
 const c = loadCore(['parseStrokes', 'parseExerciseLine', 'parseRoutine', 'resolveExercises', 'buildPlan', 'builderApply',
-  'graceSlot', 'OnsetDetector', 'patKey', 'parseSig', 'textKey', 'nearestSlot', 'analyseCheck', 'strokeRate', 'masteryTier', 'MTIER', 'RATE_AT']);
+  'graceSlot', 'OnsetDetector', 'patKey', 'parseSig', 'textKey', 'nearestSlot', 'analyseCheck', 'strokeRate', 'masteryTier', 'MTIER', 'RATE_AT', 'badgeValues', 'newSum', 'runPoints', 'runScore', 'highScores', 'unpackStrokes', 'BADGES']);
 
 const plan = (text, opt) => {
   const p = c.parseRoutine(text);
@@ -119,4 +119,39 @@ test('mastery is measured in strokes a minute, so sixteenths count for more than
   /* rests are not strokes, and a half-note beat counts its own strokes */
   assert.equal(c.strokeRate(key('R_L_ R_L_'), 60), 120);
   assert.equal(c.strokeRate(key('2/2: RLRL RLRL'), 70), 280);
+});
+
+test('scoring: the worked examples, the streak cap, the floor at zero and a streak carried across exercises', () => {
+  assert.equal(c.runPoints('oooboomo', 'strokes'), 22);
+  assert.equal(c.runPoints('oooboomo', 'half'), 73);
+  assert.equal(c.runPoints('oooboomo', 'none'), 140);
+  assert.equal(c.runPoints('ooroo', 'strokes'), c.runPoints('oooo', 'strokes'), 'a rest scores nothing and keeps the streak');
+  assert.equal(c.runPoints('o'.repeat(20), 'strokes'), 198);   // 3 x (51 for the first 17 strokes + 5 for each of the next 3): the bonus stops growing at x5
+  assert.equal(c.runPoints('mmm', 'none'), 0, 'never below zero');
+  assert.equal(c.runPoints('obm', 'bar'), 17);
+  const ex = q => ({ k: 'e', due: q.length, within: 0, q });
+  const run = (lv, ...qs) => ({ id: lv + qs.join(''), t: 1, lv, bpm: 60, exercises: qs.map(ex) });
+  assert.equal(c.runScore(run('half', 'ooo', 'ooo')), c.runPoints('oooooo', 'half'), 'the streak carries from one exercise to the next');
+  const hs = c.highScores([run('half', 'oooo'), run('half', 'ooooooo'), run('none', 'oo')], c.newSum());
+  assert.equal(hs.half, c.runPoints('ooooooo', 'half'));
+  assert.equal(hs.none, c.runPoints('oo', 'none'));
+  const sum = c.newSum(); sum.hs.half = 99999;
+  assert.equal(c.highScores([run('half', 'oo')], sum).half, 99999, 'an older folded best still stands');
+  assert.equal(c.badgeValues([run('half', 'oooo')], c.newSum()).hhalf, c.runPoints('oooo', 'half'));
+});
+
+test('a run saved without score codes is scored from its stroke data', () => {
+  // four strokes: on time, on time, off time, missed (result letters o o b m, no timing or level)
+  const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_', SPR = 'obmsl';
+  const sp = [...'oobm'].map(r => B64[SPR.indexOf(r)] + B64[63] + B64[63] + B64[63]).join('');
+  const run = { id: 'x', t: 1, lv: 'half', bpm: 60, exercises: [{ k: 'e', due: 4, within: 2, sp }] };
+  assert.equal(c.runScore(run), c.runPoints('oobm', 'half'));
+});
+
+test('each level has its own high-score ladder, scaled by points per on-time stroke', () => {
+  const h = id => c.BADGES.find(b => b.id === id).at;
+  assert.deepEqual(h('hnone')[9], 250000);
+  assert.deepEqual(h('hstrokes')[9], 38000);
+  assert.deepEqual(h('hhalf')[9], 130000);
+  ['hstrokes', 'hbeat', 'hhalf', 'hbar', 'hnone'].forEach(id => h(id).forEach((n, i, a) => { if (i) assert.ok(n > a[i - 1], id + ' climbs'); }));
 });

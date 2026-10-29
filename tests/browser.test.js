@@ -1,7 +1,7 @@
 /* End-to-end checks in a real browser. The app is served from memory with a small hook added, so a test can
    feed it hits at exact times instead of playing. Nothing is changed on disk. */
 const test = require('node:test'), assert = require('node:assert/strict');
-const http = require('http'), fs = require('fs'), path = require('path');
+const http = require('http'), fs = require('fs'), path = require('path'), os = require('os');
 const { chromium } = require('playwright');
 const { ROOT, html } = require('./helpers');
 
@@ -139,15 +139,17 @@ test('editor: Discard puts a saved routine back', async () => {
   assert.equal(await p.textContent('#edState'), 'Saved');
 });
 
-test('destructive buttons ask twice', async () => {
+test('Clear asks what to wipe, starts with nothing ticked, and asks twice', async () => {
   const p = await open({ seeded: true });
   await p.click('#tabSettings').catch(() => {});
-  const label = await p.evaluate(() => {
-    const b = document.getElementById('recClear');
-    b.click();
-    return b.textContent + '|' + b.classList.contains('arm');
-  });
-  assert.equal(label, 'Clear all?|true');
+  await p.evaluate(() => document.getElementById('recClear').click());
+  const r = await p.evaluate(() => ({ parts: [...document.querySelectorAll('#exOpts input')].map(c => c.dataset.k + ':' + c.checked), off: document.getElementById('exGo').disabled, redo: !!document.getElementById('redoSetup') }));
+  assert.deepEqual(r.parts, ['hist:false', 'lib:false', 'lists:false', 'set:false', 'dev:false']);
+  assert.equal(r.off, true);
+  assert.equal(r.redo, false);
+  await p.evaluate(() => document.querySelector('#exOpts input[data-k=dev]').click());
+  const label = await p.evaluate(() => { const b = document.getElementById('exGo'); b.click(); return b.textContent + '|' + b.classList.contains('arm'); });
+  assert.equal(label, 'Clear?|true');
 });
 
 test('a stray exercise is deleted from a run, and an unheard one is not scored', async () => {
@@ -326,9 +328,60 @@ test('every badge has one medal, with a written step name, on the Achievements p
   await p.evaluate(() => document.getElementById('pvBtnAch').click());
   await p.waitForTimeout(200);
   const r = await p.evaluate(() => ({ n: document.querySelectorAll('#badges .medal').length, bad: [...document.querySelectorAll('#badges .medal')].filter(m => /undefined|NaN/.test(m.title) || !m.title).length, off: document.querySelectorAll('#badges .medal.off').length }));
-  assert.equal(r.n, 13);
+  assert.equal(r.n, 17);
   assert.equal(r.bad, 0);
-  assert.equal(r.off, 13);
+  assert.equal(r.off, 17);
   const txt = await p.evaluate(() => document.getElementById('badges').innerText);
   assert.doesNotMatch(txt, /undefined|NaN/);
+});
+
+test('Import asks what to bring in, offers only what the file holds, and imports only the ticks', async () => {
+  const p = await open({ seeded: true });
+  const file = path.join(os.tmpdir(), 'pocket-imp-test.json');
+  fs.writeFileSync(file, JSON.stringify({ lib: [{ id: 'zz1', x: '8 R L R L', t: 1 }], settings: { bpm: 77 } }));
+  await p.click('#tabProgress');
+  await p.setInputFiles('#recFile', file);
+  await p.waitForTimeout(300);
+  const rows = await p.evaluate(() => ({ title: document.getElementById('exTitle').textContent, go: document.getElementById('exGo').textContent, parts: [...document.querySelectorAll('#exOpts input')].map(c => c.dataset.k) }));
+  assert.equal(rows.title, 'Import');
+  assert.equal(rows.go, 'Import');
+  assert.deepEqual(rows.parts, ['lib', 'set']);
+  await p.evaluate(() => { document.querySelector('#exOpts input[data-k=set]').click(); });
+  await p.click('#exGo');
+  await p.waitForTimeout(400);
+  const after = await p.evaluate(() => ({ bpm: JSON.parse(localStorage.getItem('stick-timing-trainer.v1')).settings.bpm, lib: JSON.parse(localStorage.getItem('stick-timing-trainer.records.v2')).lib.length }));
+  assert.notEqual(after.bpm, 77, 'settings were unticked');
+  assert.equal(after.lib, 1);
+});
+
+test('a scored run is scored, announces a new high score once, and keeps the per-stroke codes', async () => {
+  const o = await runOnce({ click: 'half' }, false);
+  assert.match(o.win, /New high score! [\d,]+ on Hard/);
+  assert.match(o.text, /Score [\d,]+/);
+  const p0 = await runOnce({ click: 'half' }, true);
+  assert.doesNotMatch(p0.win, /high score/i, 'a practice run is not scored');
+});
+
+test('rests keep the streak and score nothing unless hit, and a hit on a rest is a miss', async () => {
+  const p = await open({ input: 'kb', bpm: 120, routineText: 'R_L_ R_L_', eachUnit: 'pass', eachVal: 2, seeded: true });
+  await p.evaluate(() => [...document.querySelectorAll('button')].find(b => /^Start/.test(b.textContent.trim()) && b.offsetParent).click());
+  await p.waitForFunction(() => window.__T.run() && window.__T.run().plan, null, { timeout: 8000 });
+  await p.evaluate(() => {
+    const T = window.__T, r = T.run(), pl = r.plan, rest = pl.cells.filter(c => c.rest)[1];
+    pl.slots.forEach(s => { const hand = pl.segs[s.seg].notes[s.pos].slice(-1); T.hit({ t: r.t0 + s.t + 0.005, kb: true, f: null, det: { hand, conf: 1 } }); });
+    T.hit({ t: r.t0 + rest.t, kb: true, f: null, det: { hand: 'R', conf: 1 } });
+  });
+  await p.waitForFunction(() => window.__T.run().ended, null, { timeout: 40000 });
+  await p.waitForTimeout(300);
+  const q = await p.evaluate(() => JSON.parse(localStorage.getItem('stick-timing-trainer.records.v2')).runs[0].exercises[0].q);
+  assert.ok(q && q.length > 8, 'rests are in the sequence: ' + q);
+  assert.equal((q.match(/m/g) || []).length, 1, 'one rest was hit: ' + q);
+  assert.ok(/r/.test(q), 'the other rests are kept: ' + q);
+});
+
+test('Play settings sit in aligned columns: Click beside Scoring, tops level', async () => {
+  const p = await open({ seeded: true }, { width: 390, height: 900 });
+  const r = await p.evaluate(() => { const a = document.getElementById('click').getBoundingClientRect(), b = document.getElementById('score').getBoundingClientRect(); return { dy: Math.abs(a.top - b.top), side: b.left > a.right - 1 }; });
+  assert.ok(r.side, 'Scoring is beside Click');
+  assert.ok(r.dy < 1, 'tops are level');
 });
