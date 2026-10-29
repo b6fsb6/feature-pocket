@@ -148,3 +148,76 @@ test('destructive buttons ask twice', async () => {
   });
   assert.equal(label, 'Clear all?|true');
 });
+
+test('a stray exercise is deleted from a run, and an unheard one is not scored', async () => {
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 900 } });
+  const p = await ctx.newPage();
+  p.errors = [];
+  p.on('pageerror', e => p.errors.push(e.message));
+  await p.addInitScript(() => {
+    if (localStorage.getItem('seeded-by-test')) return;
+    localStorage.setItem('seeded-by-test', '1');
+    const ex = (k, i, w, h) => ({ k, bpm: 60, due: 32, within: w, heard: h, avg: h ? -2.7 : null, sd: h ? 3 : null, miss: 0, i });
+    localStorage.setItem('stick-timing-trainer.records.v2', JSON.stringify({ v: 1, names: { pabc: 'Mine' }, nu: 1, lib: [], runs: [{
+      id: 'r1', t: Date.now(), mode: 'routine', rk: 'pabc', lv: 'beat', dy: '', ne: 3, bpm: 60, tol: 20, sec: 120,
+      exercises: [ex('8 RLRL RLRL', 1, 30, 32), ex('8 RRLL RRLL', 2, 26, 32), ex('8 dLfR', 3, 0, 0)],
+      rp: { x: 'RLRL RLRL\nRRLL RRLL\ndLfR', st: 1, ev: 8, eu: 'pass', gp: 0, o: null } }] }));
+    localStorage.setItem('stick-timing-trainer.v1', JSON.stringify({ settings: { seeded: true, noise: -50, latCal: true }, cal: null }));
+  });
+  await p.goto(base);
+  await p.waitForTimeout(300);
+  await p.click('#tabProgress');
+  await p.locator('.lrow', { hasText: 'Mine' }).first().click();
+  const text = () => p.evaluate(() => [...document.querySelectorAll('#pg')].map(x => x.innerText).join('|'));
+  let t = await text();
+  assert.match(t, /1 not played/);            /* nothing was heard in the last exercise */
+  assert.doesNotMatch(t, /dLfR[\s\S]*ACC/);    /* it is not scored, so it cannot be the weakest */
+  await p.evaluate(() => { document.querySelector('details').open = true; document.querySelector('details .ib').click(); });
+  const del = () => p.evaluate(() => [...document.querySelectorAll('.rmenu button')].find(x => /^Delete/.test(x.textContent)).click());
+  await del(); await del();
+  await p.waitForTimeout(300);
+  t = await text();
+  assert.doesNotMatch(t, /\d not played/);
+  assert.match(t, /88%/);                      /* both exercises were played, so the run now has an overall score */
+  const saved = await p.evaluate(() => JSON.parse(localStorage.getItem('stick-timing-trainer.records.v2')).runs[0]);
+  assert.equal(saved.ne, 2);
+  assert.deepEqual(p.errors, []);
+  await ctx.close();
+});
+
+/* One keyboard run with perfect hits. Returns how many runs were saved and the result text. */
+async function runOnce(settings, practice) {
+  const p = await open(Object.assign({ input: 'kb', bpm: 120, routineText: '8 RLRL', eachUnit: 'pass', eachVal: 1, seeded: true }, settings));
+  if (practice) await p.evaluate(() => { const s = document.getElementById('score'); s.value = '0'; s.dispatchEvent(new Event('change')); });
+  await p.evaluate(() => [...document.querySelectorAll('button')].find(b => /^Start/.test(b.textContent.trim()) && b.offsetParent).click());
+  await p.waitForFunction(() => window.__T.run() && window.__T.run().plan, null, { timeout: 8000 });
+  await p.evaluate(() => {
+    const T = window.__T, r = T.run(), pl = r.plan;
+    pl.slots.forEach(s => {
+      const hand = pl.segs[s.seg].notes[s.pos].slice(-1);
+      T.hit({ t: r.t0 + s.t + 0.005, kb: true, f: null, det: { hand, conf: 1 } });
+    });
+  });
+  await p.waitForFunction(() => window.__T.run().ended, null, { timeout: 40000 });
+  await p.waitForTimeout(300);
+  const out = await p.evaluate(() => ({
+    saved: ((JSON.parse(localStorage.getItem('stick-timing-trainer.records.v2')) || {}).runs || []).map(r => r.lv),
+    text: document.getElementById('advice').innerText,
+    discard: !document.getElementById('advDiscard').hidden,
+  }));
+  assert.deepEqual(p.errors, []);
+  return out;
+}
+
+test('Master (count-in only) is scored and saved', async () => {
+  const o = await runOnce({ click: 'none' }, false);
+  assert.deepEqual(o.saved, ['none']);
+  assert.ok(o.discard);
+});
+
+test('a practice run shows its result but saves nothing', async () => {
+  const o = await runOnce({ click: 'beat' }, true);
+  assert.deepEqual(o.saved, []);
+  assert.match(o.text, /Practice run, not saved/);
+  assert.ok(!o.discard);
+});
