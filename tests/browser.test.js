@@ -5,7 +5,7 @@ const http = require('http'), fs = require('fs'), path = require('path'), os = r
 const { chromium } = require('playwright');
 const { ROOT, html } = require('./helpers');
 
-const page = html.replace('let heardTimer=0;', 'window.__T={hit:handleHit,run:()=>run,S:()=>S};let heardTimer=0;');
+const page = html.replace('let heardTimer=0;', 'window.__T={hit:handleHit,run:()=>run,S:()=>S,ctx:()=>ctx};let heardTimer=0;');
 assert.ok(page !== html, 'the test hook did not attach: has handleHit moved?');
 
 let server, base, browser;
@@ -411,6 +411,48 @@ test('a routine shows the most a flawless run could score, and a flawless run re
   const [sc, mx] = got.split('|');
   assert.equal(sc, max.replace('Max score: ', ''), 'a flawless run scores the maximum');
   assert.equal(mx, '/ ' + sc);
+});
+
+test('the live score counts up as strokes are judged, drops the streak on a slip, matches the final score, and is hidden for practice', async () => {
+  const p = await open({ input: 'kb', bpm: 120, routineText: 'RLRL RLRL\nLRLR LRLR', eachUnit: 'pass', eachVal: 1, click: 'half', seeded: true });
+  assert.equal(await p.evaluate(() => document.getElementById('live').hidden), true, 'hidden before a run');
+  await p.evaluate(() => [...document.querySelectorAll('button')].find(b => /^Start/.test(b.textContent.trim()) && b.offsetParent).click());
+  await p.waitForFunction(() => window.__T.run() && window.__T.run().plan, null, { timeout: 8000 });
+  await p.evaluate(() => { const T = window.__T, r = T.run(), pl = r.plan; pl.slots.forEach((s, i) => { if (i === 11) return; const hand = pl.segs[s.seg].notes[s.pos].slice(-1); T.hit({ t: r.t0 + s.t + 0.005, kb: true, f: null, det: { hand, conf: 1 } }); }); });
+  await p.waitForFunction(() => window.__T.run().sk >= 4, null, { timeout: 20000 });
+  const mid = await p.evaluate(() => ({ shown: !document.getElementById('live').hidden, sk: window.__T.run().sk, lit: document.querySelectorAll('#lvMeter i.on').length, n: document.querySelectorAll('#lvMeter i').length, fire: getComputedStyle(document.getElementById('lvFire')).visibility }));
+  assert.ok(mid.shown); assert.equal(mid.n, 16); assert.ok(mid.sk >= 4 && mid.lit === mid.sk, 'one segment per stroke in a row'); assert.equal(mid.fire, 'hidden', 'no flame below the best streak');
+  await p.waitForFunction(() => window.__T.run().ended, null, { timeout: 40000 });
+  await p.waitForTimeout(400);
+  const end = await p.evaluate(() => ({ live: window.__T.run().pts, hidden: document.getElementById('live').hidden, score: document.getElementById('advScore').textContent }));
+  assert.ok(end.hidden, 'the live score gives way to the result');
+  assert.equal(Math.round(end.live).toLocaleString('en-US'), end.score, 'the live score matches the final score');
+  const q = await open({ input: 'kb', bpm: 120, routineText: '8 RLRL', eachUnit: 'pass', eachVal: 1, click: 'half', seeded: true });
+  await q.evaluate(() => { const s = document.getElementById('score'); s.value = '0'; s.dispatchEvent(new Event('change')); });
+  await q.evaluate(() => [...document.querySelectorAll('button')].find(b => /^Start/.test(b.textContent.trim()) && b.offsetParent).click());
+  await q.waitForFunction(() => window.__T.run() && window.__T.run().plan, null, { timeout: 8000 });
+  assert.equal(await q.evaluate(() => document.getElementById('live').hidden), true, 'no live score in practice');
+});
+
+test('the audio output wakes when Start resumes a paused run, even if it was put to sleep meanwhile', async () => {
+  const p = await open({ input: 'kb', bpm: 120, routineText: '8 RLRL', eachUnit: 'pass', eachVal: 3, click: 'half', seeded: true });
+  await p.evaluate(() => [...document.querySelectorAll('button')].find(b => /^Start/.test(b.textContent.trim()) && b.offsetParent).click());
+  await p.waitForFunction(() => window.__T.run() && window.__T.run().plan && window.__T.ctx() && window.__T.ctx().state === 'running', null, { timeout: 8000 });
+  await p.evaluate(() => [...document.querySelectorAll('button')].find(b => /^Pause/.test(b.textContent.trim()) && b.offsetParent).click());
+  await p.evaluate(() => window.__T.ctx().suspend());
+  assert.equal(await p.evaluate(() => window.__T.ctx().state), 'suspended');
+  await p.evaluate(() => [...document.querySelectorAll('button')].find(b => /^(Resume|Start|Continue)/.test(b.textContent.trim()) && b.offsetParent).click());
+  await p.waitForFunction(() => window.__T.ctx().state === 'running' && !window.__T.run().paused, null, { timeout: 5000 });
+});
+
+test('a flame shows in the live header once the streak reaches its best', async () => {
+  const p = await open({ input: 'kb', bpm: 120, routineText: 'RLRL RLRL RLRL RLRL RLRL RLRL', eachUnit: 'pass', eachVal: 1, click: 'half', seeded: true });
+  await p.evaluate(() => [...document.querySelectorAll('button')].find(b => /^Start/.test(b.textContent.trim()) && b.offsetParent).click());
+  await p.waitForFunction(() => window.__T.run() && window.__T.run().plan, null, { timeout: 8000 });
+  await p.evaluate(() => { const T = window.__T, r = T.run(), pl = r.plan; pl.slots.forEach(s => { const hand = pl.segs[s.seg].notes[s.pos].slice(-1); T.hit({ t: r.t0 + s.t + 0.005, kb: true, f: null, det: { hand, conf: 1 } }); }); });
+  await p.waitForFunction(() => getComputedStyle(document.getElementById('lvFire')).visibility === 'visible', null, { timeout: 30000 });
+  assert.ok(await p.evaluate(() => window.__T.run().sk >= 16));
+  assert.equal(await p.evaluate(() => getComputedStyle(document.querySelector('#lvFire .fo')).animationName), 'lvflick', 'the flame flickers');
 });
 
 test('History shows each run\'s score in the list and on the run page', async () => {
