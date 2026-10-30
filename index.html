@@ -261,8 +261,8 @@ details[open]>summary::after{transform:rotate(-135deg);margin-top:10px}
 .libitem span{color:var(--muted);font:12px var(--font-data);white-space:nowrap}
 .chkmsg{margin:0;padding:10px 12px;border-left:4px solid var(--accent);background:var(--surface);border-radius:6px;font:600 17px/1.35 var(--font-body);color:var(--ink)} .chkmsg:empty{display:none}
 .rchev{width:40px;height:40px;border:0;background:none;position:relative;flex:none;cursor:pointer} .rchev::after{content:"";position:absolute;left:15px;top:13px;width:9px;height:9px;border:solid var(--muted);border-width:0 2.5px 2.5px 0;transform:rotate(45deg);transition:transform .15s} .rchev.up::after{transform:rotate(-135deg);top:18px}
-.rtruns{margin:10px 0 2px;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:0 12px}
-.rrun{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:10px 0;font:inherit;color:inherit;cursor:pointer} .rrun:first-child{border-top:0} .rrun .l{flex:1;min-width:0} .rrun .nm{font:600 14px var(--font-body)} .rrun .ar{color:var(--muted);font-size:22px;line-height:1}
+.rtruns{margin:12px -16px -14px;padding:2px 16px 4px 13px;background:color-mix(in srgb,var(--ink) 7%,transparent);border-left:3px solid var(--accent)}   /* the runs of an open routine sit on a tinted band with an accent rail, so they read as part of it */
+.rrun{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:12px 0;font:inherit;color:inherit;cursor:pointer} .rrun:first-child{border-top:0} .rtruns .rrun{border-top-color:color-mix(in srgb,var(--ink) 12%,transparent)} .rrun .l{flex:1;min-width:0} .rrun .nm{font:600 14px var(--font-body)} .rrun .ar{color:var(--muted);font-size:22px;line-height:1}
 .rmore{border-top:1px solid var(--line);width:100%;text-align:left;border-radius:0}
 .calst{display:grid;gap:2px;margin:4px 0 8px} .calst .cs{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line);font-size:14px} .calst .cs:first-child{border-top:0} .calst .good{color:var(--ok)} .calst .warn{color:var(--accent)} .calst .bad{color:var(--late)} .calst .muted{color:var(--muted)}
 .chkout{margin:0;padding-left:18px;font-size:13px;display:grid;gap:4px} .chkout:empty{display:none} .chkout .bad{color:var(--late)} .chkout .warn{color:var(--accent)} .chkout .good{color:var(--ok)}
@@ -601,6 +601,7 @@ body[data-edit=type] .buildonly{display:none}
 @media (prefers-reduced-motion:no-preference){.live .fire.on .fo{animation:lvflick .45s ease-in-out infinite alternate}.live .fire.on .fn{animation:lvflick .3s ease-in-out infinite alternate-reverse}.live .fire path{transform-box:fill-box;transform-origin:50% 100%}.live em.on{animation:lvfade .7s ease-out forwards}.live .lvm i.on{transition:background .15s}}
 @keyframes lvflick{from{transform:scale(1,.9) skewX(-4deg)}to{transform:scale(.94,1.08) skewX(4deg)}}
 @keyframes lvfade{from{opacity:1;transform:translateY(2px)}to{opacity:.15;transform:none}}
+.discrow{border-top:1px solid var(--line);padding:12px 0 4px}
 .runinfo{display:grid;gap:6px}
 .progress{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
 .progress>div{height:100%;width:0;background:var(--fill)}
@@ -705,7 +706,7 @@ button.pill.warn{color:var(--accent);border-color:var(--accent)}
 .res .sbar i{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--fill);min-width:10px}
 .res .sbar u{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);opacity:.7}
 .res .scap{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted)}
-.res .sacc{display:flex;gap:14px;align-items:baseline;border-top:1px solid var(--line);padding-top:10px}
+.res .sacc{display:flex;gap:14px;align-items:center;border-top:1px solid var(--line);padding-top:10px}
 .res .sacc b{font:800 28px var(--font-display);white-space:nowrap}
 .res[data-ok="1"] .sacc b{color:var(--ok)}
 .res .sacc>span{font-size:13px;color:var(--muted)}
@@ -1459,7 +1460,6 @@ RLRR LRLL RLRR LRLL</pre>
       </div>
       <p class="insight" id="advHead"></p>
       <p class="hint" id="advBody"></p>
-      <p class="hint" id="advNext"></p>
       <div class="btns advmain" id="advBtns1">
         <button class="btn primary" id="advAgain" type="button">Again</button>
         <button class="btn" id="advDone" type="button" hidden>Done</button>
@@ -1546,10 +1546,10 @@ RLRR LRLL RLRR LRLL</pre>
         <p class="insight" id="resInsight"></p>
         <div class="btns"><button class="btn small" id="csvBtn" type="button">Download CSV</button></div>
       </section>
-      <div class="btns"><button class="btn small" id="advDiscard" type="button">Discard this run</button></div>
     </div>
       </div>
     </details>
+    <div class="discrow" id="advDiscRow" hidden><button class="btn small" id="advDiscard" type="button">Discard this run</button></div>
     </div>
   </div>
 </main>
@@ -2279,11 +2279,11 @@ BADGES.push({id:'cln',name:'Longest clean run',lead:'Longest clean run',suf:' mi
 BADGES.push({id:'prf',name:'Perfect exercises',unit:'perfect exercises',one:'perfect exercise',at:LADDER});
 BADGES.push({id:'tmp',name:'Fastest clear',lead:'Fastest clear',suf:' BPM',unit:'BPM, fastest exercise cleared',at:[40,60,80,100,120,140,160]});
 /* Each step has a written name and each badge a glyph. The look of a step (its tier) follows how far up its ladder it sits, so every ladder runs from plain wood to diamond. */
-const STEPNAMES={ses:['Warmed up','Regular','Locked in','Dedicated','Road-tested','Veteran','Lifer'],
+const STEPNAMES={ses:['Showing up','Regular','Steady hands','Dedicated','Road-tested','Veteran','Lifer'],
   str:['On a roll','Habit forming','Dialled in','A month of grooves','Two months deep','Hundred days','Half a year','A full year'],
-  ladder:['First clear','A handful','Ten down','Quarter hundred','Fifty up','Centurion','Deep cut','Encyclopedia','Almost there','The whole book'],
+  ladder:['First Beat','Making Noise','Finding Your Feet','Getting Into Rhythm','Finding Your Pocket','Groove Master','Groove Machine','Rhythm Authority','Rhythm Royalty','The Real Deal'],
   prf:['Spotless','Crisp','Tight','Surgical','Metronome','Machine','Clockwork','Pinpoint','Untouchable','Perfect pocket'],
-  hs:['On the board','Getting going','Four figures','Climbing','Big numbers','Five figures','High roller','Fifty grand','Hundred grand','Quarter million'],
+  hs:['On the Board','Warming Up','Feeling the Groove','Locked In','In the Pocket','Deep Groove','Beat Master','Time Keeper','Pocket Legend','Legendary'],
   cln:['Warmed through','Ten straight','Quarter hour','Twenty flat','Half hour','Three quarters','Full hour'],
   tmp:['Slow burn','Easy groove','Cruising','Hundred club','Picking up','Fast hands','Speed demon']};
 const GLYPHS={lstrokes:'lv1',lbeat:'lv2',lhalf:'lv3',lbar:'lv4',lnone:'lvM',hstrokes:'lv1',hbeat:'lv2',hhalf:'lv3',hbar:'lv4',hnone:'lvM',ses:'drum',str:'cal',all:'lvA',dyn:'acc',cln:'sweep',prf:'target',tmp:'metro'};
@@ -2666,7 +2666,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='1.4.2';                           /* shown beside the title */
+const VERSION='1.5.4';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -4502,29 +4502,17 @@ function showResult(){
   const go=()=>{const b=$('advice');if(b.hidden||curTab!=='play')return;const r=b.getBoundingClientRect();if(r.bottom>innerHeight||r.top<0)scrollBy(0,r.top-12);};
   go();requestAnimationFrame(()=>{go();});setTimeout(go,150);setTimeout(go,450);
 }
-/* The badge step you are closest to, as one line. */
-function nextBadge(){
-  const v=badgeValues(recs.runs,recs.sum);let best=null;
-  BADGES.forEach(b=>{
-    const next=b.at.find(n=>v[b.id]<n);if(!next)return;
-    const prev=b.at.filter(n=>v[b.id]>=n).pop()||0,r=(v[b.id]-prev)/(next-prev);
-    if(!best||r>best.r)best={r:r,b:b,next:next};
-  });
-  if(!best)return '';
-  const b=best.b,what=b.lead?b.lead+' '+best.next+(b.suf||''):best.next+' '+(b.one&&best.next===1?b.one:b.unit);
-  return 'Next badge: '+what+' ('+(b.lead?v[b.id]+(b.suf||''):v[b.id]+' of '+best.next)+')';
-}
 function renderAdvice(){
   const box=$('advice');
-  if(!lastRun){box.hidden=true;return;}
+  if(!lastRun){box.hidden=true;$('advDiscRow').hidden=true;return;}
   box.hidden=false;
   const L=lastRun,adv=adviceFor(L.rows.map(x=>({idx:x.idx,pct:x.pct,passes:x.passes})));
-  const disc=$('advDiscard');
+  const disc=$('advDiscRow');
   const tgt=Math.round(TARGET*100)+'%';
   if(L.discarded){
     $('advRes').hidden=true;$('advHead').textContent='Run discarded.';
     $('advBody').textContent='It is not in your records.';
-    $('advWin').hidden=true;$('advBadge').hidden=true;$('advNext').hidden=true;
+    $('advWin').hidden=true;$('advBadge').hidden=true;
     disc.hidden=true;$('advWeak').hidden=true;return;
   }
   disc.hidden=!!L.practice;
@@ -4581,7 +4569,6 @@ function renderAdvice(){
     const shown=renderUnlocked(L);
     if(shown&&!L.celebrated){const bx=$('advBadge');bx.classList.remove('pop');void bx.offsetWidth;bx.classList.add('pop');}
     if(shown||wins.length)L.celebrated=true;
-    const nb=shown?'':nextBadge();$('advNext').hidden=!nb;$('advNext').textContent=nb;
   }
   if(L.skipped)body+=' '+L.skipped+(L.skipped===1?' exercise was':' exercises were')+' stopped before one full pass and not scored.';
   if(!L.saved)body+=' Your browser would not save the records.';
@@ -7003,7 +6990,7 @@ function wire(){
     guard(()=>{setRoutineText(b.dataset.text);showTab('play');window.scrollTo(0,0);});
   }));
   $('advAgain').addEventListener('click',()=>startPlay(lastRun&&lastRun.only||undefined));
-  $('advDone').addEventListener('click',()=>{setReview(false);window.scrollTo(0,0);});
+  $('advDone').addEventListener('click',()=>{lastRun=null;refreshPreview();renderAdvice();setReview(false);window.scrollTo(0,0);});   /* done with these results: back to the start screen, the run stays in History */
   arm($('advDiscard'),discardRun);
   $('svBtnPref').addEventListener('click',()=>setSview('pref'));
   $('svBtnDev').addEventListener('click',()=>setSview('dev'));
