@@ -480,8 +480,23 @@ test('History shows each run\'s score in the list and on the run page', async ()
   await p.evaluate(() => { document.getElementById('tabProgress').click(); document.getElementById('pvBtnHist').click(); }); await p.waitForTimeout(400);
   const row = await p.evaluate(() => document.getElementById('pvHist').innerText);
   assert.match(row, /Score: [\d,]+/);
-  await p.evaluate(() => { const b = [...document.querySelectorAll('#pvHist summary, #pvHist .sm, #pvHist button')].find(x => /Score: /.test(x.innerText)); b.click(); });
+  await p.evaluate(() => { const b = [...document.querySelectorAll('#pvHist .lrow')].find(x => /Score: /.test(x.innerText)); b.click(); });
   await p.waitForTimeout(300);
-  const page = await p.evaluate(() => document.getElementById('pgBody').innerText + ' ' + document.getElementById('pvHist').innerText);
-  assert.match(page, /Score: [\d,]+ of [\d,]+/);
+  const page = await p.evaluate(() => document.getElementById('pgBody').textContent);
+  assert.match(page, /[\d,]+\s*of [\d,]+/);
+});
+
+test('A kept routine is saved to the library on its own, and discarding the run takes it back out', async () => {
+  const p = await open({ input: 'kb', bpm: 120, mode: 'routine', routineText: '8 RLRL RLRL\n8 RLLR RLLR', eachUnit: 'pass', eachVal: 1, click: 'half', seeded: true });
+  const libN = () => p.evaluate(() => (JSON.parse(localStorage.getItem('stick-timing-trainer.records.v2')) || { lib: [] }).lib.length);
+  const n0 = await libN();
+  await p.evaluate(() => [...document.querySelectorAll('button')].find(b => /^Start/.test(b.textContent.trim()) && b.offsetParent).click());
+  await p.waitForFunction(() => window.__T.run() && window.__T.run().plan, null, { timeout: 8000 });
+  await p.evaluate(() => { const T = window.__T, r = T.run(), pl = r.plan; pl.slots.forEach(s => { const hand = pl.segs[s.seg].notes[s.pos].slice(-1); T.hit({ t: r.t0 + s.t + 0.005, kb: true, f: null, det: { hand, conf: 1 } }); }); });
+  await p.waitForFunction(() => window.__T.run().ended, null, { timeout: 40000 });
+  await p.waitForTimeout(300);
+  assert.equal(await libN(), n0 + 1, 'the routine joins the library');
+  await p.evaluate(() => { const d = document.getElementById('advDiscard'); d.click(); d.click(); });
+  await p.waitForTimeout(300);
+  assert.equal(await libN(), n0, 'discarding takes it back out');
 });
