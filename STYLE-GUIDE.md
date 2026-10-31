@@ -21,7 +21,7 @@ Keep the existing palette and add the roles that are missing. **Component CSS ne
   /* Surfaces */
   --bg:#E9EDEA;          /* page */
   --surface:#F8FAF8;     /* cards, menus, inputs-on-surface */
-  --surface-2:color-mix(in srgb,var(--ink) 6%,var(--surface)); /* keys, pressed rows */
+  --surface-2:color-mix(in srgb,var(--ink) 6%,var(--bg)); /* troughs, keys, pressed rows (mixed over --bg: over --surface it matches the page) */
   --scrim:rgb(0 0 0 / .55);
   --shadow-pop:0 8px 24px rgb(0 0 0 / .25);
 
@@ -46,10 +46,11 @@ Keep the existing palette and add the roles that are missing. **Component CSS ne
   --danger:var(--late);  /* NEW: destructive actions */
   --on-danger:#fff;
   --heat:#E5322B;        /* NEW: streak heat, replaced in the cb palette */
+  --heat-low:#fff;       /* NEW: the streak meter at the first stroke, mixed toward --heat */
 }
 ```
 
-The dark theme and the `cb` palette must define every token above. Add `--line-strong:#66726C` for dark (3.7:1 on `--bg`, 3.4:1 on `--surface`) and `--heat:#FF8A3D` for `cb`.
+The dark theme and the `cb` palette must define every token above. Add `--line-strong:#66726C` for dark (3.7:1 on `--bg`, 3.4:1 on `--surface`) and `--heat:#FF8A3D` for `cb`. Dark sets `--on-danger:#0F1311`, because white on the light dark-theme `--late` is below 4.5:1, and a stronger `--shadow-pop` (.35).
 
 **Rules for the brass accent**
 
