@@ -95,7 +95,7 @@ h3{color:var(--ink);margin:0 0 var(--s-2)}
 input[type=text],input[type=number],select{font:500 16px var(--font-body);color:var(--ink);background:var(--bg);border:1px solid var(--line-strong);border-radius:8px;padding:8px 10px;min-height:44px;width:100%}
 input[type=range]{width:100%;accent-color:var(--accent);min-height:32px}
 #pattern{font:600 24px var(--font-data);letter-spacing:.1em}
-.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}   /* fields side by side */
 .tempo{display:grid;grid-template-columns:44px 1fr 44px;gap:8px;align-items:center}
 .tempo .btn{padding:0;font-size:22px;min-height:44px}
 .tc{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.6fr);gap:12px;align-items:start}   /* both columns: a label line, then a 44px control, so the two lines meet */
@@ -266,17 +266,21 @@ summary{cursor:pointer;padding:14px;font:800 20px var(--font-display);letter-spa
 summary::-webkit-details-marker{display:none}
 summary::after{content:"";float:right;width:9px;height:9px;margin:6px 4px 0 0;border:solid var(--muted);border-width:0 2.5px 2.5px 0;transform:rotate(45deg);transition:transform .15s}
 details[open]>summary::after{transform:rotate(-135deg);margin-top:10px}
-.libitem{display:flex;justify-content:space-between;gap:8px;width:100%;text-align:left;padding:9px 12px;border:0;border-bottom:1px solid var(--line);background:transparent;font:600 14px var(--font-body);color:var(--ink);cursor:pointer}
-.libitem:last-child{border-bottom:0}
-@media (hover:hover){.libitem:hover{background:color-mix(in srgb,var(--fill) 10%,transparent)}}
-.libitem.cur{background:color-mix(in srgb,var(--fill) 20%,transparent)}
-.libitem:disabled{opacity:.5;cursor:default}
-.libitem.have b{font-weight:400;color:var(--muted)}
-.libitem span{color:var(--muted);font:12px var(--font-data);white-space:nowrap}
+button.row{cursor:pointer}
+button.row:disabled{opacity:.4;cursor:not-allowed}
+.row .rt.have{font-weight:400;color:var(--muted)}   /* a library item you already have */
+.row>.ra>.rm{text-align:right;white-space:nowrap}   /* a value in the trailing area */
+/* A numbered row: the index in its own column, ahead of the title. */
+.row.num{grid-template-columns:var(--s-5) minmax(0,1fr) auto}
+.row.num>*{grid-column:2}
+.row.num>.rn{grid-column:1;grid-row:1/span 2;align-self:start;font:var(--t-caption) var(--font-data);color:var(--muted)}
+.row.num>.ra{grid-column:3}
+.exercises>.row{padding:var(--s-2) var(--s-3)}   /* inside the bordered list box */
+#pickList .row{padding-inline:var(--s-3)}   /* every row as wide as the selected one, so the titles line up */
 .chkmsg{margin:0;padding:10px 12px;border-left:4px solid var(--accent);background:var(--surface);border-radius:6px;font:600 17px/1.35 var(--font-body);color:var(--ink)} .chkmsg:empty{display:none}
-.rchev{width:40px;height:40px;border:0;background:none;position:relative;flex:none;cursor:pointer} .rchev::after{content:"";position:absolute;left:15px;top:13px;width:9px;height:9px;border:solid var(--muted);border-width:0 2.5px 2.5px 0;transform:rotate(45deg);transition:transform .15s} .rchev.up::after{transform:rotate(-135deg);top:18px}
-.rtruns{margin:12px -16px -14px;padding:2px 16px 4px 13px;background:color-mix(in srgb,var(--ink) 7%,transparent);border-left:3px solid var(--accent)}   /* the runs of an open routine sit on a tinted band with an accent rail, so they read as part of it */
-.rrun{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:12px 0;font:inherit;color:inherit;cursor:pointer} .rrun:first-child{border-top:0} .rtruns .rrun{border-top-color:color-mix(in srgb,var(--ink) 12%,transparent)} .rrun .l{flex:1;min-width:0} .rrun .nm{font:600 14px var(--font-body)} .rrun .ar{color:var(--muted);font-size:22px;line-height:1}
+.rtruns{padding:0 var(--s-3);background:var(--surface);border-left:3px solid var(--accent)}   /* the runs of an open row sit on a band with an accent rail, so they read as part of it */
+.row>.rtruns{grid-column:1/-1;margin:var(--s-2) 0 calc(-1*var(--s-3))}
+.rtruns .row{cursor:pointer}
 .rmore{border-top:1px solid var(--line);width:100%;text-align:left;border-radius:0}
 .calst{display:grid;gap:2px;margin:4px 0 8px} .calst .cs{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line);font-size:14px} .calst .cs:first-child{border-top:0} .calst .good{color:var(--ok)} .calst .warn{color:var(--warn)} .calst .bad{color:var(--danger)} .calst .muted{color:var(--muted)}
 .chkout{margin:0;padding-left:18px;font-size:13px;display:grid;gap:4px} .chkout:empty{display:none} .chkout .bad{color:var(--danger)} .chkout .warn{color:var(--warn)} .chkout .good{color:var(--ok)}
@@ -339,48 +343,35 @@ svg.spark{display:block;overflow:visible}
 #pvHist section>*{margin:0}
 .hist{display:grid;gap:6px}
 .hist h4{margin:10px 0 0;font-size:13px;color:var(--muted);font-weight:600}
-.hrow{border:1px solid var(--line);border-radius:10px;background:var(--surface)}
-.hrow summary,.hrow .sm{cursor:pointer;padding:10px 118px 10px 12px;display:grid;gap:2px;font:400 16px var(--font-body);letter-spacing:normal;text-transform:none;position:relative}
-.hrow summary::after{position:absolute;right:14px;top:calc(50% - 8px);margin:0}
-.hrow[open]>summary::after{margin:0;top:calc(50% - 2px)}
-.hrow .hn{font:600 17px var(--font-data);letter-spacing:.06em;overflow-wrap:anywhere}
-.hrow .hs{font-size:13px;color:var(--muted)}
-.hrow.flat .sm{cursor:default;padding-right:92px}
-.hgrp .hrow .sm{padding-right:54px}
-.hgrp .hrow summary{padding-right:84px}
-.hgrp>summary{padding-right:116px}
-.hrow .ha{position:absolute;right:38px;top:50%;transform:translateY(-50%);display:flex;gap:2px}
-.hrow.flat .ha{right:8px}
+/* Row: one anatomy for list rows. Title (.rt) and meta line (.rm) on the left; the trailing area (.ra) is its own column, so it never covers the title. */
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:var(--s-2);row-gap:2px;width:100%;padding:var(--s-3) 0;border:0;border-top:1px solid var(--line);background:none;color:inherit;font:inherit;text-align:left}
+.row:first-child{border-top:0}
+.row>*{grid-column:1;min-width:0}
+.row>.ra{grid-column:2;grid-row:1/span 2;display:flex;align-items:center;gap:2px;margin-block:calc(-1*var(--s-2))}   /* icons are 44px; they may reach into the padding */
+.row .rt{font:600 var(--t-body) var(--font-body);overflow-wrap:anywhere}
+.row .rt.seq{font:600 var(--t-data) var(--font-data);letter-spacing:.08em}   /* a title that is a sticking */
+.row .rm{font:var(--t-caption) var(--font-body);color:var(--muted)}
+.row.cur{background:color-mix(in srgb,var(--fill) 15%,transparent);box-shadow:inset 3px 0 0 var(--fill);padding-inline:var(--s-3)}   /* the band's content clears the bar and the band's edge */
+@media (hover:hover){:is(button,summary,[role=button]).row:hover{background:color-mix(in srgb,var(--fill) 8%,transparent)}}
+.hrow{border-bottom:1px solid var(--line)}   /* a Library entry: its summary is the row, its body opens beneath */
+.hrow>.row{border:0}
+.row.tog{cursor:pointer}   /* the whole row opens it, as well as its chevron */
 .btn.icon{min-width:var(--hit);padding:0;border-color:transparent;background:transparent;color:var(--muted);display:grid;place-items:center}   /* a 20px SVG, an aria-label and a title */
 .btn.icon.replay,.btn.icon.play{color:var(--accent)}
-.hrow .hb{padding:0 12px 12px;display:grid;gap:8px}
+.hrow .hb{margin:0 0 var(--s-3);padding:var(--s-2) var(--s-3);background:var(--surface);border-left:3px solid var(--accent);display:grid;gap:var(--s-2)}   /* open: the children on a band with a rail */
 .slist{display:grid}
 .sum{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .sum .big{font:600 22px var(--font-data)} .sum small{font:12px var(--font-body);color:var(--muted);margin-left:4px}
 .sum .big.early{color:var(--early)} .sum .big.late{color:var(--late)} .sum .big.ok{color:var(--ok)}
 .sum p{margin:2px 0 0;color:var(--muted);font-size:13px}
-.nextp .nr{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
-.nextp .nr:first-child{border-top:0}
-.nextp .seq{font:600 14px var(--font-data);letter-spacing:.06em;overflow-wrap:normal}
-.nextp .nt{font:12px var(--font-body);color:var(--muted)}
 .hint b{color:var(--ink);font-weight:600}
 .dayh{display:flex;justify-content:space-between;align-items:baseline;margin:20px 0 8px}
 .dayh span:last-child{font-weight:400;letter-spacing:0;text-transform:none}
 .dayp{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 14px}
-.lrow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:start;column-gap:10px;padding:12px 0;border-top:1px solid var(--line);cursor:pointer;background:none;border-left:0;border-right:0;border-bottom:0;width:100%;text-align:left;color:inherit;font:inherit}
-.dayp .lrow:first-child{border-top:0}
-.lrow .l{display:contents}   /* title, accuracy and chevron share the top row; the summary lines run the full width beneath */
-.lrow .nm{grid-column:1;grid-row:1}.lrow .ac{grid-column:2;grid-row:1}.lrow .ar{grid-column:3;grid-row:1}.lrow .sb{grid-column:1/-1}
-.lrow .nm,.rp h2{font-weight:600;overflow-wrap:anywhere}.lrow .nm.seq,.rp h2.seq{font:600 14px/1.5 var(--font-data);letter-spacing:.05em}
-.lrow .nm,.lrow .nm.seq{line-height:24px}   /* the accuracy and chevron sit level with the first line of the title */
-.lrow .sb,.rp .sb{font-size:12px;color:var(--muted)} .lrow .sb.dy,.rp .sb.dy{color:var(--accent)}
-.lrow .ac{font:600 16px/24px var(--font-data);white-space:nowrap} .lrow .ac small{font:600 11px var(--font-body);letter-spacing:.06em;color:var(--muted);margin-left:3px}
+.rp h2{font-weight:600;overflow-wrap:anywhere}.rp h2.seq{font:600 var(--t-data) var(--font-data);letter-spacing:.08em}
+.rp .sb{font-size:13px;color:var(--muted)} .rp .sb.dy{color:var(--accent)}
 .ac.ok{color:var(--ok)} .ac.late{color:var(--late)} .ac.muted{color:var(--muted)}
-.lrow .ar{color:var(--muted);font-size:22px;line-height:24px}
-.lrow.pl{grid-template-columns:minmax(0,1fr) auto auto auto} .lrow.pl .btn.icon{grid-column:3;grid-row:1;margin:-8px 0} .lrow.pl .ar{grid-column:4}
-.lrow:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
-.lrow .ar.chv{position:relative;width:24px} .lrow .ar.chv::after{content:"";position:absolute;left:7px;top:6px;width:9px;height:9px;border:solid var(--muted);border-width:0 2.5px 2.5px 0;transform:rotate(45deg);transition:transform .15s} .lrow .ar.chv.up::after{transform:rotate(-135deg);top:11px}
-.dayp{overflow:hidden} .dayp .rtruns{margin:0 -14px;padding:2px 14px 4px 11px} .page .dayp .rtruns{margin:0;padding:2px 0 4px 11px}
+.dayp{overflow:hidden}
 .rp{display:grid;gap:4px}
 
 .rp .back{justify-self:start;padding-left:0}
@@ -409,31 +400,24 @@ html.pgopen{overflow:hidden}
 .rp .strip{display:grid;grid-template-columns:repeat(12,1fr);gap:4px}
 .rp .cell{aspect-ratio:1;border-radius:4px;background:var(--line)} .rp .cell.ok{background:var(--ok)} .rp .cell.late{background:var(--late)} .rp .cell.skip{background:transparent;border:1px dashed var(--line)} .rp .cell.lvl{background:var(--fill);color:var(--accent-ink);font:700 10px/1 var(--font-body);display:grid;place-items:center}
 .rp .key{font-size:12px;color:var(--muted);margin-top:8px}
-.rp .wr .ac{font:600 16px var(--font-data);white-space:nowrap} .rp .wr .ac small{font:600 11px var(--font-body);letter-spacing:.06em;color:var(--muted);margin-left:3px}
-.rp .wr{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
-.rp .exr{display:flex;gap:10px;padding:9px 0;border-top:1px solid var(--line)} .rp .exr .en{width:22px;flex:none;color:var(--muted);font:12px var(--font-data);padding-top:3px}
-.rp .exr .seq,.rp .wr .seq{font:600 13px/1.5 var(--font-data);letter-spacing:.05em}
 .rp .sn{display:flex;flex-wrap:wrap;gap:2px 14px;font:13px var(--font-data);font-variant-numeric:tabular-nums} .rp .sn small{color:var(--muted);font:11px var(--font-body);margin-left:3px}
 .rp .sn .ok{color:var(--ok)} .rp .sn .late{color:var(--late)} .rp .sn .early{color:var(--early)} .rp .sn .muted{color:var(--muted)}
 .hint.hl{margin:2px 0 0}
-.srow .nt{font:12px var(--font-body);color:var(--muted)} .srow .nt.go{color:var(--ok)}
-.srow{gap:8px;padding:14px 2px}
-.srow{display:grid;gap:3px;padding:9px 2px;border-top:1px solid var(--line)}
-.srow:first-child{border-top:0}
-.srow .sq{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.srow .seq{font:600 14px var(--font-data);letter-spacing:.06em}
-.srow .sn,.rrun .sn{display:flex;flex-wrap:wrap;align-items:center;gap:2px 14px;font:13px var(--font-data);font-variant-numeric:tabular-nums}
-.srow .sn small,.rrun .sn small{color:var(--muted);font:11px var(--font-body);letter-spacing:.04em;margin-left:3px}
-.srow .sn .muted,.rrun .sn .muted{color:var(--muted)} .srow .sn .ok,.rrun .sn .ok{color:var(--ok)} .srow .sn .late,.rrun .sn .late{color:var(--late)} .srow .sn .early,.rrun .sn .early{color:var(--early)}
-.srow .btn.icon{flex:none;margin:-6px 0}
-.srow .sq .seq{flex:1;min-width:0;overflow-wrap:anywhere} #rtList .srow{cursor:pointer} .lexs{cursor:default} .lexs .erow{cursor:default;grid-template-columns:30px minmax(0,1fr) 40px;align-items:center} .lexs .muted{color:var(--muted)} #rtList .srow .rtruns{cursor:default}
-.hgrp .tablewrap td,.hgrp .tablewrap th{padding-left:6px;padding-right:6px}
-.hgrp .tablewrap .btn.icon{margin:-8px -6px}
-.hgrp .tablewrap .btn.icon svg{width:17px;height:17px}
-.hgrp tbody tr:has(.cv){cursor:pointer}
+/* A row's parts: the main area as one button, a value, the stats line and the arrow. */
+.row>.rmain{display:grid;gap:2px;align-content:center;min-height:var(--hit);padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.row>.rmain>*{display:block}
+.row>.rmain:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (hover:hover){.row:has(>.rmain:hover){background:color-mix(in srgb,var(--fill) 8%,transparent)}}
+.row .rm.dy{color:var(--accent)} .row .rm.go{color:var(--ok)}
+.row .ac{font:600 var(--t-body) var(--font-data);white-space:nowrap} .row .ac small{font:600 var(--t-eyebrow) var(--font-body);letter-spacing:.06em;color:var(--muted);margin-left:var(--s-1)}
+.row .ar{display:grid;place-items:center;width:var(--s-5);color:var(--muted)}   /* the arrow is an icon, not a control */
+.row .ar svg{transition:transform var(--dur-1) var(--ease)} .row .ar.up svg{transform:rotate(180deg)}
+.row .sn{display:flex;flex-wrap:wrap;align-items:center;gap:2px 14px;font:13px var(--font-data);font-variant-numeric:tabular-nums}
+.row .sn small{color:var(--muted);font:11px var(--font-body);letter-spacing:.06em;margin-left:3px}
+.row .sn .muted{color:var(--muted)} .row .sn .ok{color:var(--ok)} .row .sn .late{color:var(--late)} .row .sn .early{color:var(--early)}
+
 .btn.icon.cv span{width:8px;height:8px;border:solid var(--muted);border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-2px,-2px);transition:transform .15s}
 .btn.icon.cv.open span{transform:rotate(-135deg) translate(-2px,-2px)}
-.hgrp .hrow{background:var(--bg)}
 .hrow ul{margin:0;padding:0;list-style:none;font-size:13px;display:grid;gap:2px}
 .hrow li{display:flex;gap:8px;justify-content:space-between}
 .cgrid{border-collapse:collapse;margin:8px 0 4px;font-size:13px;width:100%;max-width:360px}
@@ -501,18 +485,15 @@ body[data-mode="routine"] .single-only{display:none}
 .urlrow{display:grid;grid-template-columns:1fr auto;gap:8px}
 #libUrl{word-break:break-all}
 .lnk{display:grid;gap:8px;margin:0 0 14px}
-.lnk input{min-width:0}.lnkrow>*{min-width:0}.lnkurl{word-break:break-all;color:var(--muted,inherit);font-size:.9em}.lnk .btns{margin:0}
+.lnk input{min-width:0}.lnkurl{word-break:break-all;color:var(--muted,inherit);font-size:.9em}.lnk .btns{margin:0}
 .exercises{max-height:288px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
-.erow{cursor:pointer;display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:8px;padding:7px 10px;border-bottom:1px solid var(--line);font:13px var(--font-data);align-items:baseline}
-.erow:last-child{border-bottom:0}
+.erow{cursor:pointer}   /* an editor or Play list row: a .row.num that picks an exercise */
 #editList{height:184px;max-height:none}
 .patrow{display:flex;gap:12px;align-items:center;justify-content:space-between}
 .patrow .btn{flex:none}
 .patrow .hint{margin:0;min-width:0}
 .patline{margin:0;font:600 18px var(--font-data);letter-spacing:.1em;overflow-wrap:anywhere}
 .patline:empty{display:none}
-.erow .seq{letter-spacing:.1em;font-weight:600;overflow-wrap:anywhere}
-.erow .meta{color:var(--muted);white-space:nowrap}
 .bpane{display:grid;gap:12px}
 .bmain,.editor{display:grid;gap:22px}
 .bpane .field{display:grid;gap:8px}
@@ -529,7 +510,6 @@ body[data-mode="routine"] .single-only{display:none}
 .bmenu .btn{border:0;background:transparent;color:var(--ink);text-align:left;justify-content:flex-start;padding:10px;font-size:14px;min-height:40px}
 .bmenu .btn:disabled{opacity:.35}
 .bmenu .btn.del{color:var(--danger)}
-#editList .erow{grid-template-columns:30px minmax(0,1fr) 40px;align-items:center}
 #editList .meta{display:none}
 .bnote{display:flex;align-items:flex-start;gap:10px}
 .bnote .btn{flex:none}
@@ -584,7 +564,7 @@ body[data-edit=type] .buildonly{display:none}
 .bcode[aria-pressed=true]{background:var(--fill);border-color:transparent}
 .bkey:active,.bcode:active{filter:brightness(.92)}
 .erow.editing{outline:2px solid var(--accent);outline-offset:-2px}
-@media (hover:hover){.erow:hover{background:color-mix(in srgb,var(--fill) 10%,transparent)}}
+@media (hover:hover){.erow:hover{background:color-mix(in srgb,var(--fill) 8%,transparent)}}
 .erow:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .erow.start{background:color-mix(in srgb,var(--fill) 22%,transparent);box-shadow:inset 4px 0 0 var(--fill)}
 .erow.cur{background:color-mix(in srgb,var(--fill) 20%,transparent)}
@@ -641,34 +621,23 @@ body[data-input="kb"] #micPill{display:none}
 .help .panel>h3{margin:0}
 .help .panel{gap:4px}
 /* Library lists are flat: a line above each group, hairlines between routines, no boxes inside boxes. */
-#libPage>.hrow.flat,.glib{border:0;border-radius:0;background:none}
-.glib{border-top:1px solid var(--line)}
+.glib{border:0;border-top:1px solid var(--line);border-radius:0;background:none}
 .glib>summary{padding:14px 0}
 .glib>.gb{padding:0;gap:0}
-.gb .hrow,#libPage>.hrow.flat{border:0;border-bottom:1px solid var(--line);border-radius:0;background:var(--bg)}
 .gb>.hrow:last-child{border-bottom:0}
-.glib .hrow>summary,#libPage>.hrow.flat .sm{padding-left:0}
 /* Every page is flat: a line between sections and between rows, no boxes. Dialogs and the staff keep theirs. */
 .page .panel{background:none;border:0;border-top:1px solid var(--line);border-radius:0;padding:16px 0 0}
 .page :is(.page,.pv,.pcol)>.panel:first-child,.page>.panel:first-child,.pv>.panel:first-child,.pcol>.panel:first-child{border-top:0;padding-top:0}
-.page .hrow{border:0;border-bottom:1px solid var(--line);border-radius:0;background:none}
-.page .hrow summary,.page .hrow .sm{padding-left:0}
 .page .hist{gap:0}
 .page .hist>.hrow:last-child,.page .slist>.hrow:last-child{border-bottom:0}
 .page .dayp{background:none;border:0;border-radius:0;padding:0}
-.page .dayp .lrow:first-child{border-top:1px solid var(--line)}
-.glib .hrow>summary{padding-right:calc(4*var(--hit) + var(--s-3))}   /* room for the four actions; step 7 moves them into the row's flow */
-.glib .hrow>summary::after{display:none}
-.glib .hrow .ha{right:6px}
-.lnkrow{position:relative;display:grid;gap:4px;padding:10px calc(2*var(--hit) + var(--s-1)) 10px 0;border-bottom:1px solid var(--line)}
-.lnkrow .ha{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex}
+.page .dayp .row:first-child{border-top:1px solid var(--line)}   /* under the day heading */
 #advBar{display:none;grid-column:1/-1;gap:8px}
 #advBar .advmain{margin-top:0}
 :root[data-layout=desktop] body[data-review="1"] #advBar{display:grid}
 :root[data-layout=desktop] body[data-review="1"] #startBtn,:root[data-layout=desktop] body[data-review="1"] #playSummary{display:none}
 .exercises.lexs{border:0;border-radius:0;background:none}
 /* An open row is lifted with a lighter background that reaches a little past the text on both sides. */
-.page .hrow[open]{background:var(--surface);box-shadow:-10px 0 0 var(--surface),10px 0 0 var(--surface)}
 .bigbpm{display:block;font:600 40px/1.1 var(--font-data);margin:2px 0 8px}
 .bigrow{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
 .bigrow .hint{margin:0;text-align:right}
@@ -718,14 +687,11 @@ body[data-input="kb"] #micPill{display:none}
 .key .k.miss{color:var(--muted);opacity:.4}
 @media (max-width:359px){.tabs button{font-size:13px;letter-spacing:0}}   /* four tab names fit the narrowest phones */
 .dur{display:grid;grid-template-columns:minmax(70px,1fr) minmax(110px,1.4fr);gap:8px}
-.pickrow{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;min-height:48px;padding:8px 12px;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);font:600 15px var(--font-body);text-align:left;cursor:pointer}
-.pickrow small{color:var(--muted);font:500 13px var(--font-body);white-space:nowrap;text-align:right;line-height:1.4}
 .maxline{margin:-10px 0 0;font-size:13px;color:var(--muted);text-align:right}
 .maxline:empty{display:none}
-.pickrow.on{background:var(--bg);box-shadow:inset 3px 0 0 var(--fill)}
 #pickList{display:grid;gap:10px}
 .btn.icon.down svg{transition:transform .18s}
-.hrow[open] .btn.icon.down svg{transform:rotate(180deg)}
+:is(.hrow.open>.row,.row.open)>.ra .btn.icon.down svg{transform:rotate(180deg)}   /* an open row's chevron points up */
 .btn.icon.gap{visibility:hidden;pointer-events:none}
 .rmenu{position:fixed;z-index:60;min-width:150px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:4px;box-shadow:var(--shadow-pop);display:grid}
 .rmenu button{border:0;background:none;color:var(--ink);font:600 15px var(--font-body);text-align:left;padding:12px 14px;border-radius:7px;cursor:pointer;min-height:44px}
@@ -765,7 +731,7 @@ button[data-armed],.btn[data-armed],.rmenu button[data-armed]{background:var(--d
     <div class="pv" id="svPref">
     <section class="panel" aria-label="Timing and click sound">
       <h3>Timing and click sound</h3>
-      <div class="row">
+      <div class="fields">
         <div class="field"><label for="tol">On-time window</label>
           <select id="tol">
             <option value="10">± 10 ms</option>
@@ -911,16 +877,16 @@ button[data-armed],.btn[data-armed],.rmenu button[data-armed]{background:var(--d
         <section class="panel buildonly" aria-label="Defaults">
           <div class="bset" id="bSet">
             <div class="field"><label for="bTitle">Title</label><input type="text" id="bTitle" maxlength="80" autocomplete="off" autocorrect="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" placeholder="Name this routine"></div>
-            <div class="row b-routine">
+            <div class="fields b-routine">
               <div class="field"><label for="bEachU">Each exercise plays for</label><select id="bEachU"></select></div>
               <div class="field"><label for="bEachV">Amount</label><input type="number" id="bEachV" min="1" max="999" step="any" inputmode="decimal"></div>
             </div>
-            <div class="row b-routine">
+            <div class="fields b-routine">
               <div class="field"><label for="bTime">Time</label><select id="bTime"></select></div>
               <div class="field"><label for="bGroup">Grouping</label><select id="bGroup"></select></div>
               <div class="field"><label for="bStrokes">Default note</label><select id="bStrokes"></select></div>
             </div>
-            <div class="row b-single">
+            <div class="fields b-single">
               <div class="field"><label for="bTime1">Time</label><select id="bTime1"></select></div>
               <div class="field"><label for="bGroup1">Grouping</label><select id="bGroup1"></select></div>
               <div class="field"><label for="subdiv">Default note</label><select id="subdiv"></select></div>
@@ -949,12 +915,12 @@ button[data-armed],.btn[data-armed],.rmenu button[data-armed]{background:var(--d
         <section class="panel buildonly b-routine" aria-label="This exercise">
           <h3>This exercise</h3>
           <div class="bset">
-            <div class="row">
+            <div class="fields">
               <div class="field"><label for="oLenU">Plays for</label><select id="oLenU"></select></div>
               <div class="field"><label for="oLenV">Amount</label><input type="number" id="oLenV" min="1" max="999" step="any" inputmode="decimal"></div>
               <div class="field"><label for="oBpm">Tempo (BPM)</label><input type="number" id="oBpm" min="40" max="220" inputmode="numeric" placeholder="Same as Play"></div>
             </div>
-            <div class="row">
+            <div class="fields">
               <div class="field"><label for="oTime">Time</label><select id="oTime"></select></div>
               <div class="field"><label for="oGroup">Grouping</label><select id="oGroup"></select></div>
             </div>
@@ -1351,7 +1317,7 @@ RLRR LRLL RLRR LRLL</pre>
       <summary id="setSum"></summary>
       <div class="sbody">
     <section class="panel cfg" aria-label="How long it plays">
-      <div class="row">
+      <div class="fields">
         <div class="field"><label for="eachVal"><span class="routine-only">Each exercise plays for</span><span class="single-only">Plays for</span></label>
           <div class="dur"><input type="number" id="eachVal" min="1" max="200" step="1" inputmode="decimal"><select id="eachUnit" aria-label="Measured in"><option value="min">minutes</option><option value="pass">passes</option></select></div></div>
         <div class="field routine-only"><label for="gap">Between exercises</label>
@@ -2661,7 +2627,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='1.5.22';                           /* shown beside the title */
+const VERSION='1.5.27';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -4805,11 +4771,11 @@ function renderScoreGroups(stats,practise,usual){
   }
   const list=document.createElement('div');list.className='slist';
     rows.slice().sort((a,b)=>scoreSort==='asc'?a.recent-b.recent:b.recent-a.recent).forEach(x=>{
-      const row=document.createElement('div');row.className='srow';
-      const q=document.createElement('div');q.className='sq';
-      const seq=document.createElement('span');seq.className='seq';seq.textContent=showKey(x.k);
-      q.appendChild(seq);q.appendChild(practise(x.k,x.lv,x.dy));row.appendChild(q);
-      const n=document.createElement('div');n.className='sn';
+      const row=document.createElement('div');row.className='row';
+      const seq=document.createElement('span');seq.className='rt seq';seq.textContent=showKey(x.k);
+      const ra=document.createElement('span');ra.className='ra';ra.appendChild(practise(x.k,x.lv,x.dy));
+      row.append(seq,ra);
+      const n=document.createElement('span');n.className='sn';
       const stat=(txt,unit,cls)=>statSpan(n,txt,unit,cls);
       const acc=accCell(x.recent);
       stat(String(x.bpm),'BPM');
@@ -4826,7 +4792,7 @@ function renderScoreGroups(stats,practise,usual){
       if(x.da||x.dg)bits.push('last run: '+causeText(x.da,x.dg));
       const done=x.cleared&&x.cleared>=x.bpm;
       if(x.cleared){const t=masteryTier(x.k,x.cleared);bits.push((done?'Cleared at ':'best cleared ')+x.cleared+' BPM, '+MTIER[t]+' ('+strokeRate(x.k,x.cleared)+' strokes/min)'+(done?'.':''));}
-      const nt=document.createElement('div');nt.className='nt'+(done?' go':'');nt.textContent=bits.join(' \u00B7 ');row.appendChild(nt);
+      const nt=document.createElement('span');nt.className='rm'+(done?' go':'');nt.textContent=bits.join(' \u00B7 ');row.appendChild(nt);
       list.appendChild(row);
     });
   wrap.appendChild(list);
@@ -4836,16 +4802,16 @@ function renderScoreGroups(stats,practise,usual){
 let rtOpen='',rtAll=false;   /* the routine row that is open in Scores, and whether it lists every run */
 /* One run of an open routine or group: its day and time, the figures, and a way into the run. */
 function runBtn(r,back){
-  const b=document.createElement('button');b.type='button';b.className='rrun';
-  const l=document.createElement('div');l.className='l';
-  const nm=document.createElement('div');nm.className='nm';nm.textContent=dayWord(r.t).replace(/^./,c=>c.toUpperCase())+' \u00B7 '+new Date(r.t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});l.appendChild(nm);
+  const b=document.createElement('button');b.type='button';b.className='row';
+  const l=document.createDocumentFragment();
+  const nm=document.createElement('span');nm.className='rt';nm.textContent=dayWord(r.t).replace(/^./,c=>c.toUpperCase())+' \u00B7 '+new Date(r.t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});l.appendChild(nm);
   const f=runFigures(r),a=accHtml(f.acc),sn=document.createElement('div');sn.className='sn';
   const st=(txt,unit,cls)=>{const e=document.createElement('span');if(cls)e.className=cls;e.textContent=txt;const u=document.createElement('small');u.textContent=unit;e.appendChild(u);sn.appendChild(e);};
   st(String(r.bpm),'BPM');st(a[0],'ACC',a[1]);st(isNaN(f.ms)?'\u2014':fmtMs(f.ms,1),'ms',isNaN(f.ms)?'muted':biasCls(f.ms));st(isNaN(f.db)?'\u2014':'\u00B1'+f.db.toFixed(1),'dB');
   l.appendChild(sn);
-  if(r.exercises.length<r.ne){const pn=document.createElement('div');pn.className='nt';pn.textContent=r.exercises.length+' of '+r.ne+' exercises played';l.appendChild(pn);}
-  const ar=document.createElement('span');ar.className='ar';ar.textContent='\u203A';ar.setAttribute('aria-hidden','true');
-  b.appendChild(l);b.appendChild(ar);
+  if(r.exercises.length<r.ne){const pn=document.createElement('span');pn.className='rm';pn.textContent=r.exercises.length+' of '+r.ne+' exercises played';l.appendChild(pn);}
+  const ra=document.createElement('span');ra.className='ra';ra.appendChild(rowArrow('more'));
+  b.append(l,ra);
   b.addEventListener('click',()=>openRunFrom(r.id,back));
   return b;
 }
@@ -4854,15 +4820,14 @@ function renderRoutineRows(routines,replay){
   if(!routines.length){const p=document.createElement('p');p.className='hint';p.textContent='No routines scored yet.';box.appendChild(p);return;}
   routines.forEach(x=>{
     const key=x.rk+'|'+x.lv+'|'+(x.dy||''),open=rtOpen===key;
-    const row=document.createElement('div');row.className='srow';
-    const q=document.createElement('div');q.className='sq';
-    const t=document.createElement('span');t.className='seq';t.textContent=routineName(x.rk);
-    const ch=document.createElement('button');ch.type='button';ch.className='rchev'+(open?' up':'');ch.setAttribute('aria-expanded',String(open));ch.setAttribute('aria-label',(open?'Hide':'Show')+' runs of '+routineName(x.rk));
-    q.appendChild(t);q.appendChild(replay(x));q.appendChild(ch);row.appendChild(q);
+    const row=document.createElement('div');row.className='row'+(open?' open':'');
+    const m=document.createElement('button');m.type='button';m.className='rmain';m.setAttribute('aria-expanded',String(open));
+    const t=document.createElement('span');t.className='rt';t.textContent=routineName(x.rk);m.appendChild(t);
     const toggle=()=>{rtOpen=open?'':key;rtAll=false;renderProgress();};
-    ch.addEventListener('click',toggle);
-    row.addEventListener('click',e=>{if(!e.target.closest('button'))toggle();});
-    const n=document.createElement('div');n.className='sn';
+    const ch=iconBtn('down',(open?'Hide':'Show')+' runs of '+routineName(x.rk),toggle);ch.setAttribute('aria-expanded',String(open));
+    const ra=document.createElement('span');ra.className='ra';ra.append(replay(x),ch);
+    row.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b===m)toggle();});
+    const n=document.createElement('span');n.className='sn';
     const stat=(txt,unit,cls)=>statSpan(n,txt,unit,cls);
     if(x.bpm===null){stat('\u2014','ACC','muted');}
     else{
@@ -4873,20 +4838,21 @@ function renderRoutineRows(routines,replay){
       stat(isNaN(x.bias)?'\u2014':fmtMs(x.bias,1),'ms',biasCls(x.bias));
       stat(isNaN(x.even)?'\u2014':'\u00B1'+x.even.toFixed(1),'dB');
     }
-    row.appendChild(n);
+    m.appendChild(n);
     const bits=[levelName(x.lv)];
     if(x.dy)bits.push(dynText(x.dy));
     bits.push(x.ne+(x.ne===1?' exercise':' exercises'));
     bits.push(x.runs+(x.runs===1?' run':' runs'));
     if(x.cleared)bits.push('Cleared at '+x.cleared+' BPM.');
-    const nt=document.createElement('div');nt.className='nt'+(x.cleared&&x.bpm!==null&&x.cleared>=x.bpm?' go':'');nt.textContent=bits.join(' \u00B7 ');row.appendChild(nt);
+    const nt=document.createElement('span');nt.className='rm'+(x.cleared&&x.bpm!==null&&x.cleared>=x.bpm?' go':'');nt.textContent=bits.join(' \u00B7 ');m.appendChild(nt);
+    row.append(m,ra);
     if(open){
       const mine=recs.runs.filter(r=>r.rk===x.rk&&r.lv===x.lv&&(r.dy||'')===(x.dy||'')).sort((a,b)=>b.t-a.t);
       const shown=rtAll?mine:mine.slice(0,4);
       const list=document.createElement('div');list.className='rtruns';
       shown.forEach(r=>list.appendChild(runBtn(r,'Scores')));
       if(mine.length>4){const m=document.createElement('button');m.type='button';m.className='btn link rmore';m.textContent=rtAll?'Show fewer':'Show all '+mine.length+' runs';m.addEventListener('click',()=>{rtAll=!rtAll;renderProgress();});list.appendChild(m);}
-      if(x.runs>mine.length){const o=document.createElement('div');o.className='nt';o.style.padding='6px 0';o.textContent='Older runs are summarised and not listed.';list.appendChild(o);}
+      if(x.runs>mine.length){const o=document.createElement('p');o.className='hint';o.textContent='Older runs are summarised and not listed.';list.appendChild(o);}
       row.appendChild(list);
     }
     box.appendChild(row);
@@ -4913,12 +4879,11 @@ function renderScoreSummary(stats){
   $('scoreNextBox').hidden=false;
   const box=document.createElement('div');box.className='nextp';
   weak.forEach((x,i)=>{
-    const r=document.createElement('div');r.className='nr';
-    const t=document.createElement('div');
-    const a=document.createElement('div');a.className='seq';a.textContent=showKey(x.k)+(x.dy?' \u00B7 '+dynText(x.dy):'');
-    const b=document.createElement('div');b.className='nt';b.textContent=Math.round(x.recent*100)+'% at '+x.bpm+' BPM'+(i===0?' \u00B7 lowest accuracy':'');
-    t.appendChild(a);t.appendChild(b);r.appendChild(t);
-    r.appendChild(iconBtn('play','Play this exercise',()=>practisePattern(x.k,x.lv,x.dy)));box.appendChild(r);
+    const r=document.createElement('div');r.className='row';
+    const a=document.createElement('span');a.className='rt seq';a.textContent=showKey(x.k)+(x.dy?' \u00B7 '+dynText(x.dy):'');
+    const b=document.createElement('span');b.className='rm';b.textContent=Math.round(x.recent*100)+'% at '+x.bpm+' BPM'+(i===0?' \u00B7 lowest accuracy':'');
+    const ra=document.createElement('span');ra.className='ra';ra.appendChild(iconBtn('play','Play this exercise',()=>practisePattern(x.k,x.lv,x.dy)));
+    r.append(a,b,ra);box.appendChild(r);
   });
   nx.appendChild(box);
 }
@@ -4979,6 +4944,8 @@ const ICON={replay:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" 
   play:'<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>',
   edit:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
   del:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>'};
+/* A row's trailing arrow: › opens a page, the chevron opens the row in place. Decoration only; the row's button carries the action. */
+function rowArrow(kind){const s=document.createElement('span');s.className='ar'+(kind==='up'?' up':'');s.innerHTML=ICON[kind==='up'?'down':kind];s.setAttribute('aria-hidden','true');return s;}
 function iconBtn(kind,label,fn){
   const b=document.createElement('button');b.type='button';b.className='btn icon '+kind;b.innerHTML=ICON[kind];b.setAttribute('aria-label',label);b.title=label;
   b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();fn(b);});return b;
@@ -5077,8 +5044,9 @@ function popPage(){
   else if(pgOwner==='score'){scoreLevel=null;renderProgress();}
   else{histStack.pop();renderHistory();}
 }
-function pageBack(){
-  if(pgN>0){try{history.back();return;}catch(e){}}
+let pgSkip=0;   /* the popstates our own history.back() calls will fire, already handled */
+function pageBack(){   /* close now, then step the browser history back: a second Escape before the popstate must not leave the app */
+  if(pgN>0){pgN--;pgSkip++;try{history.back();}catch(e){pgSkip--;}}
   popPage();
 }
 function closePages(){
@@ -5086,7 +5054,7 @@ function closePages(){
   const n=pgN;pgN=0;histStack=[];scoreLevel=null;hidePage();
   if(n){try{history.go(-n);}catch(e){}}
 }
-window.addEventListener('popstate',()=>{if(pgN>0&&!$('pg').hidden){pgN--;popPage();}});
+window.addEventListener('popstate',()=>{if(pgSkip){pgSkip--;return;}if(pgN>0&&!$('pg').hidden){pgN--;popPage();}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('pg').hidden&&!document.querySelector('.pgov input:focus'))pageBack();});
 function renderHistory(){
   $('hvDay').classList.toggle('on',hview==='day');$('hvDay').setAttribute('aria-pressed',String(hview==='day'));
@@ -5127,19 +5095,18 @@ function runFigures(r){
 }
 const accHtml=(pc)=>pc===null?['—','muted']:accCell(pc);
 function listRow(title,mono,sub,dy,pc,onOpen,chev,run){   /* chev: {open} swaps the arrow for a chevron that opens the row in place; run adds Play for it */
-  const row=document.createElement('div');row.className='lrow'+(run?' pl':'');row.setAttribute('role','button');row.tabIndex=0;
-  const l=document.createElement('div');l.className='l';
-  const n=document.createElement('div');n.className='nm'+(mono?' seq':'');n.textContent=title;
-  const b=document.createElement('div');b.className='sb';b.textContent=sub;
-  l.appendChild(n);l.appendChild(b);
-  if(dy){const d=document.createElement('div');d.className='sb dy';d.textContent=dy;l.appendChild(d);}
-  const a=accHtml(pc),ac=document.createElement('div');ac.className='ac '+a[1];ac.textContent=a[0];
+  const row=document.createElement('div');row.className='row lrow';
+  const m=document.createElement('button');m.type='button';m.className='rmain';   /* the title and its lines are the button; Play sits beside it, not inside */
+  const n=document.createElement('span');n.className='rt'+(mono?' seq':'');n.textContent=title;
+  const b=document.createElement('span');b.className='rm';b.textContent=sub;
+  m.append(n,b);
+  if(dy){const d=document.createElement('span');d.className='rm dy';d.textContent=dy;m.appendChild(d);}
+  if(chev)m.setAttribute('aria-expanded',String(chev.open));
+  const a=accHtml(pc),ac=document.createElement('span');ac.className='ac '+a[1];ac.textContent=a[0];
   const u=document.createElement('small');u.textContent='ACC';ac.appendChild(u);
-  const ar=document.createElement('span');ar.className='ar'+(chev?' chv'+(chev.open?' up':''):'');ar.textContent=chev?'':'›';ar.setAttribute('aria-hidden','true');
-  if(chev)row.setAttribute('aria-expanded',String(chev.open));
-  row.appendChild(l);row.appendChild(ac);if(run)row.appendChild(replayBtn(run));row.appendChild(ar);
-  row.addEventListener('click',onOpen);
-  row.addEventListener('keydown',e=>{if(e.target===row&&(e.key==='Enter'||e.key===' ')){e.preventDefault();onOpen();}});
+  const ra=document.createElement('span');ra.className='ra';ra.appendChild(ac);if(run)ra.appendChild(replayBtn(run));ra.appendChild(rowArrow(chev?(chev.open?'up':'down'):'more'));
+  row.append(m,ra);
+  row.addEventListener('click',e=>{const t=e.target.closest('button');if(!t||t===m)onOpen();});
   return row;
 }
 let histOpen='',histAll=false;   /* the History row that is open, and whether it lists every run */
@@ -5225,7 +5192,7 @@ function runStrokes(page,r){
   const n=c=>st.split(c).length-1,rows=[[n('m'),'missed'],[n('b'),'off time'],[n('s'),n('s')===1?'accent too soft':'accents too soft'],[n('l'),n('l')===1?'ghost too loud':'ghosts too loud']].filter(x=>x[0]);
   if(!rows.length)return;
   const l2=document.createElement('div');l2.className='lbl';l2.textContent='What cost strokes';page.appendChild(l2);
-  rows.forEach(x=>{const w=document.createElement('div');w.className='wr';const t=document.createElement('div');t.textContent=x[0]+' '+x[1];w.appendChild(t);page.appendChild(w);});
+  rows.forEach(x=>{const w=document.createElement('div');w.className='row';const t=document.createElement('span');t.textContent=x[0]+' '+x[1];w.appendChild(t);page.appendChild(w);});
   const g=n('o'),d=st.length,e=document.createElement('div');e.className='sb';e.style.padding='8px 0';e.textContent=g+' of '+d+' strokes were on time and played as written.';page.appendChild(e);
 }
 function runLevelText(r){   /* the level card of the play results, from what a run keeps */
@@ -5280,27 +5247,27 @@ function renderRunPage(r){
     if(!off&&played.length>1){
       page.appendChild(lbl('Suggested practice'));
       played.slice().sort((x,y)=>pctOf(x)-pctOf(y)).slice(0,3).forEach(x=>{
-        const w=document.createElement('div');w.className='wr';
-        const n=document.createElement('div');n.className='seq';n.textContent=showKey(x.b.k);
-        const c=accCell(pctOf(x)),ac=document.createElement('div');ac.className='ac '+c[1];ac.textContent=c[0];const u=document.createElement('small');u.textContent='ACC';ac.appendChild(u);
-        w.appendChild(n);w.appendChild(ac);w.appendChild(practiseBtn(x.b.k,x.i,r));page.appendChild(w);});
+        const w=document.createElement('div');w.className='row';
+        const n=document.createElement('span');n.className='rt seq';n.textContent=showKey(x.b.k);
+        const c=accCell(pctOf(x)),ac=document.createElement('span');ac.className='ac '+c[1];ac.textContent=c[0];const u=document.createElement('small');u.textContent='ACC';ac.appendChild(u);
+        const ra=document.createElement('span');ra.className='ra';ra.append(ac,practiseBtn(x.b.k,x.i,r));
+        w.append(n,ra);page.appendChild(w);});
     }
     page.appendChild(lbl('All exercises'));
     played.forEach(x=>{
-      const b=x.b,row=document.createElement('div');row.className='exr';
-      const en=document.createElement('div');en.className='en';en.textContent=String(x.i||'');
-      const eb=document.createElement('div');
-      const n=document.createElement('div');n.className='seq';n.textContent=showKey(b.k);eb.appendChild(n);
-      const sn=document.createElement('div');sn.className='sn';
+      const b=x.b,row=document.createElement('div');row.className='row num';
+      const en=document.createElement('span');en.className='rn';en.textContent=String(x.i||'');
+      const n=document.createElement('span');n.className='rt seq';n.textContent=showKey(b.k);
+      const sn=document.createElement('span');sn.className='sn';
       const stat=(txt,unit,cls)=>{const m=document.createElement('span');if(cls)m.className=cls;m.textContent=txt;if(unit){const u=document.createElement('small');u.textContent=unit;m.appendChild(u);}sn.appendChild(m);};
       const c=off?['—','muted']:accCell(pctOf(x));
       stat(c[0],'ACC',c[1]);
       const hd=heardEnough(b);
       stat(hd&&typeof b.avg==='number'?fmtMs(b.avg,1):'—','ms',hd&&typeof b.avg==='number'?biasCls(b.avg):'muted');
       stat(hd&&typeof b.ls==='number'?'±'+b.ls.toFixed(1):'—','dB');
-      eb.appendChild(sn);eb.style.flex='1';eb.style.minWidth='0';row.appendChild(en);row.appendChild(eb);row.appendChild(practiseBtn(b.k,x.i,r));
-      if(played.length>1)row.appendChild(kebab('More actions',[{t:'Delete',fn:()=>dropExercise(r,b),arm:true,danger:true}]));
-      page.appendChild(row);});
+      const ra=document.createElement('span');ra.className='ra';ra.appendChild(practiseBtn(b.k,x.i,r));
+      if(played.length>1)ra.appendChild(kebab('More actions',[{t:'Delete',fn:()=>dropExercise(r,b),arm:true,danger:true}]));
+      row.append(en,n,sn,ra);page.appendChild(row);});
     const sk=items.length-played.length;
     if(sk){   /* not played: kept out of the scores, listed here so a stray one can be deleted */
       const d=document.createElement('details'),sm=document.createElement('summary');sm.textContent=sk+' not played';d.appendChild(sm);
@@ -5308,10 +5275,11 @@ function renderRunPage(r){
       sm.style.cssText='font:600 13px var(--font-data);text-transform:none;letter-spacing:0;padding:10px 0;color:var(--muted)';
       const inner=document.createElement('div');
       items.filter(x=>!x.b).forEach(x=>{
-        const row=document.createElement('div');row.className='exr';
-        const en=document.createElement('div');en.className='en';en.textContent=String(x.i||'');
-        const n=document.createElement('div');n.className='seq';n.textContent=showKey(x.k);n.style.flex='1';n.style.minWidth='0';
-        row.append(en,n,kebab('More actions',[{t:'Delete',fn:()=>dropExercise(r,(r.sk||[]).find(q=>q.i===x.i&&q.k===x.k)||{i:0}),arm:true,danger:true}]));
+        const row=document.createElement('div');row.className='row num';
+        const en=document.createElement('span');en.className='rn';en.textContent=String(x.i||'');
+        const n=document.createElement('span');n.className='rt seq';n.textContent=showKey(x.k);
+        const ra=document.createElement('span');ra.className='ra';ra.appendChild(kebab('More actions',[{t:'Delete',fn:()=>dropExercise(r,(r.sk||[]).find(q=>q.i===x.i&&q.k===x.k)||{i:0}),arm:true,danger:true}]));
+        row.append(en,n,ra);
         inner.appendChild(row);
       });
       d.appendChild(inner);page.appendChild(d);
@@ -5399,10 +5367,11 @@ function exerciseListEl(text,lv,dy){
   if(!ex.length)return null;
   const box=document.createElement('div');box.className='exercises lexs';
   ex.forEach(x=>{
-    const r=document.createElement('div');r.className='erow';
-    const n=document.createElement('span');n.className='muted';n.textContent=String(x.i);
-    const q=document.createElement('span');q.className='seq';q.textContent=showKey(x.k);
-    r.append(n,q,iconBtn('play','Play exercise '+x.i,()=>practisePattern(x.k,lv,dy)));
+    const r=document.createElement('div');r.className='row num';
+    const n=document.createElement('span');n.className='rn';n.textContent=String(x.i);
+    const q=document.createElement('span');q.className='rt seq';q.textContent=showKey(x.k);
+    const ra=document.createElement('span');ra.className='ra';ra.appendChild(iconBtn('play','Play exercise '+x.i,()=>practisePattern(x.k,lv,dy)));
+    r.append(n,q,ra);
     box.appendChild(r);
   });
   return box;
@@ -5718,15 +5687,16 @@ function fillExerciseList(box,onPick,menu){
   box.textContent='';
   const exercises=allExercises();
   exercises.forEach(b=>{
-    const row=document.createElement('div');row.className='erow';row.setAttribute('role','option');row.tabIndex=0;row.dataset.idx=b.idx;
+    const row=document.createElement('div');row.className='row num erow';row.setAttribute('role','option');row.tabIndex=0;row.dataset.idx=b.idx;
     row.addEventListener('click',()=>onPick(b.idx));
     row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onPick(b.idx);}});
-    const n=document.createElement('span');n.textContent=b.idx;
-    const q=document.createElement('span');q.className='seq';q.textContent=showPattern(b.notes,b.groupStart,b.subs,b.defSub,b.sig,b.src);
-    const m=document.createElement('span');m.className='meta';
+    const n=document.createElement('span');n.className='rn';n.textContent=b.idx;
+    const q=document.createElement('span');q.className='rt seq';q.textContent=showPattern(b.notes,b.groupStart,b.subs,b.defSub,b.sig,b.src);
+    const m=document.createElement('span');m.className='rm meta';
     m.textContent=b.passes+(b.passes===1?' pass':' passes')+' · '+fmtTime(b.secs)+(b.bpm!==S.bpm?' · @'+b.bpm:'');
-    row.append(n,q,m);
-    if(menu)row.appendChild(dotsBtn(()=>{onPick(b.idx);openRowMenu(b.idx);}));
+    const ra=document.createElement('span');ra.className='ra';ra.appendChild(m);
+    if(menu)ra.appendChild(dotsBtn(()=>{onPick(b.idx);openRowMenu(b.idx);}));
+    row.append(n,q,ra);
     box.appendChild(row);
   });
   box.hidden=!exercises.length;
@@ -5747,11 +5717,12 @@ function buildEditList(){
   fillExerciseList(box,editExercise,true);
   const lines=bLines();
   if(S.mode==='routine'&&bLine<lines.length&&bValid(lines,bLine)&&bExerciseLines().indexOf(bLine)<0){
-    const row=document.createElement('div');row.className='erow editing';row.setAttribute('role','option');row.tabIndex=0;row.dataset.idx='new';
-    const n=document.createElement('span');n.textContent='+';
-    const q=document.createElement('span');q.className='seq';q.textContent=lines[bLine].trim()||'(empty)';q.style.color='var(--muted)';
-    const m=document.createElement('span');m.className='meta';m.textContent='new';
-    row.append(n,q,m,dotsBtn(()=>openRowMenu('new')));
+    const row=document.createElement('div');row.className='row num erow editing';row.setAttribute('role','option');row.tabIndex=0;row.dataset.idx='new';
+    const n=document.createElement('span');n.className='rn';n.textContent='+';
+    const q=document.createElement('span');q.className='rt seq';q.textContent=lines[bLine].trim()||'(empty)';q.style.color='var(--muted)';
+    const m=document.createElement('span');m.className='rm meta';m.textContent='new';
+    const ra=document.createElement('span');ra.className='ra';ra.append(m,dotsBtn(()=>openRowMenu('new')));
+    row.append(n,q,ra);
     const after=[...box.querySelectorAll('.erow')].find(r=>{const e=routineParsed.exercises[(+r.dataset.idx)-1];return e&&e.line>bLine;});
     box.insertBefore(row,after||null);box.hidden=false;
   }
@@ -6061,10 +6032,11 @@ function openPick(){
     const sm=document.createElement('summary');sm.textContent=g+' ('+items.length+')';
     const body=document.createElement('div');body.className='gb';
     items.forEach(([e,label])=>{
-      const b=document.createElement('button');b.type='button';b.className='pickrow'+(e.id===S.libId?' on':'');
+      const b=document.createElement('button');b.type='button';b.className='row'+(e.id===S.libId?' cur':'');
       const n=exerciseCount(e.x);
-      b.innerHTML='<span></span><small></small>';b.firstChild.textContent=label;b.lastChild.textContent=n+(n===1?' exercise':' exercises');
-      if(n>1){const i=routineInfoOf(parseRoutine(e.x));if(i.max){b.lastChild.appendChild(document.createElement('br'));b.lastChild.appendChild(document.createTextNode(maxText(i.max)));}}
+      b.innerHTML='<span class="rt"></span><span class="ra"><span class="rm"></span></span>';b.firstChild.textContent=label;
+      const d=b.lastChild.firstChild;d.textContent=n+(n===1?' exercise':' exercises');
+      if(n>1){const i=routineInfoOf(parseRoutine(e.x));if(i.max){d.appendChild(document.createElement('br'));d.appendChild(document.createTextNode(maxText(i.max)));}}
       b.addEventListener('click',()=>{
         if(e.id===S.libId){closePick();return;}
         closePick();guard(()=>loadEntry(e));
@@ -6084,11 +6056,11 @@ function renderLibraryPage(){
   $('lsName').classList.toggle('on',byName);$('lsName').setAttribute('aria-pressed',String(byName));
   const list=recs.lib.slice().sort(byName?(a,b)=>entryName(a).localeCompare(entryName(b),undefined,{numeric:true,sensitivity:'base'}):(a,b)=>b.t-a.t),st=scratchState(),locked=!!(run&&!run.ended);
   if(st==='scratch'){
-    const row=document.createElement('div');row.className='hrow flat lib';
-    const sm=document.createElement('div');sm.className='sm';
-    const n=document.createElement('span');n.className='hn';n.textContent=curName();
-    const hs=document.createElement('span');hs.className='hs';hs.textContent='Not in your library';
-    const ac=document.createElement('span');ac.className='ha';
+    const row=document.createElement('div');row.className='hrow';
+    const sm=document.createElement('div');sm.className='row';
+    const n=document.createElement('span');n.className='rt';n.textContent=curName();
+    const hs=document.createElement('span');hs.className='rm';hs.textContent='Not in your library';
+    const ac=document.createElement('span');ac.className='ra';
     ac.appendChild(iconBtn('edit','Edit',()=>openEditor('library')));
     ac.appendChild(iconBtn('play','Play',()=>showTab('play')));
     sm.append(n,hs,ac);row.appendChild(sm);box.appendChild(row);
@@ -6100,23 +6072,24 @@ function renderLibraryPage(){
   const deleteEntry=e=>{const was=e.id===S.libId,name=recs.names[libKey(e)],label=entryName(e);removeLibEntry(e);renderLibraryPage();libUndo(e,was,name,label);};
   const mkEntry=(e,label)=>{
     const k=libKey(e),mine=recs.runs.filter(r=>(r.mode==='routine'?r.rk:r.exercises[0].k)===k);
-    const det=document.createElement('details');det.className='hrow hgrp';
-    const sm=document.createElement('summary');
-    const n=document.createElement('span');n.className='hn';n.textContent=label;
-    const c=exerciseCount(e.x),hs=document.createElement('span');hs.className='hs';
+    const det=document.createElement('div');det.className='hrow';
+    const sm=document.createElement('div');sm.className='row';
+    const n=document.createElement('span');n.className='rt'+(!recs.names[k]&&!isRoutineKey(k)?' seq':'');n.textContent=label;   /* mono when the title is the sticking */
+    const c=exerciseCount(e.x),hs=document.createElement('span');hs.className='rm';
     const latest=mine.reduce((m,r)=>Math.max(m,r.t),0);
     hs.textContent=c+(c===1?' exercise':' exercises')+' · '+mine.length+(mine.length===1?' run':' runs')+(latest?' · latest '+dayWord(latest):'')+(e.id===S.libId?(st==='dirty'?' · open, unsaved changes':' · open'):'');
-    const ac=document.createElement('span');ac.className='ha';
+    const ac=document.createElement('span');ac.className='ra';
     const ed=iconBtn('edit','Edit',()=>editEntry(e)),pl=iconBtn('play','Play',()=>playEntry(e));
     ed.disabled=pl.disabled=locked;
     const km=kebab('More actions',[{t:'Download',fn:()=>downloadEntry(e)},{t:'Delete',fn:()=>deleteEntry(e),arm:true,danger:true}]);
     /* The chevron shows when opening the row reveals something the row does not already say: more than one exercise, or an exercise behind a title. */
     const more=exerciseCount(e.x)>1||!!recs.names[libKey(e)];
-    const ex=more?iconBtn('down','Show exercises',()=>{det.open=!det.open;}):document.createElement('span');
-    if(more){ex.setAttribute('aria-expanded','false');det.addEventListener('toggle',()=>ex.setAttribute('aria-expanded',String(det.open)));}else ex.className='btn icon gap';
+    const body=document.createElement('div');body.className='hb';body.hidden=true;
+    const setOpen=o=>{det.classList.toggle('open',o);body.hidden=!o;ex.setAttribute('aria-expanded',String(o));};
+    const ex=more?iconBtn('down','Show exercises',()=>setOpen(body.hidden)):document.createElement('span');
+    if(more){ex.setAttribute('aria-expanded','false');sm.addEventListener('click',ev=>{if(!ev.target.closest('button'))setOpen(body.hidden);});sm.classList.add('tog');}else ex.className='btn icon gap';
     ac.append(ed,pl,km,ex);
     sm.append(n,hs,ac);det.appendChild(sm);
-    const body=document.createElement('div');body.className='hb';
     const exl=exerciseListEl(e.x);if(exl)body.appendChild(exl);
     det.appendChild(body);
     return det;
@@ -6181,10 +6154,10 @@ function renderLinks(){
   S.lists.forEach(l=>{
     if(l===lnkEdit){box.appendChild(form(l));return;}
     const nm=document.createElement('b'),ur=document.createElement('span'),ac=document.createElement('span');
-    nm.textContent=listName(l);ur.className='lnkurl';ur.textContent=l.url;ac.className='ha';
+    nm.className='rt';nm.textContent=listName(l);ur.className='rm lnkurl';ur.textContent=l.url;ac.className='ra';
     ac.appendChild(iconBtn('edit','Edit',()=>{lnkEdit=l;renderLinks();}));
     ac.appendChild(kebab('More actions',[{t:'Delete',fn:()=>{S.lists=S.lists.filter(q=>q!==l);if(S.listSel===l.url){S.listSel='';lib={items:[],loaded:false,busy:false,cur:''};}libMode='';save();renderLibrary();},arm:true,danger:true}]));
-    const inner=document.createElement('div');inner.className='lnkrow';inner.append(nm,ur,ac);
+    const inner=document.createElement('div');inner.className='row';inner.append(nm,ur,ac);
     box.appendChild(inner);
   });
   if(lnkEdit===NEW)box.appendChild(form(NEW));
@@ -6204,10 +6177,10 @@ function renderLibrary(){
   lib.items.forEach(it=>{
     const b=document.createElement('button');
     const have=inLib(it);
-    b.type='button';b.className='libitem'+(have?' have':'')+(it===lib.cur?' cur':'');b.setAttribute('role','listitem');
+    b.type='button';b.className='row'+(it===lib.cur?' cur':'');b.setAttribute('role','listitem');
     b.disabled=lib.busy||!!(run&&!run.ended);
-    const n=document.createElement('b');n.textContent=it.title;
-    const h=document.createElement('span');h.textContent=have?'In library':'New';
+    const n=document.createElement('span');n.className='rt'+(have?' have':'');n.textContent=it.title;
+    const h=document.createElement('span');h.className='ra';h.innerHTML='<span class="rm"></span>';h.firstChild.textContent=have?'In library':'New';
     b.append(n,h);
     b.addEventListener('click',()=>openLibraryItem(it));
     box.appendChild(b);
