@@ -162,9 +162,7 @@ body[data-run="1"] .notice{display:none}
 .hand.rest{border:2px dashed var(--line);color:var(--muted);font-size:18px}
 .rowswrap{position:relative}
 #exBox .hint{margin:8px 0 0}
-.rows.pick .prow{cursor:pointer}
-.rows.pick{user-select:none;-webkit-user-select:none}   /* the page scrolls over it; only a finished run's staff scrolls on its own */
-.rows.pick:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.rows:focus-visible{outline:2px solid var(--accent);outline-offset:3px}   /* the staff only shows: the start exercise is chosen in the exercise list */
 .bigcount{position:absolute;inset:0 0 auto 0;height:100%;max-height:260px;z-index:5;display:grid;place-items:center;font:800 var(--t-hero) var(--font-display);font-variant-numeric:tabular-nums;color:var(--accent);background:color-mix(in srgb,var(--bg) 80%,transparent);border-radius:10px;pointer-events:none}   /* the count-in: the hero while it runs */
 .rows{border-radius:10px;--rowh:124px;--nrows:3}
 .staffs{display:grid;gap:2px}
@@ -686,11 +684,12 @@ output.bigbpm{display:block;font:800 var(--t-hero) var(--font-display);font-vari
 .res .sbar i{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--fill);min-width:10px}
 .res .sbar u{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);opacity:.7}
 .res .scap{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted)}
+.res .swin{margin:0;font:600 var(--t-caption) var(--font-body)}   /* the window bonus, under the share */
 .res .sacc{display:flex;gap:14px;align-items:center;border-top:1px solid var(--line);padding-top:10px}
 .res .sacc b{font:800 var(--t-display) var(--font-display);font-variant-numeric:tabular-nums;white-space:nowrap}
 .res[data-ok="1"] .sacc b{color:var(--ok)}
 .res .sacc>span{font-size:13px;color:var(--muted)}
-.res.solo .slab,.res.solo .shd,.res.solo .sbar,.res.solo .scap{display:none}
+.res.solo .slab,.res.solo .shd,.res.solo .sbar,.res.solo .scap,.res.solo .swin{display:none}
 .res.solo .sacc{border-top:0;padding-top:0}
 .res.solo .sacc b{font-size:56px}
 #advice{gap:10px}
@@ -743,10 +742,12 @@ button[data-armed],.btn[data-armed],.rmenu button[data-armed]{background:var(--d
       <div class="fields">
         <div class="field"><label for="tol">On-time window</label>
           <select id="tol">
-            <option value="10">± 10 ms</option>
-            <option value="15">± 15 ms</option>
-            <option value="20">± 20 ms</option>
-            <option value="30">± 30 ms</option>
+            <option value="10">± 10 ms · tight, points ×2</option>
+            <option value="15">± 15 ms · tight, points ×1.75</option>
+            <option value="20">± 20 ms · standard, points ×1.5</option>
+            <option value="30">± 30 ms · relaxed, points ×1.25</option>
+            <option value="40">± 40 ms · relaxed, points ×1.1</option>
+            <option value="50">± 50 ms · relaxed</option>
           </select></div>
         <div class="field"><label for="pulse">Visual pulse</label>
           <select id="pulse"><option value="on">On</option><option value="off">Off</option></select></div>
@@ -1254,7 +1255,7 @@ RLRR LRLL RLRR LRLL</pre>
       <h3>Scores, tempo and progress</h3>
       <ul>
         <li><b>On time</b> is the share of due strokes inside your on-time window. With an accent or ghost rule a stroke must also be played as written: an accent clearly louder and a ghost clearly softer than its neighbours. An exercise needs at least one full pass to be scored.</li>
-        <li><b>Score:</b> every run is scored when Scored is on. Each stroke earns points by its timing and the click level: on time scores most, off time a little, and a miss scores nothing (it costs 2 on Extreme and 5 on Master). A rest keeps the streak going and scores nothing, and a hit on it is a miss. Strokes on time in a row add a quarter to a multiplier, up to five times. An off-time stroke takes the streak back two steps, and a miss resets it. Faster strokes score more: 240 strokes a minute (sixteenths at 60 BPM) counts once, and the range is half to double. The streak carries from one exercise to the next. The total never goes below zero. Your best score at each click level is an achievement, and a new one is announced when the run ends.</li>
+        <li><b>Score:</b> every run is scored when Scored is on. Each stroke earns points by its timing and the click level: on time scores most, off time a little, and a miss scores nothing (it costs 2 on Extreme and 5 on Master). A rest keeps the streak going and scores nothing, and a hit on it is a miss. Strokes on time in a row add a quarter to a multiplier, up to five times. An off-time stroke takes the streak back two steps, and a miss resets it. Faster strokes score more: 240 strokes a minute (sixteenths at 60 BPM) counts once, and the range is half to double. A narrower on-time window earns a bonus: ±50 ms counts once, ±20 ms one and a half times and ±10 ms twice. The maximum uses the same multipliers, so a flawless run is 100% at any window, and your best share is kept for each window. The streak carries from one exercise to the next. The total never goes below zero. Your best score at each click level is an achievement, and a new one is announced when the run ends.</li>
         <li><b>Medals:</b> each exercise gets a medal for each click level, from the fastest tempo you have cleared it at. It is measured in strokes a minute, so sixteenths count for more than eighths at the same BPM. Hickory is cleared at any speed, then Bronze at 120 strokes a minute, Silver 180, Gold 240, Platinum 320, Sapphire 400, Ruby 480 and Diamond 600. Sixteenths at 60 BPM is 240, so Gold.</li>
         <li><b>Exercise table:</b> after a routine run, each exercise gets its accuracy, average error and spread, plus your earlier best at that tempo.</li>
         <li><b>The target is 90%.</b> An exercise is "cleared" at a tempo when it reaches 90% there. After a run the app names the weak exercises and suggests staying at that tempo until they settle. Any tempo is always allowed.</li>
@@ -1426,6 +1427,7 @@ RLRR LRLL RLRR LRLL</pre>
         <div class="shd"><b id="advScore"></b><span id="advMax"></span><em id="advHs" hidden>New high score</em></div>
         <div class="sbar" id="advScoreBar"><i></i><u></u></div>
         <div class="scap"><span id="advOfMax"></span><span id="advPrev"></span></div>
+        <p class="swin" id="advBonus" hidden></p>
         <div class="sacc"><b id="advPct"></b><span>on time<small><span id="advStat"></span> &middot; <span id="advSub"></span></small></span></div>
       </div>
       <p class="insight" id="advHead"></p>
@@ -2128,9 +2130,10 @@ function clearedBefore(runs,k,lv,sum,dy){
   return m;
 }
 /* Runs that age out of the detail list are folded into a small permanent summary, so totals, streaks, badges and cleared tempos never shrink. */
-const newSum=()=>({runs:0,sec:0,days:{},pat:{},rt:{},cr:0,pf:0,hs:{},hr:{}});
+const newSum=()=>({runs:0,sec:0,days:{},pat:{},rt:{},cr:0,cs:0,pf:0,hs:{},hr:{}});
 /* A clean routine run: two or more exercises played right through, every one at the target. A perfect exercise: at least 16 strokes, every one on time. */
 const sweepRun=run=>run.lv!=='off'&&run.ne>=2&&run.exercises.length>=run.ne&&run.exercises.every(b=>b.due>0&&b.within/b.due>=TARGET);
+const runStrokes=run=>run.exercises.reduce((n,b)=>n+(b.due||0),0);   /* the strokes a run asked for */
 const perfectN=run=>run.lv==='off'?0:run.exercises.filter(b=>b.due>=16&&b.within>=b.due).length;
 /* Score. Every stroke scores by its timing at the run's click level, and strokes on time in a row build a bonus. The codes are o on time, b off time, m missed, r a rest left alone, in the order played. */
 const LV_PTS={strokes:[1,3,0],beat:[2,5,0],half:[3,10,0],bar:[4,15,-2],none:[5,20,-5]};   /* off time, on time, miss */
@@ -2138,6 +2141,11 @@ const STREAK_MOD=0.25,STREAK_CAP=16,STREAK_SLIP=2;   /* each stroke on time adds
 const streakAfter=(streak,c)=>c==='o'?Math.min(STREAK_CAP,streak+1):(c==='m'?0:Math.max(0,streak-STREAK_SLIP));
 /* Faster strokes score more: 240 strokes a minute (Gold pace, sixteenths at 60 BPM) is x1, between half and double. */
 const tempoMult=(k,bpm)=>{const r=strokeRate(k,bpm);return r>0?Math.min(2,Math.max(0.5,r/240)):1;};
+/* A narrower on-time window earns a bonus: the widest, ±50 ms, is x1, and nobody starts at a discount. Every maximum carries the same multiplier, so a flawless run is 100% at any window and only the points differ. */
+const WIN_MULT={10:2,15:1.75,20:1.5,30:1.25,40:1.1,50:1};
+const winMult=tol=>WIN_MULT[tol]||1;
+/* Every modifier on a stroke's points, in one place: each score and each maximum uses this, so they can never disagree. */
+const strokeMult=(k,bpm,tol)=>tempoMult(k,bpm)*winMult(tol);
 /* parts: [codes, tempo multiplier] for each exercise in order, so the streak carries from one to the next. */
 function scoreParts(parts,lv){
   const p=LV_PTS[lv];if(!p)return 0;
@@ -2163,7 +2171,7 @@ function unpackStrokes(sp){
   return out;
 }
 const exCodes=b=>typeof b.q==='string'?b.q:(typeof b.sp==='string'?unpackStrokes(b.sp).map(x=>x.r==='s'||x.r==='l'?'b':x.r).join(''):'');
-const runScore=run=>scoreParts(run.exercises.map(b=>[exCodes(b),tempoMult(b.k,b.bpm||run.bpm)]),run.lv);
+const runScore=run=>scoreParts(run.exercises.map(b=>[exCodes(b),strokeMult(b.k,b.bpm||run.bpm,run.tol)]),run.lv);
 /* The score of a flawless run at a level: every stroke on time. segs is [strokes, tempo multiplier] for each exercise in order. */
 const maxPoints=(segs,lv)=>{
   const p=LV_PTS[lv];if(!p)return 0;const c=STREAK_CAP;
@@ -2172,9 +2180,11 @@ const maxPoints=(segs,lv)=>{
   return Math.round(p[1]*t);
 };
 /* A run's score as a share of its own flawless maximum, so runs of different length can be compared. */
-const runMax=run=>maxPoints(run.exercises.map(b=>[b.due,tempoMult(b.k,b.bpm||run.bpm)]),run.lv);
+const runMax=run=>maxPoints(run.exercises.map(b=>[b.due,strokeMult(b.k,b.bpm||run.bpm,run.tol)]),run.lv);   /* the same modifiers as runScore, so a run can never pass 100% */
 const runShare=run=>{const m=runMax(run);return m>0?runScore(run)/m:0;};
-function bestShares(runs,sum){const o=Object.assign({},sum&&sum.hr);runs.forEach(r=>{const v=runShare(r);if(v>(o[r.lv]||0))o[r.lv]=v;});return o;}
+/* The best share is kept per level and window: a share at ±50 ms is not the same feat as at ±10. */
+const shareKey=(lv,tol)=>lv+'|'+(tol||20);
+function bestShares(runs,sum){const o=Object.assign({},sum&&sum.hr);runs.forEach(r=>{const k=shareKey(r.lv,r.tol),v=runShare(r);if(v>(o[k]||0))o[k]=v;});return o;}
 /* How a run's score came about: strokes due, on time, off time and missed, hits on a rest, the longest streak on time, and the average tempo multiplier. */
 function scoreBreakdown(run){
   let on=0,off=0,miss=0,streak=0,best=0,n=0,mw=0,due=0,unplayed=0;
@@ -2194,8 +2204,8 @@ function highScores(runs,sum){const o=Object.assign({},sum&&sum.hs);runs.forEach
 function foldRun(sum,run){
   sum.runs++;sum.sec+=run.sec||0;
   {const v=runScore(run);sum.hs=sum.hs||{};if(v>(sum.hs[run.lv]||0))sum.hs[run.lv]=v;}
-  {const v=Math.round(runShare(run)*1e4)/1e4;sum.hr=sum.hr||{};if(v>(sum.hr[run.lv]||0))sum.hr[run.lv]=v;}
-  if(sweepRun(run))sum.cr=Math.max(sum.cr||0,run.sec||0);
+  {const v=Math.round(runShare(run)*1e4)/1e4,k=shareKey(run.lv,run.tol);sum.hr=sum.hr||{};if(v>(sum.hr[k]||0))sum.hr[k]=v;}
+  if(sweepRun(run)){sum.cr=Math.max(sum.cr||0,run.sec||0);sum.cs=Math.max(sum.cs||0,runStrokes(run));}
   sum.pf=(sum.pf||0)+perfectN(run);
   const dk=dayKey(run.t);sum.days[dk]=(sum.days[dk]||0)+(run.sec||0);
   if(run.lv==='off')return;
@@ -2243,9 +2253,9 @@ LEVELS.forEach(l=>BADGES.push({id:'l'+l.v,lv:l.v,name:l.n,unit:'exercises cleare
 BADGES.push({id:'all',name:'On every level',unit:'exercises cleared on every level',at:LADDER});
 BADGES.push({id:'dyn',name:'Accents and ghosts',unit:'accent or ghost exercises cleared',one:'accent or ghost exercise cleared',at:LADDER});
 /* High scores, in points. Master's ladder is the base; each other level's is scaled by what an on-time stroke is worth there, so every level reaches its top step with the same effort. */
-const HSL=[100,500,1000,2500,5000,10000,25000,50000,100000,250000];
+const HSL=[150,750,1500,3750,7500,15000,37500,75000,150000,375000];   /* x1.5 of the old ladder, as the standard ±20 ms window now scores x1.5 */
 LEVELS.forEach(l=>BADGES.push({id:'h'+l.v,lv:l.v,hs:true,name:l.n,unit:'points',one:'point',at:HSL.map(n=>+(n*LV_PTS[l.v][1]/LV_PTS.none[1]).toPrecision(2))}));
-BADGES.push({id:'cln',name:'Longest clean run',lead:'Longest clean run',suf:' min',unit:'min, longest routine run with every exercise cleared',at:[5,10,15,20,30,45,60]});
+BADGES.push({id:'cln',name:'Longest clean run',lead:'Longest clean run',suf:' strokes',unit:'strokes, longest routine run with every exercise cleared',at:[250,500,1000,2000,3000,5000,7500]});   /* strokes, not minutes: a short routine counts, and so does a fast one */
 BADGES.push({id:'prf',name:'Perfect exercises',unit:'perfect exercises',one:'perfect exercise',at:LADDER});
 BADGES.push({id:'tmp',name:'Fastest clear',lead:'Fastest clear',suf:' BPM',unit:'BPM, fastest exercise cleared',at:[40,60,80,100,120,140,160]});
 /* Each step has a written name and each badge a glyph. The look of a step (its tier) follows how far up its ladder it sits, so every ladder runs from plain wood to diamond. */
@@ -2254,7 +2264,7 @@ const STEPNAMES={ses:['Showing up','Regular','Steady hands','Dedicated','Road-te
   ladder:['First Beat','Making Noise','Finding Your Feet','Getting Into Rhythm','Finding Your Pocket','Groove Master','Groove Machine','Rhythm Authority','Rhythm Royalty','The Real Deal'],
   prf:['Spotless','Crisp','Tight','Surgical','Metronome','Machine','Clockwork','Pinpoint','Untouchable','Perfect pocket'],
   hs:['On the Board','Warming Up','Feeling the Groove','Locked In','In the Pocket','Deep Groove','Beat Master','Time Keeper','Pocket Legend','Legendary'],
-  cln:['Warmed through','Ten straight','Quarter hour','Twenty flat','Half hour','Three quarters','Full hour'],
+  cln:['Clean start','Steady hands','Clean thousand','Two thousand clean','Three thousand clean','Long haul','Iron wrists'],
   tmp:['Slow burn','Easy groove','Cruising','Hundred club','Picking up','Fast hands','Speed demon']};
 const GLYPHS={lstrokes:'lv1',lbeat:'lv2',lhalf:'lv3',lbar:'lv4',lnone:'lvM',hstrokes:'lv1',hbeat:'lv2',hhalf:'lv3',hbar:'lv4',hnone:'lvM',ses:'drum',str:'cal',all:'lvA',dyn:'acc',cln:'sweep',prf:'target',tmp:'metro'};
 BADGES.forEach(b=>{b.nm=STEPNAMES[b.id]||(b.hs?STEPNAMES.hs:STEPNAMES.ladder);b.gl=GLYPHS[b.id]||'tick';});
@@ -2274,13 +2284,13 @@ function strokesPerBeat(k){
 const strokeRate=(k,bpm)=>Math.round(strokesPerBeat(k)*bpm);
 const masteryTier=(k,bpm)=>{const r=strokeRate(k,bpm);return RATE_AT.filter(n=>r>=n).length;};
 const tierOf=(i,n)=>n<2?0:Math.round(i/(n-1)*7);   /* where a step sits on its ladder, as one of the eight medal looks */
-const fmtBadge=(b,n)=>b.lead?b.lead+' '+n+(b.suf||''):(n===1&&b.one?'1 '+b.one:(n.toLocaleString('en-US')+' '+b.unit).replace(/^1 exercises/,'1 exercise'));
+const fmtBadge=(b,n)=>b.lead?b.lead+' '+n.toLocaleString('en-US')+(b.suf||''):(n===1&&b.one?'1 '+b.one:(n.toLocaleString('en-US')+' '+b.unit).replace(/^1 exercises/,'1 exercise'));
 const BGROUPS=[{name:'Runs',d:'Runs where at least one exercise was played through once and scored.',ids:['ses']},
   {name:'Days in a row',d:'Your longest run of practice days. A day counts at 5 minutes or more. One rest day a week does not break it.',ids:['str']},
   {name:'Exercises cleared',d:'An exercise is cleared on a level when you play it at 90% or more of strokes on time at that click level. Each exercise counts once on each level, whatever the accent rule. Each level is cleared on its own. The table counts exercises by the fastest tempo they were cleared at.',grid:true,ids:['lstrokes','lbeat','lhalf','lbar','lnone','all']},
   {name:'Accents and ghosts',d:'Exercises cleared with an accent or ghost rule: 90% or more of strokes on time and played as written. The same exercise with another rule counts again.',ids:['dyn']},
   {name:'High score',d:'Your best score in one run, at each click level. Every stroke scores by its timing: on time scores most, off time a little, a miss nothing (it costs points on Extreme and Master). Strokes on time in a row build a bonus of up to five times. Harder levels score more, and so do faster strokes: 240 strokes a minute counts once, from half to double.',ids:['hstrokes','hbeat','hhalf','hbar','hnone']},
-  {name:'Longest clean run',d:'The most minutes of one routine, played start to finish, with every exercise at 90% or more.',ids:['cln']},
+  {name:'Longest clean run',d:'The most strokes in one routine, played start to finish, with every exercise at 90% or more. A routine of any length counts.',ids:['cln']},
   {name:'Perfect exercises',d:'An exercise of at least 16 strokes with every stroke on time.',ids:['prf']},
   {name:'Tempo',d:'The fastest tempo at which you have cleared any exercise.',ids:['tmp']}];
 /* Cleared exercises per level: each sticking once, at the fastest tempo it was cleared at, whatever the accent rule. */
@@ -2297,7 +2307,7 @@ function badgeValues(runs,sum){
   o.all=[...by[LEVELS[0].v].keys()].filter(k=>LEVELS.every(l=>by[l.v].has(k))).length;
   o.dyn=st.filter(e=>e.dy).length;
   {const hs=highScores(runs,sum);LEVELS.forEach(l=>{o['h'+l.v]=hs[l.v]||0;});}
-  o.cln=Math.floor(Math.max(sum&&sum.cr||0,...runs.filter(sweepRun).map(r=>r.sec||0))/60);
+  o.cln=Math.max(sum&&sum.cs||0,...runs.filter(sweepRun).map(runStrokes));
   o.prf=(sum&&sum.pf||0)+runs.reduce((n,r)=>n+perfectN(r),0);
   o.tmp=st.reduce((m,e)=>Math.max(m,e.cleared),0);
   return o;
@@ -2636,7 +2646,7 @@ function parseLibrary(text,max){
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const VERSION='1.5.32';                           /* shown beside the title */
+const VERSION='1.5.37';                           /* shown beside the title */
 const KEY='stick-timing-trainer.v1';
 const CAL_N=12;
 const MAX_TEXT=200000;
@@ -2665,7 +2675,7 @@ S.latCal=S.latCal===true;                          /* set once a calibration has
 S.editTab=S.editTab==='type'?'type':'build';       /* Build or Type, remembered on each device. Build is first. */
 S.bpm=clamp(Math.round(+S.bpm)||60,40,220);
 S.subdiv=4;                                        /* strokes with no note code are sixteenths */
-S.tol=[10,15,20,30].includes(+S.tol)?+S.tol:20;
+S.tol=[10,15,20,30,40,50].includes(+S.tol)?+S.tol:20;
 S.sens=clamp(Math.round(+S.sens)||-30,-55,-8);
 S.accent=/^[gbm2-7RL]?$/.test(S.accent)?S.accent:'';   /* which strokes are accented */
 S.others=S.others==='g'?'g':'n';                          /* the other strokes: normal or ghost */
@@ -2769,8 +2779,9 @@ function unpackRecs(o){
   });
   const q=o.sum;
   if(q&&typeof q==='object'){
-    sum.runs=Math.max(0,num(q.runs));sum.sec=Math.max(0,num(q.sec));sum.cr=Math.max(0,num(q.cr));sum.pf=Math.max(0,num(q.pf));
-    LEVELS.forEach(l=>{const v=Math.max(0,Math.round(num(q.hs&&q.hs[l.v])));if(v)sum.hs[l.v]=v;const h=Math.min(1,Math.max(0,num(q.hr&&q.hr[l.v])));if(h)sum.hr[l.v]=h;});
+    sum.runs=Math.max(0,num(q.runs));sum.sec=Math.max(0,num(q.sec));sum.cr=Math.max(0,num(q.cr));sum.cs=Math.max(0,num(q.cs))||Math.round(sum.cr*4);   /* records from before strokes were kept have only seconds: 4 strokes a second, sixteenths at 60 BPM */sum.pf=Math.max(0,num(q.pf));
+    LEVELS.forEach(l=>{const v=Math.max(0,Math.round(num(q.hs&&q.hs[l.v])));if(v)sum.hs[l.v]=v;});
+    Object.keys(q.hr||{}).forEach(k=>{const m=/^([a-z]+)(?:\|(\d+))?$/.exec(k),h=Math.min(1,Math.max(0,num(q.hr[k])));if(m&&LEVELS.some(l=>l.v===m[1])&&h)sum.hr[shareKey(m[1],+m[2]||20)]=h;});   /* a best kept before windows were told apart was at ±20 ms */
     Object.keys(q.days||{}).forEach(k=>{if(/^\d{4}-\d\d-\d\d$/.test(k))sum.days[k]=Math.max(0,num(q.days[k]));});
     (q.pat||[]).forEach(e=>{
       const k=items[e&&e.k];if(typeof k!=='string'||!Array.isArray(e.tr)||!e.tr.length||!LEVELS.some(l=>l.v===e.lv))return;
@@ -2793,7 +2804,7 @@ function packRecs(sel){   /* sel says which parts to include; none given means t
     return o;
   });
   const q=recs.sum,out={v:2};
-  if(sel.hist)out.sum={runs:q.runs,sec:q.sec,cr:q.cr||0,pf:q.pf||0,hs:q.hs||{},hr:q.hr||{},days:q.days,rt:q.rt,pat:Object.keys(q.pat).map(k=>Object.assign({},q.pat[k],{k:hk(q.pat[k].k)}))};
+  if(sel.hist)out.sum={runs:q.runs,sec:q.sec,cr:q.cr||0,cs:q.cs||0,pf:q.pf||0,hs:q.hs||{},hr:q.hr||{},days:q.days,rt:q.rt,pat:Object.keys(q.pat).map(k=>Object.assign({},q.pat[k],{k:hk(q.pat[k].k)}))};
   if(sel.lib)out.lib=recs.lib.map(e=>({id:e.id,x:hk(e.x),t:e.t}));
   if(sel.lists)out.lists=S.lists.map(l=>({url:l.url,name:l.name||undefined}));
   if(sel.set){out.settings={};PORTABLE.forEach(k=>{out.settings[k]=S[k];});}
@@ -3215,10 +3226,15 @@ function tick(){
   if(r.nextFin>=plan.slots.length)endRun();
 }
 /* The score as the run goes. Strokes judged too soft or too loud only count against it when the run ends, so the final score can come out a little lower. */
+/* The on-time window for a stroke: the setting, capped at 40% of the stroke spacing (sl.w is half of it), so at a fast tempo neighbouring strokes stay apart. */
+const slotTol=sl=>Math.min(S.tol,Math.round(sl.w*800));
+/* The window, as said beside a score when it is not the standard one. */
+/* The window's bonus, as its own line on a score card; none at the widest window. */
+const winNote=tol=>winMult(tol)>1?'\u00b1'+(tol||20)+' ms window: points \u00d7'+winMult(tol):'';
 function liveScore(r,sg,c){
   if(!r.hud)return;
   const p=LV_PTS[S.click],si=r.plan.segs.indexOf(sg);
-  if(r.tm[si]===undefined)r.tm[si]=tempoMult(patKey(sg.notes,sg.groupStart,sg.subs,sg.defSub,sg.sig),sg.bpm);
+  if(r.tm[si]===undefined)r.tm[si]=strokeMult(patKey(sg.notes,sg.groupStart,sg.subs,sg.defSub,sg.sig),sg.bpm,S.tol);
   const m=r.tm[si];let d;
   d=m*(c==='o'?p[1]*(1+STREAK_MOD*r.sk):(c==='m'?p[2]:p[0]));
   r.sk=streakAfter(r.sk,c);
@@ -3277,13 +3293,13 @@ function finalizeSlot(i){
     r.errs.push(ms);Q.errs.push(ms);r.hand[hand].push(ms);Q.hand[hand].push(ms);
     const db=h.kb?null:strokeDb(h.pk,h.raw);
     if(db!==null){r.lv.push({db:db,hand:hand,dy:sl.dy||''});Q.lv.push({db:db,hand:hand,dy:sl.dy||''});}
-    const on=Math.abs(ms)<=S.tol;
+    const on=Math.abs(ms)<=slotTol(sl);
     if(db!==null&&sl.dy&&!sl.tight)r.dyl.push({db:db,dy:sl.dy,si:sl.seg,ci:Q.sc.length,on:on});
     Q.sy.push(sl.dy||'n');Q.sw.push(wrong?1:0);Q.sm.push(Math.round(ms));Q.sb.push(db===null?null:Math.round(db));
     Q.ev.push({t:sl.t,ci:Q.sc.length});Q.sc.push(on?'o':'b');liveScore(r,sg,on?'o':'b');   /* o on time, b off time, m missed; s and l (accent too soft, ghost too loud) are set when the run ends */
     r.seq.push({db:db,hand:hand,dy:sl.dy||''});if(r.seq.length>STRIP_MAX)r.seq.shift();   /* one entry per stroke due, so a miss leaves a gap in the level bars */
     r.missRun=0;if(r.mode==='lat')latLive(r);
-    if(Math.abs(ms)<=S.tol){r.within++;Q.within++;r.streak++;if(r.streak>r.best)r.best=r.streak;}else r.streak=0;
+    if(on){r.within++;Q.within++;r.streak++;if(r.streak>r.best)r.best=r.streak;}else r.streak=0;
     Q.posSum[pos]+=ms;Q.posCnt[pos]++;
     r.trace.push({ms:ms,hand:hand,wrong:wrong});if(r.trace.length>STRIP_MAX)r.trace.shift();
   }
@@ -3437,7 +3453,7 @@ function handleHit(h){
   let i=nearestSlot(plan.slots,tc),sl=plan.slots[i],e=tc-sl.t;
   /* A hit a little before a flam or drag belongs to it as a grace note, even when another stroke is nearer. */
   const gj=graceSlot(plan.slots,tc,r.nextFin);
-  const viaGrace=gj>=0&&(gj===i||!(i>=r.nextFin&&Math.abs(e)<=Math.min(sl.w,S.tol/1000)));
+  const viaGrace=gj>=0&&(gj===i||!(i>=r.nextFin&&Math.abs(e)<=Math.min(sl.w,slotTol(sl)/1000)));
   if(viaGrace){i=gj;sl=plan.slots[i];e=tc-sl.t;}
   /* The detector listens below the trigger line when ghost notes are on. A quiet hit only counts on a ghost note. */
   if(!h.kb&&h.pk>0&&h.pk<Math.pow(10,S.sens/20)&&!(Math.abs(e)<=sl.w&&i>=r.nextFin&&sl.dy==='g'))return;
@@ -3884,7 +3900,6 @@ function buildRow(plan,g,w){
   const st=buildStaff(sg,w,undefined,undefined,dyn),cards=st.cards;
   cards.forEach((c,i)=>{c._slot=plan.cells[sg.cell0+pa.p*N+i].slot;});
   el.append(lab,st.svg);
-  if(!w)el.addEventListener('click',()=>{if(labelMode==='preview')goExercise(sg.idx,true);});
   return {el:el,lab:lab,cards:cards,sg:sg,si:pa.si,p:pa.p};
 }
 /* The row that will slide in next is built a moment after each shift, so building it never lands on the shift itself. */
@@ -4169,7 +4184,6 @@ function previewRows(animate){
     setRows(prevPlan,0,false);
   }
   paintRows(null,null);
-  $('rows').classList.toggle('pick',labelMode==='preview'&&!!prevPlan);
   const n=routineParsed.exercises.length;
 }
 /* Move the start exercise (routine mode, before a run). */
@@ -4459,7 +4473,7 @@ function recordRun(r){
   const prevBest=new Map();
   rows.forEach(x=>{const b=bestBefore(recs.runs,x.key,x.bpm,S.click,r.dyc);if(b!==null)prevBest.set(x.key,b);});
   const newTempo=rows.filter(x=>x.pct>=TARGET&&x.bpm>clearedBefore(recs.runs,x.key,S.click,recs.sum,r.dyc)&&scoreOn);
-  const bv0=badgeValues(recs.runs,recs.sum),score=runScore(run),hs0=highScores(recs.runs,recs.sum)[run.lv]||0,share0=bestShares(recs.runs,recs.sum)[run.lv]||0;
+  const bv0=badgeValues(recs.runs,recs.sum),score=runScore(run),hs0=highScores(recs.runs,recs.sum)[run.lv]||0,share0=bestShares(recs.runs,recs.sum)[shareKey(run.lv,run.tol)]||0;
   if(scoreOn)recs.runs.push(run);   /* a practice run is shown but not kept */
   let autoLib=null;   /* a kept routine goes to the library, where Delete removes it; discarding the run takes it back out */
   if(scoreOn&&rk&&run.rp&&run.rp.x&&!libFor(rk)&&recs.lib.length<MAX_LIB){autoLib={id:libId(),x:run.rp.x,t:Date.now()};recs.lib.push(autoLib);}
@@ -4516,15 +4530,17 @@ function renderAdvice(){
       }
     }
     {   /* the score, against a flawless run of what was played and against the best before */
-      const mx=L.practice?0:maxPoints(L.rows.map(x=>[x.due,tempoMult(x.key,x.bpm)]),L.run.lv),r=$('advRes');
+      const mx=L.practice?0:runMax(L.run),r=$('advRes');   /* the same maximum as the run's page */
       r.classList.toggle('solo',!mx);
       if(mx){
         const f=n=>n.toLocaleString('en-US'),lv=levelName(L.run.lv);
         $('advScore').textContent=f(L.score);$('advMax').textContent='/ '+f(mx);$('advHs').hidden=!L.hsNew;
         const bar=$('advScoreBar');bar.firstChild.style.width=Math.min(100,100*L.score/mx)+'%';
         const tk=bar.lastChild,showTk=L.share0>0&&L.share0<1;tk.hidden=!showTk;if(showTk)tk.style.left=(100*L.share0)+'%';
-        $('advPrev').textContent=L.share0>0?'Best on '+lv+': '+Math.round(100*L.share0)+'%':'First score on '+lv;
+        const at=' at \u00b1'+(L.run.tol||20)+' ms';
+        $('advPrev').textContent=L.share0>0?'Best on '+lv+at+': '+Math.round(100*L.share0)+'%':'First score on '+lv+at;
         $('advOfMax').textContent='This run: '+Math.round(100*L.score/mx)+'%';
+        $('advBonus').hidden=!winNote(L.run.tol);$('advBonus').textContent=winNote(L.run.tol);
       }
     }
   }
@@ -4692,7 +4708,7 @@ function renderUnlocked(L,wins){
   box.append(med,tx);
   const nx=document.createElement('div');nx.className='bnx';
   if(next){
-    const nm=document.createElement('b');nm.textContent='Next: '+b.nm[w.i+1]+', '+(b.lead?next+(b.suf||''):fmtBadge(b,next));
+    const nm=document.createElement('b');nm.textContent='Next: '+b.nm[w.i+1]+', '+(b.lead?next.toLocaleString('en-US')+(b.suf||''):fmtBadge(b,next));
     const bar=document.createElement('i'),f=document.createElement('b');f.style.width=Math.max(2,Math.round(100*(w.v-b.at[w.i])/(next-b.at[w.i])))+'%';bar.appendChild(f);
     nx.append(nm,bar);
   }else{const nm=document.createElement('b');nm.textContent='That is the top step.';nx.appendChild(nm);}
@@ -4727,7 +4743,7 @@ function renderBadges(){
       const t=document.createElement('span');t.className='bt';t.textContent=g.ids.length>1?b.name:g.name;tx.appendChild(t);
       const c=document.createElement('p');c.className='bc2';c.textContent=(done?b.nm[done-1]+' \u00b7 ':'')+fmtBadge(b,v[id]);tx.appendChild(c);
       const bar=document.createElement('div');bar.className='bbar';const f=document.createElement('i');f.style.width=(next?100*(v[id]-prev)/(next-prev):100)+'%';bar.appendChild(f);tx.appendChild(bar);
-      const g2=document.createElement('p');g2.className='bgo';g2.textContent=next?(b.lead?(next-v[id])+b.suf:(next-v[id]).toLocaleString('en-US'))+' to go for '+b.nm[done]+'':'Every step earned';tx.appendChild(g2);
+      const g2=document.createElement('p');g2.className='bgo';g2.textContent=next?(b.lead?(next-v[id]).toLocaleString('en-US')+b.suf:(next-v[id]).toLocaleString('en-US'))+' to go for '+b.nm[done]+'':'Every step earned';tx.appendChild(g2);
       row.appendChild(tx);w.appendChild(row);
     });
     box.appendChild(w);
@@ -5115,6 +5131,7 @@ function runMeta(r,withTime,noScore){
   bits.push(r.lv==='off'?'Count-in only':levelName(r.lv));
   if(r.mode==='routine'&&r.ne>1){const n=r.exercises.length;bits.push((n<r.ne?n+' of '+r.ne:r.ne)+' exercises');}   /* a partial run says how many were played */
   bits.push(r.bpm+' BPM');
+  if(r.tol&&r.tol!==20)bits.push('\u00b1'+r.tol+' ms');   /* a window other than the standard one */
   const m=runMins(r);if(m)bits.push(m);
   if(!noScore&&r.lv!=='off'){const v=runScore(r);if(v)bits.push('Score: '+v.toLocaleString('en-US'));}
   return bits.join(' · ');
@@ -5257,7 +5274,8 @@ function renderRunPage(r){
     mk('span','slab','Score');
     const hd=mk('div','shd');mk('b',null,f0(sc),hd);mk('span',null,'of '+f0(mx),hd);
     const bar=mk('div','sbar');mk('i',null,null,bar).style.width=Math.min(100,100*sc/mx)+'%';
-    const cp=mk('div','scap');mk('span',null,Math.round(100*sc/mx)+'% of max',cp);mk('span',null,'Best on '+levelName(r.lv)+': '+Math.round(100*(bestShares(recs.runs,recs.sum)[r.lv]||0))+'%',cp);
+    const cp=mk('div','scap');mk('span',null,Math.round(100*sc/mx)+'% of max',cp);mk('span',null,'Best on '+levelName(r.lv)+' at \u00b1'+(r.tol||20)+' ms: '+Math.round(100*(bestShares(recs.runs,recs.sum)[shareKey(r.lv,r.tol)]||0))+'%',cp);
+    if(winNote(r.tol))mk('p','swin',winNote(r.tol));
     const ac=mk('div','sacc'),pb=mk('b',null,a[0],ac);pb.className=a[1];
     const sp=mk('span',null,'on time',ac);
     const sm=document.createElement('small');sm.textContent=[isNaN(f.ms)?'':fmtMs(f.ms,1)+' ms',isNaN(f.db)?'':'±'+f.db.toFixed(1)+' dB'].filter(Boolean).join(' \u00b7 ');if(sm.textContent)sp.appendChild(sm);
@@ -5946,7 +5964,7 @@ function closeConfirm(go){
 function routineInfoOf(parsed){
   const ex=resolveExercises(parsed.exercises,eachDefault(parsed),{bpm:S.bpm,subdiv:S.subdiv});
   const keys=ex.map(b=>patKey(b.notes,b.groupStart,b.subs,b.defSub,b.sig));
-  return {max:maxPoints(ex.map((b,i)=>[b.passes*b.notes.filter(x=>x!=='_').length,tempoMult(keys[i],b.bpm)]),S.click),rk:routineKeyOf(keys)};
+  return {max:maxPoints(ex.map((b,i)=>[b.passes*b.notes.filter(x=>x!=='_').length,strokeMult(keys[i],b.bpm,S.tol)]),S.click),rk:routineKeyOf(keys)};   /* at the window set now */
 }
 const maxText=max=>'Max score: '+max.toLocaleString('en-US');
 function syncMaxScore(){
@@ -6344,7 +6362,7 @@ function showCachedList(){
 }
 
 /* ---------- controls ---------- */
-const LOCKED=['accent','others','pulse','bpm','bpmDown','bpmUp','subdiv','click','inputMode','routineText','fileBtn','openBtn','clearRoutine','playChange','libSel','libraryUrl','libName','libGo','libAll','eachVal','eachUnit','gap'];
+const LOCKED=['tol','accent','others','pulse','bpm','bpmDown','bpmUp','subdiv','click','inputMode','routineText','fileBtn','openBtn','clearRoutine','playChange','libSel','libraryUrl','libName','libGo','libAll','eachVal','eachUnit','gap'];
 function syncRunUI(){
   const on=!!(run&&!run.ended),play=on&&run.mode==='play',paused=on&&!!run.paused;
   const b=$('startBtn');
@@ -7004,11 +7022,6 @@ function wire(){
   $('recImport').addEventListener('click',()=>$('recFile').click());
   $('recFile').addEventListener('change',async e=>{await importRecs(e.target.files&&e.target.files[0]);e.target.value='';});
   $('recClear').addEventListener('click',openClear);
-  $('rows').addEventListener('keydown',e=>{
-    if(labelMode!=='preview'||S.mode!=='routine')return;
-    if(e.key==='ArrowDown'){e.preventDefault();goExercise(S.startExercise+1,true);}
-    else if(e.key==='ArrowUp'){e.preventDefault();goExercise(S.startExercise-1,true);}
-  });
   $('restartBtn').addEventListener('click',restartRun);
   $('stopBtn').addEventListener('click',()=>{if(run&&!run.ended)stopRun();});
   $('settle').addEventListener('input',e=>{S.settle=+e.target.value;$('settleOut').textContent=S.settle+' ms';pushDet();save();});
